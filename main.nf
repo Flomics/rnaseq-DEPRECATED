@@ -20,7 +20,7 @@ def helpMessage() {
     nextflow run nf-core/rnaseq --reads '*_R{1,2}.fastq.gz' --genome GRCh37 -profile docker
 
     Mandatory arguments:
-      --reads                       Path to input data (must be surrounded with quotes)
+      --input [file]                Path to input samplesheet with information about all samples (sample_id, fastq_1, fastq_2)
       -profile                      Configuration profile to use. Can use multiple (comma separated)
                                     Available: conda, docker, singularity, awsbatch, test and more.
 
@@ -332,7 +332,7 @@ ch_output_docs = file("$baseDir/docs/output.md", checkIfExists: true)
 /*
  * Create a channel for input read files
  */
-if (params.readPaths) {
+/*if (params.readPaths) {
     if (params.singleEnd) {
         Channel
             .from(params.readPaths)
@@ -352,14 +352,26 @@ if (params.readPaths) {
         .ifEmpty { exit 1, "Cannot find any reads matching: ${params.reads}\nNB: Path needs to be enclosed in quotes!\nNB: Path requires at least one * wildcard!\nIf this is single-end data, please specify --singleEnd on the command line." }
         .into { raw_reads_fastqc; raw_reads_trimgalore }
 }
+*/
+
+if (params.input) { ch_input = file(params.input, checkIfExists: true) } else { exit 1, "Input samplesheet file not specified!" }
+
+if (params.reads == "single") {
+  params.singleEnd == true
+}
+
 
 // Header log info
 log.info nfcoreHeader()
 def summary = [:]
 if (workflow.revision) summary['Pipeline Release'] = workflow.revision
 summary['Run Name'] = custom_runName ?: workflow.runName
-summary['Reads'] = params.reads
-summary['Data Type'] = params.singleEnd ? 'Single-End' : 'Paired-End'
+summary['Input'] = params.input
+if (params.resds == 'single') {
+  summary['Data Type'] = 'Single-End'
+} else {
+  summary['Data Type'] = 'Paired-End'
+}
 if (params.genome) summary['Genome'] = params.genome
 if (params.pico) summary['Library Prep'] = "SMARTer Stranded Total RNA-Seq Kit - Pico Input"
 summary['Strandedness'] = (unStranded ? 'None' : forwardStranded ? 'Forward' : reverseStranded ? 'Reverse' : 'None')
@@ -468,6 +480,68 @@ process get_software_versions {
     scrape_software_versions.py &> software_versions_mqc.yaml
     """
 }
+
+
+
+/*
+ * CHECK VALIDITY OF INPUT Samplesheet
+*/
+
+process CHECK_SAMPLESHEET {
+  tag "$samplesheet"
+  label 'process_low'
+  publishDir "${params.outdir}/pipeline_info", mode: params.publish_dir_mode
+
+  input:
+  path samplesheet from ch_input
+
+  output:
+  path "*.csv" into ch_samplesheet_reformat
+
+  script:  // This script is bundled with the pipeline, in Flomics/SARSCoV2/bin/
+  """
+  check_samplesheet.py $samplesheet samplesheet.pass
+  """
+}
+
+
+/*
+* PREPROCESSING: Reformat samplesheet and check validity
+*/
+// Function to get list of [ sample, single_end?, is_sra?, [ fastq_1, fastq_2 ] ]
+def validate_input(LinkedHashMap sample) {
+  def sample_id = sample.sample_id
+  def single_end = sample.single_end.toBoolean()
+  //def is_sra = sample.is_sra.toBoolean()
+  def fastq_1 = sample.fastq_1
+  def fastq_2 = sample.fastq_2
+
+  def array = []
+  //if (!is_sra) {
+  if (single_end) {
+    array = [ sample_id, single_end, [ file(fastq_1, checkIfExists: true) ] ]
+  } else {
+    array = [ sample_id, single_end, [ file(fastq_1, checkIfExists: true), file(fastq_2, checkIfExists: true) ] ]
+  }
+  return array
+}
+
+
+/*
+* Create channels for input fastq files
+*/
+
+ch_samplesheet_reformat
+  .splitCsv(header:true, sep:',')
+  .map { validate_input(it) }
+  .set { ch_reads_all}
+
+ch_reads_all
+  .map { [ it[0], it[2] ] }
+  .into { raw_reads_fastqc
+          raw_reads_trimgalore }
+
+
 
 compressedReference = hasExtension(params.fasta, 'gz') || hasExtension(params.transcript_fasta, 'gz') || hasExtension(params.star_index, 'gz') || hasExtension(params.hisat2_index, 'gz')
 
@@ -991,7 +1065,7 @@ if (!params.removeRiboRNA) {
             """
         }
     }
-}    
+}
 
 /*
  * STEP 3 - align with STAR
