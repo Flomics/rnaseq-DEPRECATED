@@ -1,0 +1,95 @@
+---
+title: |
+  ![](flomics_icon.png){width=3in}
+  <p style="color:#00AEEF">________________________________________________________</p>
+
+  <p style="color:#00AEEF">**RNAseq report from `r sample`**</p>
+date: <h4 style="font-style:normal"><p style="color:#00AEEF">`r Sys.Date()`</p></h4><br />
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    theme: cerulean
+keep_md: true
+sample: "`r sample`"
+single_end: "`r single_end`"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(knitr)
+library(OpenImageR)
+library(kableExtra)
+```
+
+# <font size="5"><span style="color: #00AEEF;">**Parameters**</span></font>
+
+```{r echo = FALSE}
+#parameters <- data.frame(parameter = c("Protocol", "Kit", "Allele frequency threshold (VC iVar)", "Minimum base quality (VC iVar)", "Minimum coverage (VC iVar)"), Value = c(protocol, kit, threshold, min_base_qual, min_coverage))
+#kable(parameters, align = 'l') %>%
+#  kable_styling(full_width = F) %>%
+#  column_spec(1, width = "50em") %>%
+#  column_spec(2, width = "30em")
+```
+
+#  <br /><font size="5"><span style="color: #00AEEF;">**Number of reads**</span></font>
+
+```{r echo = FALSE}
+tabseq <- paste("fastqc/", sample, "_total_sequences.txt", sep = "")
+seqpath <- file.path(getwd(), tabseq)
+if (file.exists(seqpath)){
+  seqs <- read.table(seqpath, stringsAsFactors = FALSE, sep = "\t")
+  seqs[,1] <- gsub(" .+", "", seqs[,1])
+  if (single_end == "paired") {
+    total <- data.frame(sample_name = c("R1", "R2"), Sequences = c(as.numeric(seqs[2,1])/4, as.numeric(seqs[2,2])/4))
+    colnames(total)[1] <- sample
+  } else {
+    total <- data.frame(sample_name = c("single_end"), Sequences = c(as.numeric(seqs[1,1]))/4)
+    colnames(total)[1] <- sample
+  }
+  kable(total) %>%
+    kable_styling(full_width = F) %>%
+    column_spec(1, width = "50em") %>%
+    column_spec(2, width = "30em")
+} else {
+  message ("Step fastqc was skipped")
+}
+```
+
+
+#  <br /><font size="5"><span style="color: #00AEEF;">**Number of trimmed reads**</span></font>
+
+```{r echo = FALSE}
+
+```
+
+
+# <font size="5"><span style="color: #00AEEF;">**Number of mapped reads**</span></font>
+
+```{r echo = FALSE}
+
+```
+
+
+# <br /><font size="5"><span style="color: #00AEEF;">**Coverage**</span></font>
+
+```{r echo = FALSE}
+```
+
+
+# <br /><font size="4"><span style="color: #00AEEF;">**Number of variants**</span></font>
+
+```{r echo = FALSE}
+
+```
+
+# <br /><font size="4"><span style="color: #00AEEF;">**Variants interpretation**</span></font>
+
+```{r echo = FALSE}
+```
+
+
+
+# <br /><font size="5"><span style="color: #00AEEF;">**Contact**</span></font>
+
+<font sieze="3">If you have any question, please contact [**support@flomics.com**](mailto:support@flomics.com) </font>

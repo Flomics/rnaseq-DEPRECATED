@@ -12,6 +12,7 @@ dependencies:
   - conda-forge::r-data.table=1.12.4
   - conda-forge::r-gplots=3.0.1.1
   - conda-forge::r-markdown=1.1
+  - conda-forge::markdown=3.2.1
 
   ## bioconda packages, see above
   - bioconductor-dupradar=1.14.0

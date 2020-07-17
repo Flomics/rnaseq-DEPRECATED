@@ -328,6 +328,9 @@ if (workflow.profile == 'awsbatch') {
 // Stage config files
 ch_multiqc_config = file(params.multiqc_config, checkIfExists: true)
 ch_output_docs = file("$baseDir/docs/output.md", checkIfExists: true)
+ch_report_docs = file("$baseDir/docs/report.Rmd", checkIfExists: true)
+ch_image_docs = file("$baseDir/docs/images/flomics_icon.png", checkIfExists: true)
+
 
 /*
  * Create a channel for input read files
@@ -537,9 +540,17 @@ ch_samplesheet_reformat
   .set { ch_reads_all}
 
 ch_reads_all
-  .map { [ it[0], it[2] ] }
+  .map { [ it[0], it[1], it[2] ] }
   .into { raw_reads_fastqc
-          raw_reads_trimgalore }
+          raw_reads_trimgalore
+          ch_single
+          ch_count_reads }
+
+ch_single
+  .map { [ it[1] ] }
+  .into { ch_single_qualimap
+          ch_single_dupradar
+          ch_single_salmon }
 
 
 
@@ -910,7 +921,7 @@ process fastqc {
     !params.skipQC && !params.skipFastQC
 
     input:
-    set val(name), file(reads) from raw_reads_fastqc
+    set val(name), val(single_end), file(reads) from raw_reads_fastqc
 
     output:
     file "*_fastqc.{zip,html}" into fastqc_results
@@ -939,11 +950,11 @@ if (!params.skipTrimming) {
             }
 
         input:
-        set val(name), file(reads) from raw_reads_trimgalore
+        set val(name), val(single_end), file(reads) from raw_reads_trimgalore
         file wherearemyfiles from ch_where_trim_galore.collect()
 
         output:
-        set val(name), file("*fq.gz") into trimgalore_reads
+        set val(name), val(single_end), file("*fq.gz") into trimgalore_reads
         file "*trimming_report.txt" into trimgalore_results
         file "*_fastqc.{zip,html}" into trimgalore_fastqc_reports
         file "where_are_my_files.txt"
@@ -955,7 +966,7 @@ if (!params.skipTrimming) {
         tpc_r1 = three_prime_clip_r1 > 0 ? "--three_prime_clip_r1 ${three_prime_clip_r1}" : ''
         tpc_r2 = three_prime_clip_r2 > 0 ? "--three_prime_clip_r2 ${three_prime_clip_r2}" : ''
         nextseq = params.trim_nextseq > 0 ? "--nextseq ${params.trim_nextseq}" : ''
-        if (params.singleEnd) {
+        if (single_end) {
             """
             trim_galore --fastqc --gzip $c_r1 $tpc_r1 $nextseq $reads
             """
@@ -1009,13 +1020,13 @@ if (!params.removeRiboRNA) {
             }
 
         input:
-        set val(name), file(reads) from trimgalore_reads
+        set val(name), val(single_end), file(reads) from trimgalore_reads
         val(db_name) from sortmerna_db_name.collect()
         file(db_fasta) from sortmerna_db_fasta.collect()
         file(db) from sortmerna_db.collect()
 
         output:
-        set val(name), file("*.fq.gz") into trimmed_reads_alignment, trimmed_reads_salmon
+        set val(name), val(single_end), file("*.fq.gz") into trimmed_reads_alignment, trimmed_reads_salmon
         file "*_rRNA_report.txt" into sortmerna_logs
 
 
@@ -1025,7 +1036,7 @@ if (!params.removeRiboRNA) {
         for (i=0; i<db_fasta.size(); i++) { Refs+= ":${db_fasta[i]},${db_name[i]}" }
         Refs = Refs.substring(1)
 
-        if (params.singleEnd) {
+        if (single_end) {
             """
             gzip -d --force < ${reads} > all-reads.fastq
 
@@ -1106,7 +1117,7 @@ if (!params.skipAlignment) {
               }
 
           input:
-          set val(name), file(reads) from trimmed_reads_alignment
+          set val(name), val(single_end), file(reads) from trimmed_reads_alignment
           file index from star_index.collect()
           file gtf from gtf_star.collect()
           file wherearemyfiles from ch_where_star.collect()
@@ -1166,7 +1177,7 @@ if (!params.skipAlignment) {
               }
 
           input:
-          set val(name), file(reads) from trimmed_reads_alignment
+          set val(name), val(single_end), file(reads) from trimmed_reads_alignment
           file hs2_indices from hs2_indices.collect()
           file alignment_splicesites from alignment_splicesites.collect()
           file wherearemyfiles from ch_where_hisat2.collect()
@@ -1183,12 +1194,12 @@ if (!params.skipAlignment) {
           seq_center = params.seq_center ? "--rg-id ${prefix} --rg CN:${params.seq_center.replaceAll('\\s','_')} SM:$prefix" : "--rg-id ${prefix} --rg SM:$prefix"
           def rnastrandness = ''
           if (forwardStranded && !unStranded) {
-              rnastrandness = params.singleEnd ? '--rna-strandness F' : '--rna-strandness FR'
+              rnastrandness = single_end ? '--rna-strandness F' : '--rna-strandness FR'
           } else if (reverseStranded && !unStranded) {
-              rnastrandness = params.singleEnd ? '--rna-strandness R' : '--rna-strandness RF'
+              rnastrandness = single_end ? '--rna-strandness R' : '--rna-strandness RF'
           }
 
-          if (params.singleEnd) {
+          if (single_end) {
               unaligned = params.saveUnaligned ? "--un-gz unmapped.hisat2.gz" : ''
               """
               hisat2 -x $index_base \\
@@ -1379,6 +1390,7 @@ if (!params.skipAlignment) {
       input:
       file bam from bam_qualimap
       file gtf from gtf_qualimap.collect()
+      val(single_end) from ch_single_qualimap
 
       output:
       file "${bam.baseName}" into qualimap_results
@@ -1390,7 +1402,7 @@ if (!params.skipAlignment) {
       }else if (reverseStranded) {
           qualimap_direction = 'strand-specific-reverse'
       }
-      def paired = params.singleEnd ? '' : '-pe'
+      def paired = single_end ? '' : '-pe'
       memory = task.memory.toGiga() + "G"
       """
       unset DISPLAY
@@ -1421,6 +1433,7 @@ if (!params.skipAlignment) {
       input:
       file bam_md
       file gtf from gtf_dupradar.collect()
+      val(single_end) from ch_single_dupradar
 
       output:
       file "*.{pdf,txt}" into dupradar_results
@@ -1432,7 +1445,7 @@ if (!params.skipAlignment) {
       } else if (reverseStranded && !unStranded) {
           dupradar_direction = 2
       }
-      def paired = params.singleEnd ? 'single' :  'paired'
+      def paired = single_end ? 'single' :  'paired'
       """
       dupRadar.r $bam_md $gtf $dupradar_direction $paired ${task.cpus}
       """
@@ -1611,22 +1624,23 @@ if (params.pseudo_aligner == 'salmon') {
         publishDir "${params.outdir}/salmon", mode: 'copy'
 
         input:
-        set sample, file(reads) from trimmed_reads_salmon
+        set sample, val(single_end), file(reads) from trimmed_reads_salmon
         file index from salmon_index.collect()
         file gtf from gtf_salmon.collect()
 
         output:
         file "${sample}/" into salmon_logs
         set val(sample), file("${sample}/") into salmon_tximport, salmon_parsegtf
+        val(single_end) from ch_single_salmon
 
         script:
-        def rnastrandness = params.singleEnd ? 'U' : 'IU'
+        def rnastrandness = single_end ? 'U' : 'IU'
         if (forwardStranded && !unStranded) {
-            rnastrandness = params.singleEnd ? 'SF' : 'ISF'
+            rnastrandness = single_end ? 'SF' : 'ISF'
         } else if (reverseStranded && !unStranded) {
-            rnastrandness = params.singleEnd ? 'SR' : 'ISR'
+            rnastrandness = single_end ? 'SR' : 'ISR'
         }
-        def endedness = params.singleEnd ? "-r ${reads[0]}" : "-1 ${reads[0]} -2 ${reads[1]}"
+        def endedness = single_end ? "-r ${reads[0]}" : "-1 ${reads[0]} -2 ${reads[1]}"
         unmapped = params.saveUnaligned ? "--writeUnmappedNames" : ''
         """
         salmon quant --validateMappings \\
@@ -1718,6 +1732,67 @@ if (params.pseudo_aligner == 'salmon') {
 }
 
 
+
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+/* --                                                                     -- */
+/* --                          MARKDOWN REPORT                            -- */
+/* --                                                                     -- */
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+/*
+ch_mrkd = ch_count_reads
+  .join(ch_fastp_mrkd, remainder: true)
+  .join(ch_fastp_seq_mrkd, remainder: true)
+  .join(ch_fig_mrkd, remainder: true)
+  .join(ch_tab_mrkd, remainder: true)
+  .join(ch_bowtie2_mrkd, remainder: true)
+  .join(ch_file_coverage_mrkd, remainder: true)
+  .join(ch_figure_coverage_mrkd, remainder: true)
+  .join(ch_trimmed_primer_mrkd, remainder: true)
+  .join(ch_indels_mrkd, remainder: true)
+  .join(ch_mutation_report_mrkd, remainder: true)
+*/
+
+/*process MARKDOWN_REPORT {
+  tag "$sample"
+  label 'process_low'
+  publishDir "${params.outdir}/${sample}/Report", mode: params.publish_dir_mode
+  if (workflow.profile.contains('webserver')) {
+    publishDir "${params.frontendoutdir}", mode: params.publish_dir_mode
+  }
+
+  input:
+  //set val(sample), val(single_end), path(reads), file('fastp/*'), file('fastp/*'), file('kraken2/*'), file('kraken2/*'), file('bowtie2/*'), file("qualimap/*"), file("qualimap/*"), file("ivar_trim/*"), file("ivar_var/*"), file("mutations/*") from ch_mrkd
+  set val(sample), val(single_end), path(reads) from ch_count_reads
+  path report_docs from ch_report_docs
+  path image from ch_image_docs
+
+  output:
+  set val(sample), path ('*.html') into ch_report_sample_zip
+
+  script:
+  se = single_end ? "" : "paired"
+  """
+  mkdir fastqc
+  if $single_end; then
+      zcat $reads | wc -l > fastqc/${sample}_total_sequences.txt
+  else
+      zcat ${reads[0]} | wc -l > fastqc/${sample}_total_sequences.txt
+      zcat ${reads[1]} | wc -l >> fastqc/${sample}_total_sequences.txt
+  fi
+  cp $report_docs 'report_to_html.Rmd'
+  Rscript -e "sample='${sample}'; single_end='$se'; rmarkdown::render(input = 'report_to_html.Rmd', output_file = '${sample}.html')"
+  """
+}
+
+
+
+
+
+
+
+
 /*
  * STEP 14 - MultiQC
  */
@@ -1753,7 +1828,7 @@ process multiqc {
     rtitle = custom_runName ? "--title \"$custom_runName\"" : ''
     rfilename = custom_runName ? "--filename " + custom_runName.replaceAll('\\W','_').replaceAll('_+','_') + "_multiqc_report" : ''
     """
-    multiqc . -f $rtitle $rfilename --config $multiqc_config \\
+    multiqc . -f $rtitle $rfilename --config $multiqc_config -b 'This is the report for the request ${params.request} from the user ${params.user} at date and time ${params.timestamp}' -n "general.report.html"\\
         -m custom_content -m picard -m preseq -m rseqc -m featureCounts -m hisat2 -m star -m cutadapt -m sortmerna -m fastqc -m qualimap -m salmon
     """
 }
