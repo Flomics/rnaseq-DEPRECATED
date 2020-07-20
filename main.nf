@@ -1754,7 +1754,7 @@ ch_mrkd = ch_count_reads
   .join(ch_mutation_report_mrkd, remainder: true)
 */
 
-/*process MARKDOWN_REPORT {
+process MARKDOWN_REPORT {
   tag "$sample"
   label 'process_low'
   publishDir "${params.outdir}/${sample}/Report", mode: params.publish_dir_mode
@@ -1820,7 +1820,7 @@ process multiqc {
     file workflow_summary from create_workflow_summary(summary)
 
     output:
-    file "*multiqc_report.html" into multiqc_report
+    file "*general.report.html" into multiqc_report
     file "*_data"
     file "multiqc_plots"
 
