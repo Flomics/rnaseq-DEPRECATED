@@ -1,6 +1,6 @@
 # You can use this file to create a conda environment for this pipeline:
 #   conda env create -f environment.yml
-name: nf-core-rnaseq-1.4.2
+name: flomics-rnaseq
 channels:
   - conda-forge
   - bioconda
@@ -11,7 +11,13 @@ dependencies:
   - r-base=3.6.1
   - conda-forge::r-data.table=1.12.4
   - conda-forge::r-gplots=3.0.1.1
-  - conda-forge::r-markdown=1.1
+  - conda-forge::markdown=3.2.1
+  - conda-forge::python=3.6.10
+  - conda-forge::r-ggplot2=3.1.0
+  - conda-forge::r-rmarkdown=1.10
+  - conda-forge::r-openimager=1.1.6
+  - conda-forge::r-kableextra=1.1.0
+
 
   ## bioconda packages, see above
   - bioconductor-dupradar=1.14.0
