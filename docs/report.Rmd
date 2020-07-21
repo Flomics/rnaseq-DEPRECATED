@@ -18,7 +18,7 @@ single_end: "`r single_end`"
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(knitr)
-library(OpenImageR)
+#library(OpenImageR)
 library(kableExtra)
 ```
 

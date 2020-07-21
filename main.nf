@@ -1782,7 +1782,7 @@ process MARKDOWN_REPORT {
       zcat ${reads[1]} | wc -l >> fastqc/${sample}_total_sequences.txt
   fi
   cp $report_docs 'report_to_html.Rmd'
-  Rscript -e " rmarkdown::render(input = 'report_to_html.Rmd', output_file = '${sample}.html'); sample='${sample}'; single_end='$se'"
+  Rscript -e "sample='${sample}'; single_end='$se'; rmarkdown::render(input = 'report_to_html.Rmd', output_file = '${sample}.html')"
   """
 }
 

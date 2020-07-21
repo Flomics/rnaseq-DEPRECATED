@@ -6,16 +6,15 @@ channels:
   - bioconda
   - defaults
 dependencies:
-  ## conda-forge packages, sorting now alphabetically, without the channel prefix!
-  - matplotlib=3.0.3        # Current 3.1.0 build incompatible with multiqc=1.7
+  - matplotlib=3.1.1        # Current 3.1.0 build incompatible with multiqc=1.7
   - r-base=3.6.1
   - conda-forge::r-data.table=1.12.4
   - conda-forge::r-gplots=3.0.1.1
   - conda-forge::r-markdown=1.1
   - conda-forge::r-ggplot2=3.3.2
   - conda-forge::r-rmarkdown=2.3
+  - conda-forge::r-stringi=1.4.6
   - conda-forge::r-kableextra=1.1.0
-
 
 
   ## bioconda packages, see above
@@ -27,7 +26,7 @@ dependencies:
   - fastqc=0.11.8
   - gffread=0.11.4
   - hisat2=2.1.0
-  - multiqc=1.7
+  - multiqc=1.8
   - picard=2.21.1
   - preseq=2.0.3
   - qualimap=2.2.2c
