@@ -18,7 +18,7 @@ single_end: "`r single_end`"
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(knitr)
-#library(OpenImageR)
+library(OpenImageR)
 library(kableExtra)
 ```
 
@@ -60,6 +60,29 @@ if (file.exists(seqpath)){
 #  <br /><font size="5"><span style="color: #00AEEF;">**Number of trimmed reads**</span></font>
 
 ```{r echo = FALSE}
+tabtrim <- paste("trim_galore/", sample, "_after_trimming_sequences.txt", sep = "")
+path <- file.path(getwd(), tabtrim)
+if (file.exists(path)){
+  trimmed <- read.table(path, sep = "\t", stringsAsFactors = FALSE)
+  trimmed$V2 <- gsub(".f.+q.gz","",trimmed$V2,ignore.case=T)
+  trimmed$V1 <- gsub("Filename","Sample",trimmed$V1,ignore.case=T)
+  numseqfile <- paste("trim_galore/", sample, "_number_sequences.txt", sep = "")
+  numseqpath <- file.path(getwd(), numseqfile)
+  numseq <- read.table(numseqpath, stringsAsFactors = FALSE, sep = "\t")
+  if (single_end == "paired") {
+    trim <- data.frame(sample_name = c("R1", "R2"), Discarded_reads = c(as.numeric(numseq[1,1])/4-as.numeric(trimmed[2,2]), as.numeric(numseq[2,1])/4-as.numeric(trimmed[4,2])))
+    colnames(trim)[1] <- sample
+  } else {
+    trim <- data.frame(sample_name = c("single_end"), Discarded_reads = c(as.numeric(numseq[1,1])/4-as.numeric(trimmed[2,2])))
+    colnames(trim)[1] <- sample
+  }
+  kable(trim, align = "l") %>%
+    kable_styling(full_width = F) %>%
+    column_spec(1, width = "50em") %>%
+    column_spec(2, width = "30em")
+} else {
+  message ("Step for adapter trimming has been skipped")
+}
 
 ```
 
@@ -67,13 +90,51 @@ if (file.exists(seqpath)){
 # <font size="5"><span style="color: #00AEEF;">**Number of mapped reads**</span></font>
 
 ```{r echo = FALSE}
+mapfile <- paste("star/", sample, "Log.final.out", sep = "")
+mappath <- file.path(getwd(), mapfile)
+if (file.exists(mappath)){
+  mapped <- read.table(mappath, stringsAsFactors = FALSE, sep = "\\")
+  input <- as.numeric(gsub("[A-Za-z]+|\t|\\|| ", "", mapped[5,]))
+  mapped <- as.numeric(gsub("[A-Za-z]+|\t|\\|| ", "", mapped[8,])) + as.numeric(gsub("[A-Za-z]+|\t|\\|| ", "", mapped[23,])) + as.numeric(gsub("[A-Za-z]+|\t|\\|| ", "", mapped[25,]))
+  mapped_percentage <- mapped/input * 100
+  if (single_end == "paired") {
+    total_reads <- input*2
+    mapped_reads <- mapped*2
+  } else {
+    total_reads <- input
+    mapped_reads <- mapped
+  }
+  mapped_percentage <- round(mapped_reads/total_reads, 2)
+  maptab <- data.frame(names = c("Total reads for mapping", "%mapped reads", "mapped reads"), Values = c(total_reads, mapped_percentage, mapped_reads))
+  kable(maptab, row.names = NA, col.names = c("", "value"))  %>%
+    kable_styling(full_width = F) %>%
+    column_spec(1, width = "50em") %>%
+    column_spec(2, width = "30em")
+} else {
+  message("Mapping step has been skipped")
+}
 
 ```
 
 
-# <br /><font size="5"><span style="color: #00AEEF;">**Coverage**</span></font>
+# <br /><font size="5"><span style="color: #00AEEF;">**Transcript coverage profile**</span></font>
 
 ```{r echo = FALSE}
+file <- paste("qualimap/", sample, ".coverage.txt", sep = "")
+coverage <- read.table(file, header = FALSE, stringsAsFactors = FALSE)
+coverage.df <- data.frame(bias = coverage$V1, value = coverage$V4)
+kable(coverage.df, row.names = NA, col.names = c("Bias", "Value")) %>%
+  kable_styling(full_width = F) %>%
+  column_spec(1, width = "50em") %>%
+  column_spec(2, width = "30em")
+```
+
+```{r echo = FALSE}
+#Image
+im_file <- paste("qualimap/", sample, ".genome_coverage_across_reference.png", sep = "")
+path <- file.path(getwd(), im_file)
+im <- readImage(path)
+imageShow(im)
 ```
 
 
