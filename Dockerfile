@@ -4,4 +4,4 @@ LABEL authors="phil.ewels@scilifelab.se" \
 
 COPY environment.yml /
 RUN conda env create -f /environment.yml && conda clean -a
-ENV PATH /opt/conda/envs/flomicsbiotech-rnaseq-dev/bin:$PATH
+ENV PATH /opt/conda/envs/flomicsbiotech-rnaseq/bin:$PATH

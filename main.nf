@@ -25,7 +25,7 @@ def helpMessage() {
                                     Available: conda, docker, singularity, awsbatch, test and more.
 
     Generic:
-      --singleEnd                   Specifies that the input is single-end reads
+      --reads                       Specifies that the input is single-end reads (provided by webserver)
 
     References:                     If not specified in the configuration file or you wish to overwrite any of the references.
       --genome                      Name of iGenomes reference
@@ -107,6 +107,7 @@ if (params.help) {
     helpMessage()
     exit 0
 }
+
 
 /*
  * SET UP CONFIGURATION VARIABLES
@@ -219,7 +220,7 @@ if (params.aligner == 'hisat2' && params.splicesites) {
 
 // Separately check for whether salmon needs a genome fasta to extract
 // transcripts from, or can use a transcript fasta directly
-if (params.pseudo_aligner == 'salmon') {
+//if (params.pseudo_aligner == 'salmon') {
     if (params.salmon_index) {
       if (hasExtension(params.salmon_index, 'gz')) {
         salmon_index_gz = Channel
@@ -254,7 +255,7 @@ if (params.pseudo_aligner == 'salmon') {
     } else {
       exit 1, "To use with `--pseudo_aligner 'salmon'`, must provide either --transcript_fasta or both --fasta and --gtf"
     }
-}
+//}
 
 if (params.gtf) {
   if (params.gff) {
@@ -314,16 +315,47 @@ custom_runName = params.name
 if (!(workflow.runName ==~ /[a-z]+_[a-z]+/)) {
   custom_runName = workflow.runName
 }
+else{
+  workflow.runName = params.user + " " + params.timestamp
+  custom_runName = workflow.runName
+}
 
-if (workflow.profile == 'awsbatch') {
+
+//Output folders
+if (workflow.profile.contains('webserver')) {
+  params.outdir= 's3://aws-nextflow-rnaseq/' + params.user + '/' + params.request + '/' + params.run
+} else if (workflow.profile.contains('awsbatch')) {
+  params.outdir= 's3://aws-nextflow-rnaseq/' + params.run
+} else if (!params.outdir) {
+  params.outdir = params.run
+}
+
+
+////////////////////////////////////////////////////
+/* --                   AWS                    -- */
+////////////////////////////////////////////////////
+
+if (workflow.profile.contains('awsbatch') || workflow.profile.contains('webserver')) {
   // AWSBatch sanity checking
   if (!params.awsqueue || !params.awsregion) exit 1, "Specify correct --awsqueue and --awsregion parameters on AWSBatch!"
   // Check outdir paths to be S3 buckets if running on AWSBatch
   // related: https://github.com/nextflow-io/nextflow/issues/813
   if (!params.outdir.startsWith('s3:')) exit 1, "Outdir not on S3 - specify S3 Bucket to run on AWSBatch!"
   // Prevent trace files to be stored on S3 since S3 does not support rolling files.
-  if (workflow.tracedir.startsWith('s3:')) exit 1, "Specify a local tracedir or run without trace! S3 cannot be used for tracefiles."
+  if (params.tracedir.startsWith('s3:')) exit 1, "Specify a local tracedir or run without trace! S3 cannot be used for tracefiles."
 }
+
+
+////////////////////////////////////////////////////
+/* --                WEBSERVER                 -- */
+////////////////////////////////////////////////////
+
+if (workflow.profile.contains('webserver')) {
+  // Check frontendoutdir paths to be S3 buckets if running on webserver
+  if (!params.frontendoutdir.startsWith('s3:')) exit 1, "Fronted outdir not on S3 - specify S3 Bucket to run on webserver!"
+}
+
+
 
 // Stage config files
 ch_multiqc_config = file(params.multiqc_config, checkIfExists: true)
@@ -389,10 +421,10 @@ if (params.aligner == 'star') {
     else if (params.fasta)summary['Fasta Ref'] = params.fasta
     if (params.splicesites)summary['Splice Sites'] = params.splicesites
 }
-if (params.pseudo_aligner == 'salmon') {
+//if (params.pseudo_aligner == 'salmon') {
     summary['Pseudo Aligner'] = "Salmon"
     if (params.transcript_fasta)summary['Transcript Fasta'] = params.transcript_fasta
-}
+//}
 if (params.gtf) summary['GTF Annotation'] = params.gtf
 if (params.gff) summary['GFF3 Annotation'] = params.gff
 if (params.bed12) summary['BED Annotation'] = params.bed12
@@ -565,7 +597,9 @@ if (compressedReference) {
   need_hisat2_index = params.aligner == 'hisat2' && !params.hisat2_index
   need_aligner_index = need_hisat2_index || need_star_index
   alignment_no_indices = !params.skipAlignment && need_aligner_index
-  pseudoalignment_no_indices = params.pseudo_aligner == "salmon" && !(params.transcript_fasta || params.salmon_index)
+  //pseudoalignment_no_indices = params.pseudo_aligner == "salmon" && !(params.transcript_fasta || params.salmon_index)
+  pseudoalignment_no_indices = params.transcript_fasta || params.salmon_index
+
   if (params.fasta && (alignment_no_indices || pseudoalignment_no_indices)) {
     process gunzip_genome_fasta {
         tag "$gz"
@@ -621,7 +655,9 @@ if (compressedReference) {
         """
     }
   }
-  if (params.transcript_fasta && params.pseudo_aligner == 'salmon' && !params.salmon_index) {
+  //if (params.transcript_fasta && params.pseudo_aligner == 'salmon' && !params.salmon_index) {
+  if (params.transcript_fasta && !params.salmon_index) {
+
     process gunzip_transcript_fasta {
         tag "$gz"
         publishDir path: { params.saveReference ? "${params.outdir}/reference_transcriptome" : params.outdir },
@@ -695,7 +731,8 @@ if (compressedReference) {
         """
     }
   }
-  if (params.salmon_index && params.pseudo_aligner == 'salmon') {
+  if (params.salmon_index) {
+//  if (params.salmon_index && params.pseudo_aligner == 'salmon') {
     process gunzip_salmon_index {
         tag "$gz"
         publishDir path: { params.saveReference ? "${params.outdir}/reference_transcriptome/hisat2" : params.outdir },
@@ -865,7 +902,9 @@ if (!params.skipAlignment) {
 /*
  * PREPROCESSING - Create Salmon transcriptome index
  */
-if (params.pseudo_aligner == 'salmon' && !params.salmon_index) {
+//if (params.pseudo_aligner == 'salmon' && !params.salmon_index) {
+
+if (!params.salmon_index) {
     if (!params.transcript_fasta) {
         process transcriptsToFasta {
             tag "$fasta"
@@ -958,6 +997,8 @@ if (!params.skipTrimming) {
         file "*trimming_report.txt" into trimgalore_results
         file "*_fastqc.{zip,html}" into trimgalore_fastqc_reports
         file "where_are_my_files.txt"
+        set val(name), path("*_after_trimming_sequences.txt") into ch_trimgalore_mrkd
+        set val(name), path("${name}_number_sequences.txt") into ch_trimgalore_seq_mrkd
 
 
         script:
@@ -968,11 +1009,20 @@ if (!params.skipTrimming) {
         nextseq = params.trim_nextseq > 0 ? "--nextseq ${params.trim_nextseq}" : ''
         if (single_end) {
             """
-            trim_galore --fastqc --gzip $c_r1 $tpc_r1 $nextseq $reads
+            [ ! -f  ${name}.fastq.gz ] && ln -s $reads ${name}.fastq.gz
+            zcat ${name}.fastq.gz | wc -l > ${name}_number_sequences.txt
+            trim_galore --fastqc --gzip $c_r1 $tpc_r1 $nextseq ${name}.fastq.gz
+            unzip -p '${name}_trimmed_fastqc.zip' ${name}_trimmed_fastqc/fastqc_data.txt | grep -E "Total Sequences|Filename*" > '${name}_after_trimming_sequences.txt'
             """
         } else {
             """
-            trim_galore --paired --fastqc --gzip $c_r1 $c_r2 $tpc_r1 $tpc_r2 $nextseq $reads
+            [ ! -f  ${name}_1.fastq.gz ] && ln -s ${reads[0]} ${name}_1.fastq.gz
+            [ ! -f  ${name}_2.fastq.gz ] && ln -s ${reads[1]} ${name}_2.fastq.gz
+            zcat ${name}_1.fastq.gz | wc -l > ${name}_number_sequences.txt
+            zcat ${name}_2.fastq.gz | wc -l >> ${name}_number_sequences.txt
+            trim_galore --paired --fastqc --gzip $c_r1 $c_r2 $tpc_r1 $tpc_r2 $nextseq ${name}_1.fastq.gz ${name}_2.fastq.gz
+            unzip -p '${name}_1_trimmed_val_1_fastqc.zip' ${name}_1_val_1_fastqc/fastqc_data.txt | grep -E "Total Sequences|Filename*" > '${name}_after_trimming_sequences.txt'
+            unzip -p '${name}_2_trimmed_val_2_fastqc.zip' ${name}_2_val_2_fastqc/fastqc_data.txt | grep -E "Total Sequences|Filename*" >> '${name}_after_trimming_sequences.txt'
             """
         }
     }
@@ -1123,13 +1173,16 @@ if (!params.skipAlignment) {
           file wherearemyfiles from ch_where_star.collect()
 
           output:
-          set file("*Log.final.out"), file ('*.bam') into star_aligned
+          set val(name), file("*Log.final.out"), file('*.bam') into star_aligned
           file "*.out" into alignment_logs
           file "*SJ.out.tab"
           file "*Log.out" into star_log
           file "where_are_my_files.txt"
           file "*Unmapped*" optional true
           file "${prefix}Aligned.sortedByCoord.out.bam.bai" into bam_index_rseqc, bam_index_genebody
+          set val(name), path("*Log.final.out") into ch_star_mrkd
+
+
 
           script:
           prefix = reads[0].toString() - ~/(_R1)?(_trimmed)?(_val_1)?(\.fq)?(\.fastq)?(\.gz)?$/
@@ -1154,16 +1207,17 @@ if (!params.skipAlignment) {
       }
       // Filter removes all 'aligned' channels that fail the check
       star_aligned
-          .filter { logs, bams -> check_log(logs) }
-          .flatMap {  logs, bams -> bams }
-      .into { bam_count; bam_rseqc; bam_qualimap; bam_preseq; bam_markduplicates; bam_featurecounts; bam_stringtieFPKM; bam_forSubsamp; bam_skipSubsamp  }
+          .filter { name, logs, bams -> check_log(logs) }
+          .map { [ it[0], it[2] ] }
+      .into { trial; bam_count; bam_rseqc; bam_qualimap; bam_preseq; bam_markduplicates; bam_featurecounts; bam_stringtieFPKM; bam_forSubsamp; bam_skipSubsamp  }
   }
 
+  trial.println()
 
   /*
    * STEP 3 - align with HISAT2
    */
-  if (params.aligner == 'hisat2') {
+  /*if (params.aligner == 'hisat2') {
       star_log = Channel.from(false)
       process hisat2Align {
           label 'high_memory'
@@ -1270,7 +1324,7 @@ if (!params.skipAlignment) {
    */
   process rseqc {
       label 'mid_memory'
-      tag "${bam_rseqc.baseName - '.sorted'}"
+      tag "${bam.baseName - '.sorted'}"
       publishDir "${params.outdir}/rseqc" , mode: 'copy',
           saveAs: {filename ->
                    if (filename.indexOf("bam_stat.txt") > 0)                      "bam_stat/$filename"
@@ -1301,7 +1355,7 @@ if (!params.skipAlignment) {
       !params.skipQC && !params.skipRseQC
 
       input:
-      file bam_rseqc
+      set val(name), file(bam) from bam_rseqc
       file index from bam_index_rseqc
       file bed12 from bed_rseqc.collect()
 
@@ -1310,13 +1364,13 @@ if (!params.skipAlignment) {
 
       script:
       """
-      infer_experiment.py -i $bam_rseqc -r $bed12 > ${bam_rseqc.baseName}.infer_experiment.txt
-      junction_annotation.py -i $bam_rseqc -o ${bam_rseqc.baseName}.rseqc -r $bed12
-      bam_stat.py -i $bam_rseqc 2> ${bam_rseqc.baseName}.bam_stat.txt
-      junction_saturation.py -i $bam_rseqc -o ${bam_rseqc.baseName}.rseqc -r $bed12 2> ${bam_rseqc.baseName}.junction_annotation_log.txt
-      inner_distance.py -i $bam_rseqc -o ${bam_rseqc.baseName}.rseqc -r $bed12
-      read_distribution.py -i $bam_rseqc -r $bed12 > ${bam_rseqc.baseName}.read_distribution.txt
-      read_duplication.py -i $bam_rseqc -o ${bam_rseqc.baseName}.read_duplication
+      infer_experiment.py -i $bam -r $bed12 > ${bam.baseName}.infer_experiment.txt
+      junction_annotation.py -i $bam -o ${bam.baseName}.rseqc -r $bed12
+      bam_stat.py -i $bam 2> ${bam.baseName}.bam_stat.txt
+      junction_saturation.py -i $bam -o ${bam.baseName}.rseqc -r $bed12 2> ${bam.baseName}.junction_annotation_log.txt
+      inner_distance.py -i $bam -o ${bam.baseName}.rseqc -r $bed12
+      read_distribution.py -i $bam -r $bed12 > ${bam.baseName}.read_distribution.txt
+      read_duplication.py -i $bam -o ${bam.baseName}.read_duplication
       """
   }
 
@@ -1324,21 +1378,21 @@ if (!params.skipAlignment) {
    * STEP 5 - preseq analysis
    */
   process preseq {
-      tag "${bam_preseq.baseName - '.sorted'}"
+      tag "${bam.baseName - '.sorted'}"
       publishDir "${params.outdir}/preseq", mode: 'copy'
 
       when:
       !params.skipQC && !params.skipPreseq
 
       input:
-      file bam_preseq
+      set val(name), file(bam) from bam_preseq
 
       output:
-      file "${bam_preseq.baseName}.ccurve.txt" into preseq_results
+      file "${bam.baseName}.ccurve.txt" into preseq_results
 
       script:
       """
-      preseq lc_extrap -v -B $bam_preseq -o ${bam_preseq.baseName}.ccurve.txt
+      preseq lc_extrap -v -B $bam -o ${bam.baseName}.ccurve.txt
       """
   }
 
@@ -1354,7 +1408,7 @@ if (!params.skipAlignment) {
       !params.skipQC && !params.skipDupRadar
 
       input:
-      file bam from bam_markduplicates
+      set val(name), file(bam) from bam_markduplicates
 
       output:
       file "${bam.baseName}.markDups.bam" into bam_md
@@ -1388,12 +1442,15 @@ if (!params.skipAlignment) {
       !params.skipQC && !params.skipQualimap
 
       input:
-      file bam from bam_qualimap
+      set val(name), file(bam) from bam_qualimap
       file gtf from gtf_qualimap.collect()
       val(single_end) from ch_single_qualimap
 
       output:
       file "${bam.baseName}" into qualimap_results
+      set val(name), path("${name}.coverage.txt") into ch_file_coverage_mrkd
+      set val(name), path("${name}.genome_coverage_across_reference.png") into ch_figure_coverage_mrkd
+
 
       script:
       def qualimap_direction = 'non-strand-specific'
@@ -1407,6 +1464,8 @@ if (!params.skipAlignment) {
       """
       unset DISPLAY
       qualimap --java-mem-size=${memory} rnaseq $qualimap_direction $paired -s -bam $bam -gtf $gtf -outdir ${bam.baseName}
+      grep -E " bias" '${bam.baseName}/rnaseq_qc_results.txt' > '${name}.coverage.txt'
+      cp "${bam.baseName}/images_qualimapReport/Coverage Profile Along Genes (Total).png" '${name}.genome_coverage_across_reference.png'
       """
   }
 
@@ -1456,7 +1515,7 @@ if (!params.skipAlignment) {
    */
   process featureCounts {
       label 'low_memory'
-      tag "${bam_featurecounts.baseName - '.sorted'}"
+      tag "${bam.baseName - '.sorted'}"
       publishDir "${params.outdir}/featureCounts", mode: 'copy',
           saveAs: {filename ->
               if (filename.indexOf("biotype_counts") > 0) "biotype_counts/$filename"
@@ -1466,14 +1525,14 @@ if (!params.skipAlignment) {
           }
 
       input:
-      file bam_featurecounts
+      set val(name), file(bam) from bam_featurecounts
       file gtf from gtf_featureCounts.collect()
       file biotypes_header from ch_biotypes_header.collect()
 
       output:
-      file "${bam_featurecounts.baseName}_gene.featureCounts.txt" into geneCounts, featureCounts_to_merge
-      file "${bam_featurecounts.baseName}_gene.featureCounts.txt.summary" into featureCounts_logs
-      file "${bam_featurecounts.baseName}_biotype_counts*mqc.{txt,tsv}" optional true into featureCounts_biotype
+      file "${bam.baseName}_gene.featureCounts.txt" into geneCounts, featureCounts_to_merge
+      file "${bam.baseName}_gene.featureCounts.txt.summary" into featureCounts_logs
+      file "${bam.baseName}_biotype_counts*mqc.{txt,tsv}" optional true into featureCounts_biotype
 
       script:
       def featureCounts_direction = 0
@@ -1484,11 +1543,11 @@ if (!params.skipAlignment) {
           featureCounts_direction = 2
       }
       // Try to get real sample name
-      sample_name = bam_featurecounts.baseName - 'Aligned.sortedByCoord.out' - '_subsamp.sorted'
-      biotype_qc = params.skipBiotypeQC ? '' : "featureCounts -a $gtf -g $biotype -o ${bam_featurecounts.baseName}_biotype.featureCounts.txt -p -s $featureCounts_direction $bam_featurecounts"
-      mod_biotype = params.skipBiotypeQC ? '' : "cut -f 1,7 ${bam_featurecounts.baseName}_biotype.featureCounts.txt | tail -n +3 | cat $biotypes_header - >> ${bam_featurecounts.baseName}_biotype_counts_mqc.txt && mqc_features_stat.py ${bam_featurecounts.baseName}_biotype_counts_mqc.txt -s $sample_name -f rRNA -o ${bam_featurecounts.baseName}_biotype_counts_gs_mqc.tsv"
+      sample_name = bam.baseName - 'Aligned.sortedByCoord.out' - '_subsamp.sorted'
+      biotype_qc = params.skipBiotypeQC ? '' : "featureCounts -a $gtf -g $biotype -o ${bam.baseName}_biotype.featureCounts.txt -p -s $featureCounts_direction $bam"
+      mod_biotype = params.skipBiotypeQC ? '' : "cut -f 1,7 ${bam.baseName}_biotype.featureCounts.txt | tail -n +3 | cat $biotypes_header - >> ${bam.baseName}_biotype_counts_mqc.txt && mqc_features_stat.py ${bam.baseName}_biotype_counts_mqc.txt -s $sample_name -f rRNA -o ${bam.baseName}_biotype_counts_gs_mqc.tsv"
       """
-      featureCounts -a $gtf -g ${params.fc_group_features} -t ${params.fc_count_type} -o ${bam_featurecounts.baseName}_gene.featureCounts.txt $extraAttributes -p -s $featureCounts_direction $bam_featurecounts
+      featureCounts -a $gtf -g ${params.fc_group_features} -t ${params.fc_count_type} -o ${bam.baseName}_gene.featureCounts.txt $extraAttributes -p -s $featureCounts_direction $bam
       $biotype_qc
       $mod_biotype
       """
@@ -1526,7 +1585,7 @@ if (!params.skipAlignment) {
    * STEP 12 - stringtie FPKM
    */
   process stringtieFPKM {
-      tag "${bam_stringtieFPKM.baseName - '.sorted'}"
+      tag "${bam.baseName - '.sorted'}"
       publishDir "${params.outdir}/stringtieFPKM", mode: 'copy',
           saveAs: {filename ->
               if (filename.indexOf("transcripts.gtf") > 0) "transcripts/$filename"
@@ -1536,14 +1595,14 @@ if (!params.skipAlignment) {
           }
 
       input:
-      file bam_stringtieFPKM
+      set val(name), file(bam) from bam_stringtieFPKM
       file gtf from gtf_stringtieFPKM.collect()
 
       output:
-      file "${bam_stringtieFPKM.baseName}_transcripts.gtf"
-      file "${bam_stringtieFPKM.baseName}.gene_abund.txt"
-      file "${bam_stringtieFPKM}.cov_refs.gtf"
-      file "${bam_stringtieFPKM.baseName}_ballgown"
+      file "${bam.baseName}_transcripts.gtf"
+      file "${bam.baseName}.gene_abund.txt"
+      file "${bam}.cov_refs.gtf"
+      file "${bam.baseName}_ballgown"
 
       script:
       def st_direction = ''
@@ -1554,14 +1613,14 @@ if (!params.skipAlignment) {
       }
       def ignore_gtf = params.stringTieIgnoreGTF ? "" : "-e"
       """
-      stringtie $bam_stringtieFPKM \\
+      stringtie $bam \\
           $st_direction \\
-          -o ${bam_stringtieFPKM.baseName}_transcripts.gtf \\
+          -o ${bam.baseName}_transcripts.gtf \\
           -v \\
           -G $gtf \\
-          -A ${bam_stringtieFPKM.baseName}.gene_abund.txt \\
-          -C ${bam_stringtieFPKM}.cov_refs.gtf \\
-          -b ${bam_stringtieFPKM.baseName}_ballgown \\
+          -A ${bam.baseName}.gene_abund.txt \\
+          -C ${bam}.cov_refs.gtf \\
+          -b ${bam.baseName}_ballgown \\
           $ignore_gtf
       """
   }
@@ -1617,7 +1676,7 @@ if (!params.skipAlignment) {
 /*
  * STEP 11 - Transcriptome quantification with Salmon
  */
-if (params.pseudo_aligner == 'salmon') {
+//if (params.pseudo_aligner == 'salmon') {
     process salmon {
         label 'salmon'
         tag "$sample"
@@ -1627,11 +1686,12 @@ if (params.pseudo_aligner == 'salmon') {
         set sample, val(single_end), file(reads) from trimmed_reads_salmon
         file index from salmon_index.collect()
         file gtf from gtf_salmon.collect()
+        val(single_end) from ch_single_salmon
+
 
         output:
         file "${sample}/" into salmon_logs
         set val(sample), file("${sample}/") into salmon_tximport, salmon_parsegtf
-        val(single_end) from ch_single_salmon
 
         script:
         def rnastrandness = single_end ? 'U' : 'IU'
@@ -1726,10 +1786,10 @@ if (params.pseudo_aligner == 'salmon') {
       se.r NULL salmon_merged_gene_counts.csv salmon_merged_gene_tpm.csv
       se.r NULL salmon_merged_transcript_counts.csv salmon_merged_transcript_tpm.csv
       """
-    }
-} else {
-    salmon_logs = Channel.empty()
-}
+   }
+//} else {
+//    salmon_logs = Channel.empty()
+//}
 
 
 
@@ -1740,19 +1800,19 @@ if (params.pseudo_aligner == 'salmon') {
 /* --                                                                     -- */
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
-/*
+
 ch_mrkd = ch_count_reads
-  .join(ch_fastp_mrkd, remainder: true)
-  .join(ch_fastp_seq_mrkd, remainder: true)
-  .join(ch_fig_mrkd, remainder: true)
-  .join(ch_tab_mrkd, remainder: true)
-  .join(ch_bowtie2_mrkd, remainder: true)
+  .join(ch_trimgalore_mrkd, remainder: true)
+  .join(ch_trimgalore_seq_mrkd, remainder: true)
+//  .join(ch_fig_mrkd, remainder: true)
+//  .join(ch_tab_mrkd, remainder: true)
+  .join(ch_star_mrkd, remainder: true)
   .join(ch_file_coverage_mrkd, remainder: true)
   .join(ch_figure_coverage_mrkd, remainder: true)
-  .join(ch_trimmed_primer_mrkd, remainder: true)
-  .join(ch_indels_mrkd, remainder: true)
-  .join(ch_mutation_report_mrkd, remainder: true)
-*/
+//  .join(ch_trimmed_primer_mrkd, remainder: true)
+//  .join(ch_indels_mrkd, remainder: true)
+//  .join(ch_mutation_report_mrkd, remainder: true)
+
 
 process MARKDOWN_REPORT {
   tag "$sample"
@@ -1764,7 +1824,7 @@ process MARKDOWN_REPORT {
 
   input:
   //set val(sample), val(single_end), path(reads), file('fastp/*'), file('fastp/*'), file('kraken2/*'), file('kraken2/*'), file('bowtie2/*'), file("qualimap/*"), file("qualimap/*"), file("ivar_trim/*"), file("ivar_var/*"), file("mutations/*") from ch_mrkd
-  set val(sample), val(single_end), path(reads) from ch_count_reads
+  set val(sample), val(single_end), path(reads), file('trim_galore/*'), file('trim_galore/*'), file("star/"), file("qualimap/*"), file("qualimap/*") from ch_mrkd
   path report_docs from ch_report_docs
   path image from ch_image_docs
 
@@ -1836,6 +1896,7 @@ process multiqc {
 /*
  * STEP 15 - Output Description HTML
  */
+
 process output_documentation {
     publishDir "${params.outdir}/pipeline_info", mode: 'copy'
 
