@@ -10,14 +10,14 @@
 */
 
 def helpMessage() {
-    log.info nfcoreHeader()
+    log.info flomicsHeader()
     log.info """
 
     Usage:
 
     The typical command for running the pipeline is as follows:
 
-    nextflow run nf-core/rnaseq --reads '*_R{1,2}.fastq.gz' --genome GRCh37 -profile docker
+    nextflow run Flomics/rnaseq --input '*.csv' --genome GRCh37 -profile docker
 
     Mandatory arguments:
       --input [file]                Path to input samplesheet with information about all samples (sample_id, fastq_1, fastq_2)
@@ -164,14 +164,14 @@ Channel
     .set { sortmerna_fasta }
 
 // Validate inputs
-if (params.aligner != 'star' && params.aligner != 'hisat2') {
-    exit 1, "Invalid aligner option: ${params.aligner}. Valid options: 'star', 'hisat2'"
+/*if (params.aligner != 'star') {
+    exit 1, "Invalid aligner option: ${params.aligner}. Valid options: 'star'"
 }
 if (params.pseudo_aligner && params.pseudo_aligner != 'salmon') {
     exit 1, "Invalid pseudo aligner option: ${params.pseudo_aligner}. Valid options: 'salmon'"
-}
+}*/
 
-if (params.star_index && params.aligner == 'star' && !params.skipAlignment) {
+if (params.star_index && !params.skipAlignment) {
   if (hasExtension(params.star_index, 'gz')) {
     star_index_gz = Channel
         .fromPath(params.star_index, checkIfExists: true)
@@ -180,17 +180,6 @@ if (params.star_index && params.aligner == 'star' && !params.skipAlignment) {
     star_index = Channel
         .fromPath(params.star_index, checkIfExists: true)
         .ifEmpty { exit 1, "STAR index not found: ${params.star_index}" }
-  }
-}
-else if (params.hisat2_index && params.aligner == 'hisat2' && !params.skipAlignment) {
-  if (hasExtension(params.hisat2_index, 'gz')) {
-    hs2_indices_gz = Channel
-        .fromPath("${params.hisat2_index}", checkIfExists: true)
-        .ifEmpty { exit 1, "HISAT2 index not found: ${params.hisat2_index}" }
-  } else {
-    hs2_indices = Channel
-        .fromPath("${params.hisat2_index}*", checkIfExists: true)
-        .ifEmpty { exit 1, "HISAT2 index not found: ${params.hisat2_index}" }
   }
 }
 else if (params.fasta && !params.skipAlignment) {
@@ -211,46 +200,40 @@ else {
     exit 1, "No reference genome files specified!"
 }
 
-if (params.aligner == 'hisat2' && params.splicesites) {
-    Channel
-        .fromPath(params.bed12, checkIfExists: true)
-        .ifEmpty { exit 1, "HISAT2 splice sites file not found: $alignment_splicesites" }
-        .into { indexing_splicesites; alignment_splicesites }
-}
 
 // Separately check for whether salmon needs a genome fasta to extract
 // transcripts from, or can use a transcript fasta directly
 //if (params.pseudo_aligner == 'salmon') {
-    if (params.salmon_index) {
-      if (hasExtension(params.salmon_index, 'gz')) {
-        salmon_index_gz = Channel
-            .fromPath(params.salmon_index, checkIfExists: true)
-            .ifEmpty { exit 1, "Salmon index not found: ${params.salmon_index}" }
-      } else {
-        salmon_index = Channel
-            .fromPath(params.salmon_index, checkIfExists: true)
-            .ifEmpty { exit 1, "Salmon index not found: ${params.salmon_index}" }
-      }
-    } else if (params.transcript_fasta) {
+if (params.salmon_index) {
+  if (hasExtension(params.salmon_index, 'gz')) {
+    salmon_index_gz = Channel
+    .fromPath(params.salmon_index, checkIfExists: true)
+    .ifEmpty { exit 1, "Salmon index not found: ${params.salmon_index}" }
+    } else {
+      salmon_index = Channel
+      .fromPath(params.salmon_index, checkIfExists: true)
+      .ifEmpty { exit 1, "Salmon index not found: ${params.salmon_index}" }
+    }
+  } else if (params.transcript_fasta) {
       if (hasExtension(params.transcript_fasta, 'gz')) {
         transcript_fasta_gz = Channel
-            .fromPath(params.transcript_fasta, checkIfExists: true)
-            .ifEmpty { exit 1, "Transcript fasta file not found: ${params.transcript_fasta}" }
+        .fromPath(params.transcript_fasta, checkIfExists: true)
+        .ifEmpty { exit 1, "Transcript fasta file not found: ${params.transcript_fasta}" }
       } else {
         ch_fasta_for_salmon_index = Channel
-            .fromPath(params.transcript_fasta, checkIfExists: true)
-            .ifEmpty { exit 1, "Transcript fasta file not found: ${params.transcript_fasta}" }
+        .fromPath(params.transcript_fasta, checkIfExists: true)
+        .ifEmpty { exit 1, "Transcript fasta file not found: ${params.transcript_fasta}" }
       }
-    } else if (params.fasta && (params.gff || params.gtf)) {
+  } else if (params.fasta && (params.gff || params.gtf)) {
       log.info "Extracting transcript fastas from genome fasta + gtf/gff"
       if (hasExtension(params.fasta, 'gz')) {
         Channel.fromPath(params.fasta, checkIfExists: true)
-            .ifEmpty { exit 1, "Genome fasta file not found: ${params.fasta}" }
-            .set { genome_fasta_gz }
+        .ifEmpty { exit 1, "Genome fasta file not found: ${params.fasta}" }
+        .set { genome_fasta_gz }
       } else {
         Channel.fromPath(params.fasta, checkIfExists: true)
-            .ifEmpty { exit 1, "Genome fasta file not found: ${params.fasta}" }
-            .set { ch_fasta_for_salmon_transcripts }
+        .ifEmpty { exit 1, "Genome fasta file not found: ${params.fasta}" }
+        .set { ch_fasta_for_salmon_transcripts }
       }
     } else {
       exit 1, "To use with `--pseudo_aligner 'salmon'`, must provide either --transcript_fasta or both --fasta and --gtf"
@@ -300,14 +283,14 @@ if (params.gencode) {
 } else {
   biotype = params.fc_group_features_type
 }
-
+/*
 if (params.skipAlignment && !params.pseudo_aligner) {
   exit 1, "--skipAlignment specified without --pseudo_aligner .. did you mean to specify --pseudo_aligner salmon"
 }
 
 if (workflow.profile == 'uppmax' || workflow.profile == 'uppmax-devel') {
     if (!params.project) exit 1, "No UPPMAX project ID found! Use --project"
-}
+}*/
 
 // Has the run name been specified by the user?
 //  this has the bonus effect of catching both -name and --name
@@ -323,9 +306,9 @@ else{
 
 //Output folders
 if (workflow.profile.contains('webserver')) {
-  params.outdir= 's3://aws-nextflow-rnaseq/' + params.user + '/' + params.request + '/' + params.run
+  params.outdir= 's3://aws-nextflow-pipelines/' + params.user + '/' + params.request + '/' + params.run
 } else if (workflow.profile.contains('awsbatch')) {
-  params.outdir= 's3://aws-nextflow-rnaseq/' + params.run
+  params.outdir= 's3://aws-nextflow-pipelines/' + params.run
 } else if (!params.outdir) {
   params.outdir = params.run
 }
@@ -391,13 +374,13 @@ ch_image_docs = file("$baseDir/docs/images/flomics_icon.png", checkIfExists: tru
 
 if (params.input) { ch_input = file(params.input, checkIfExists: true) } else { exit 1, "Input samplesheet file not specified!" }
 
-if (params.reads == "single") {
+/*if (params.reads == "single") {
   params.singleEnd == true
-}
+}*/
 
 
 // Header log info
-log.info nfcoreHeader()
+log.info flomicsHeader()
 def summary = [:]
 if (workflow.revision) summary['Pipeline Release'] = workflow.revision
 summary['Run Name'] = custom_runName ?: workflow.runName
@@ -462,10 +445,10 @@ checkHostname()
 def create_workflow_summary(summary) {
     def yaml_file = workDir.resolve('workflow_summary_mqc.yaml')
     yaml_file.text  = """
-    id: 'nf-core-rnaseq-summary'
+    id: 'Flomics-rnaseq-summary'
     description: " - this information is collected when the pipeline is started."
-    section_name: 'nf-core/rnaseq Workflow Summary'
-    section_href: 'https://github.com/nf-core/rnaseq'
+    section_name: 'Flomics/rnaseq Workflow Summary'
+    section_href: 'https://github.com/Flomics/rnaseq'
     plot_type: 'html'
     data: |
         <dl class=\"dl-horizontal\">
@@ -603,8 +586,9 @@ if (compressedReference) {
   if (params.fasta && (alignment_no_indices || pseudoalignment_no_indices)) {
     process gunzip_genome_fasta {
         tag "$gz"
-        publishDir path: { params.saveReference ? "${params.outdir}/reference_genome" : params.outdir },
+        /*publishDir path: { params.saveReference ? "${params.outdir}/reference_genome" : params.outdir },
                    saveAs: { params.saveReference ? it : null }, mode: 'copy'
+        */
 
         input:
         file gz from genome_fasta_gz
@@ -621,8 +605,9 @@ if (compressedReference) {
   if (params.gtf) {
     process gunzip_gtf {
         tag "$gz"
-        publishDir path: { params.saveReference ? "${params.outdir}/reference_genome" : params.outdir },
+        /*publishDir path: { params.saveReference ? "${params.outdir}/reference_genome" : params.outdir },
                    saveAs: { params.saveReference ? it : null }, mode: 'copy'
+        */
 
         input:
         file gz from gtf_gz
@@ -640,8 +625,9 @@ if (compressedReference) {
   if (params.gff && !params.gtf) {
     process gunzip_gff {
         tag "$gz"
-        publishDir path: { params.saveReference ? "${params.outdir}/reference_genome" : params.outdir },
+        /*publishDir path: { params.saveReference ? "${params.outdir}/reference_genome" : params.outdir },
                    saveAs: { params.saveReference ? it : null }, mode: 'copy'
+        */
 
         input:
         file gz from gff_gz
@@ -660,8 +646,9 @@ if (compressedReference) {
 
     process gunzip_transcript_fasta {
         tag "$gz"
-        publishDir path: { params.saveReference ? "${params.outdir}/reference_transcriptome" : params.outdir },
+        /*publishDir path: { params.saveReference ? "${params.outdir}/reference_transcriptome" : params.outdir },
                    saveAs: { params.saveReference ? it : null }, mode: 'copy'
+        */
 
         input:
         file gz from transcript_fasta_gz
@@ -678,8 +665,9 @@ if (compressedReference) {
   if (params.bed12) {
     process gunzip_bed12 {
         tag "$gz"
-        publishDir path: { params.saveReference ? "${params.outdir}/reference_genome" : params.outdir },
+        /*publishDir path: { params.saveReference ? "${params.outdir}/reference_genome" : params.outdir },
                    saveAs: { params.saveReference ? it : null }, mode: 'copy'
+        */
 
         input:
         file gz from bed12_gz
@@ -693,12 +681,12 @@ if (compressedReference) {
         """
     }
   }
-  if (!params.skipAlignment && params.star_index && params.aligner == "star") {
+  if (!params.skipAlignment && params.star_index) {
     process gunzip_star_index {
         tag "$gz"
-        publishDir path: { params.saveReference ? "${params.outdir}/reference_genome/star" : params.outdir },
+        /*publishDir path: { params.saveReference ? "${params.outdir}/reference_genome/star" : params.outdir },
                    saveAs: { params.saveReference ? it : null }, mode: 'copy'
-
+        */
         input:
         file gz from star_index_gz
 
@@ -712,7 +700,7 @@ if (compressedReference) {
         """
     }
   }
-  if (!params.skipAlignment && params.hisat2_index && params.aligner == 'hisat2') {
+  /*if (!params.skipAlignment && params.hisat2_index && params.aligner == 'hisat2') {
     process gunzip_hisat_index {
         tag "$gz"
         publishDir path: { params.saveReference ? "${params.outdir}/reference_genome/hisat2" : params.outdir },
@@ -731,12 +719,14 @@ if (compressedReference) {
         """
     }
   }
+  */
   if (params.salmon_index) {
 //  if (params.salmon_index && params.pseudo_aligner == 'salmon') {
     process gunzip_salmon_index {
         tag "$gz"
-        publishDir path: { params.saveReference ? "${params.outdir}/reference_transcriptome/hisat2" : params.outdir },
+        /*publishDir path: { params.saveReference ? "${params.outdir}/reference_transcriptome/hisat2" : params.outdir },
                    saveAs: { params.saveReference ? it : null }, mode: 'copy'
+        */
 
         input:
         file gz from salmon_index_gz
@@ -759,8 +749,9 @@ if (compressedReference) {
 if (params.gff && !params.gtf) {
     process convertGFFtoGTF {
         tag "$gff"
-        publishDir path: { params.saveReference ? "${params.outdir}/reference_genome" : params.outdir },
+        /*publishDir path: { params.saveReference ? "${params.outdir}/reference_genome" : params.outdir },
                    saveAs: { params.saveReference ? it : null }, mode: 'copy'
+        */
 
         input:
         file gff from gffFile
@@ -782,8 +773,9 @@ if (params.gff && !params.gtf) {
 if (!params.bed12) {
     process makeBED12 {
         tag "$gtf"
-        publishDir path: { params.saveReference ? "${params.outdir}/reference_genome" : params.outdir },
+        /*publishDir path: { params.saveReference ? "${params.outdir}/reference_genome" : params.outdir },
                    saveAs: { params.saveReference ? it : null }, mode: 'copy'
+        */
 
         input:
         file gtf from gtf_makeBED12
@@ -802,7 +794,7 @@ if (!params.bed12) {
  * PREPROCESSING - Build STAR index
  */
 if (!params.skipAlignment) {
-  if (params.aligner == 'star' && !params.star_index && params.fasta) {
+  if (!params.star_index && params.fasta) {
       process makeSTARindex {
           label 'high_memory'
           tag "$fasta"
@@ -830,11 +822,12 @@ if (!params.skipAlignment) {
           """
       }
   }
+}
 
   /*
    * PREPROCESSING - Build HISAT2 splice sites file
    */
-  if (params.aligner == 'hisat2' && !params.splicesites) {
+  /*if (params.aligner == 'hisat2' && !params.splicesites) {
       process makeHisatSplicesites {
           tag "$gtf"
           publishDir path: { params.saveReference ? "${params.outdir}/reference_genome" : params.outdir },
@@ -856,7 +849,7 @@ if (!params.skipAlignment) {
   /*
    * PREPROCESSING - Build HISAT2 index
    */
-  if (params.aligner == 'hisat2' && !params.hisat2_index && params.fasta) {
+  /*if (params.aligner == 'hisat2' && !params.hisat2_index && params.fasta) {
       process makeHISATindex {
           tag "$fasta"
           publishDir path: { params.saveReference ? "${params.outdir}/reference_genome" : params.outdir },
@@ -908,8 +901,9 @@ if (!params.salmon_index) {
     if (!params.transcript_fasta) {
         process transcriptsToFasta {
             tag "$fasta"
-            publishDir path: { params.saveReference ? "${params.outdir}/reference_genome" : params.outdir },
+            /*publishDir path: { params.saveReference ? "${params.outdir}/reference_genome" : params.outdir },
                                saveAs: { params.saveReference ? it : null }, mode: 'copy'
+            */
 
 
             input:
@@ -930,8 +924,9 @@ if (!params.salmon_index) {
     process makeSalmonIndex {
         label "salmon"
         tag "$fasta"
-        publishDir path: { params.saveReference ? "${params.outdir}/reference_genome" : params.outdir },
+        /*publishDir path: { params.saveReference ? "${params.outdir}/reference_genome" : params.outdir },
                            saveAs: { params.saveReference ? it : null }, mode: 'copy'
+        */
 
         input:
         file fasta from ch_fasta_for_salmon_index
@@ -950,26 +945,31 @@ if (!params.salmon_index) {
 /*
  * STEP 1 - FastQC
  */
-process fastqc {
-    tag "$name"
-    label 'process_medium'
-    publishDir "${params.outdir}/fastqc", mode: 'copy',
-        saveAs: { filename -> filename.indexOf(".zip") > 0 ? "zips/$filename" : "$filename" }
+if (!params.skipQC || !params.skipFastQC) {
 
-    when:
-    !params.skipQC && !params.skipFastQC
+  process fastqc {
+      tag "$name"
+      label 'process_medium'
+      publishDir "${params.outdir}/${name}/fastqc", mode: params.publish_dir_mode,
+          saveAs: { filename ->
+            filename.indexOf(".zip") > 0 ? "zips/$filename" : "$filename"
+          }
 
-    input:
-    set val(name), val(single_end), file(reads) from raw_reads_fastqc
+      input:
+      set val(name), val(single_end), file(reads) from raw_reads_fastqc
 
-    output:
-    file "*_fastqc.{zip,html}" into fastqc_results
+      output:
+      file "*_fastqc.{zip,html}" into fastqc_results
 
-    script:
-    """
-    fastqc --quiet --threads $task.cpus $reads
-    """
+      script:
+      """
+      fastqc --quiet --threads $task.cpus $reads
+      """
+  }
+} else {
+  fastqc_results = Channel.empty()
 }
+
 
 
 /*
@@ -979,7 +979,7 @@ if (!params.skipTrimming) {
     process trim_galore {
         label 'low_memory'
         tag "$name"
-        publishDir "${params.outdir}/trim_galore", mode: 'copy',
+        publishDir "${params.outdir}/${name}/trim_galore", mode: params.publish_dir_mode,
             saveAs: {filename ->
                 if (filename.indexOf("_fastqc") > 0) "FastQC/$filename"
                 else if (filename.indexOf("trimming_report.txt") > 0) "logs/$filename"
@@ -1062,7 +1062,7 @@ if (!params.removeRiboRNA) {
     process sortmerna {
         label 'low_memory'
         tag "$name"
-        publishDir "${params.outdir}/SortMeRNA", mode: 'copy',
+        publishDir "${params.outdir}/${name}/SortMeRNA", mode: params.publish_dir_mode,
             saveAs: {filename ->
                 if (filename.indexOf("_rRNA_report.txt") > 0) "logs/$filename"
                 else if (params.saveNonRiboRNAReads) "reads/$filename"
@@ -1152,67 +1152,65 @@ def check_log(logs) {
     }
 }
 if (!params.skipAlignment) {
-  if (params.aligner == 'star') {
-      hisat_stdout = Channel.from(false)
-      process star {
-          label 'high_memory'
-          tag "$name"
-          publishDir "${params.outdir}/STAR", mode: 'copy',
-              saveAs: {filename ->
-                  if (filename.indexOf(".bam") == -1) "logs/$filename"
-                  else if (params.saveUnaligned && filename != "where_are_my_files.txt" && 'Unmapped' in filename) unmapped/filename
-                  else if (!params.saveAlignedIntermediates && filename == "where_are_my_files.txt") filename
-                  else if (params.saveAlignedIntermediates && filename != "where_are_my_files.txt") filename
-                  else null
-              }
 
-          input:
-          set val(name), val(single_end), file(reads) from trimmed_reads_alignment
-          file index from star_index.collect()
-          file gtf from gtf_star.collect()
-          file wherearemyfiles from ch_where_star.collect()
+  process star {
+    label 'high_memory'
+    tag "$name"
+    publishDir "${params.outdir}/${name}/STAR", mode: params.publish_dir_mode,
+    saveAs: {filename ->
+      if (filename.indexOf(".bam") == -1) "logs/$filename"
+      else if (params.saveUnaligned && filename != "where_are_my_files.txt" && 'Unmapped' in filename) unmapped/filename
+      else if (!params.saveAlignedIntermediates && filename == "where_are_my_files.txt") filename
+      else if (params.saveAlignedIntermediates && filename != "where_are_my_files.txt") filename
+      else null
+    }
 
-          output:
-          set val(name), file("*Log.final.out"), file('*.bam') into star_aligned
-          file "*.out" into alignment_logs
-          file "*SJ.out.tab"
-          file "*Log.out" into star_log
-          file "where_are_my_files.txt"
-          file "*Unmapped*" optional true
-          file "${prefix}Aligned.sortedByCoord.out.bam.bai" into bam_index_rseqc, bam_index_genebody
-          set val(name), path("*Log.final.out") into ch_star_mrkd
+    input:
+    set val(name), val(single_end), file(reads) from trimmed_reads_alignment
+    file index from star_index.collect()
+    file gtf from gtf_star.collect()
+    file wherearemyfiles from ch_where_star.collect()
 
+    output:
+    set val(name), file("*Log.final.out"), file('*.bam') into star_aligned
+    file "*.out" into alignment_logs
+    file "*SJ.out.tab"
+    file "*Log.out" into star_log
+    file "where_are_my_files.txt"
+    file "*Unmapped*" optional true
+    file "${prefix}Aligned.sortedByCoord.out.bam.bai" into bam_index_rseqc, bam_index_genebody
+    set val(name), path("*Log.final.out") into ch_star_mrkd
 
 
-          script:
-          prefix = reads[0].toString() - ~/(_R1)?(_trimmed)?(_val_1)?(\.fq)?(\.fastq)?(\.gz)?$/
-          def star_mem = task.memory ?: params.star_memory ?: false
-          def avail_mem = star_mem ? "--limitBAMsortRAM ${star_mem.toBytes() - 100000000}" : ''
-          seq_center = params.seq_center ? "--outSAMattrRGline ID:$prefix 'CN:$params.seq_center' 'SM:$prefix'" : "--outSAMattrRGline ID:$prefix 'SM:$prefix'"
-          unaligned = params.saveUnaligned ? "--outReadsUnmapped Fastx" : ''
-          """
-          STAR --genomeDir $index \\
-              --sjdbGTFfile $gtf \\
-              --readFilesIn $reads  \\
-              --runThreadN ${task.cpus} \\
-              --twopassMode Basic \\
-              --outWigType bedGraph \\
-              --outSAMtype BAM SortedByCoordinate $avail_mem \\
-              --readFilesCommand zcat \\
-              --runDirPerm All_RWX $unaligned \\
-              --outFileNamePrefix $prefix $seq_center
 
-          samtools index ${prefix}Aligned.sortedByCoord.out.bam
-          """
-      }
-      // Filter removes all 'aligned' channels that fail the check
-      star_aligned
-          .filter { name, logs, bams -> check_log(logs) }
-          .map { [ it[0], it[2] ] }
-      .into { trial; bam_count; bam_rseqc; bam_qualimap; bam_preseq; bam_markduplicates; bam_featurecounts; bam_stringtieFPKM; bam_forSubsamp; bam_skipSubsamp  }
+    script:
+    prefix = reads[0].toString() - ~/(_R1)?(_trimmed)?(_val_1)?(\.fq)?(\.fastq)?(\.gz)?$/
+    def star_mem = task.memory ?: params.star_memory ?: false
+    def avail_mem = star_mem ? "--limitBAMsortRAM ${star_mem.toBytes() - 100000000}" : ''
+    seq_center = params.seq_center ? "--outSAMattrRGline ID:$prefix 'CN:$params.seq_center' 'SM:$prefix'" : "--outSAMattrRGline ID:$prefix 'SM:$prefix'"
+    unaligned = params.saveUnaligned ? "--outReadsUnmapped Fastx" : ''
+    """
+    STAR --genomeDir $index \\
+    --sjdbGTFfile $gtf \\
+    --readFilesIn $reads  \\
+    --runThreadN ${task.cpus} \\
+    --twopassMode Basic \\
+    --outWigType bedGraph \\
+    --outSAMtype BAM SortedByCoordinate $avail_mem \\
+    --readFilesCommand zcat \\
+    --runDirPerm All_RWX $unaligned \\
+    --outFileNamePrefix $prefix $seq_center
+
+    samtools index ${prefix}Aligned.sortedByCoord.out.bam
+    """
   }
+  // Filter removes all 'aligned' channels that fail the check
+  star_aligned
+  .filter { name, logs, bams -> check_log(logs) }
+  .map { [ it[0], it[2] ] }
+  .into { bam_count; bam_rseqc; bam_qualimap; bam_preseq; bam_markduplicates; bam_featurecounts; bam_stringtieFPKM; bam_forSubsamp; bam_skipSubsamp  }
 
-  trial.println()
+
 
   /*
    * STEP 3 - align with HISAT2
@@ -1325,7 +1323,7 @@ if (!params.skipAlignment) {
   process rseqc {
       label 'mid_memory'
       tag "${bam.baseName - '.sorted'}"
-      publishDir "${params.outdir}/rseqc" , mode: 'copy',
+      publishDir "${params.outdir}/${name}/rseqc" , mode: params.publish_dir_mode,
           saveAs: {filename ->
                    if (filename.indexOf("bam_stat.txt") > 0)                      "bam_stat/$filename"
               else if (filename.indexOf("infer_experiment.txt") > 0)              "infer_experiment/$filename"
@@ -1377,137 +1375,145 @@ if (!params.skipAlignment) {
   /*
    * STEP 5 - preseq analysis
    */
-  process preseq {
-      tag "${bam.baseName - '.sorted'}"
-      publishDir "${params.outdir}/preseq", mode: 'copy'
+  if (!params.skipQC || !params.skipPreseq) {
+    process preseq {
+        tag "${bam.baseName - '.sorted'}"
+        publishDir "${params.outdir}/${name}/preseq", mode: params.publish_dir_mode
 
-      when:
-      !params.skipQC && !params.skipPreseq
+        input:
+        set val(name), file(bam) from bam_preseq
 
-      input:
-      set val(name), file(bam) from bam_preseq
+        output:
+        file "${bam.baseName}.ccurve.txt" into preseq_results
 
-      output:
-      file "${bam.baseName}.ccurve.txt" into preseq_results
-
-      script:
-      """
-      preseq lc_extrap -v -B $bam -o ${bam.baseName}.ccurve.txt
-      """
+        script:
+        """
+        preseq lc_extrap -v -B $bam -o ${bam.baseName}.ccurve.txt
+        """
+    }
+  } else {
+    preseq_results = Channel.empty()
   }
+
 
   /*
    * STEP 6 - Mark duplicates
    */
-  process markDuplicates {
-      tag "${bam.baseName - '.sorted'}"
-      publishDir "${params.outdir}/markDuplicates", mode: 'copy',
-          saveAs: {filename -> filename.indexOf("_metrics.txt") > 0 ? "metrics/$filename" : "$filename"}
+  if (!params.skipQC || !params.skipDupRadar) {
+    process markDuplicates {
+        tag "${bam.baseName - '.sorted'}"
+        publishDir "${params.outdir}/${name}/markDuplicates", mode: params.publish_dir_mode,
+            saveAs: {filename -> filename.indexOf("_metrics.txt") > 0 ? "metrics/$filename" : "$filename"}
 
-      when:
-      !params.skipQC && !params.skipDupRadar
+        input:
+        set val(name), file(bam) from bam_markduplicates
 
-      input:
-      set val(name), file(bam) from bam_markduplicates
+        output:
+        set val(name), file("${bam.baseName}.markDups.bam") into bam_md
+        file "${bam.baseName}.markDups_metrics.txt" into picard_results
+        file "${bam.baseName}.markDups.bam.bai"
 
-      output:
-      file "${bam.baseName}.markDups.bam" into bam_md
-      file "${bam.baseName}.markDups_metrics.txt" into picard_results
-      file "${bam.baseName}.markDups.bam.bai"
-
-      script:
-      markdup_java_options = (task.memory.toGiga() > 8) ? params.markdup_java_options : "\"-Xms" +  (task.memory.toGiga() / 2 )+"g "+ "-Xmx" + (task.memory.toGiga() - 1)+ "g\""
-      """
-      picard ${markdup_java_options} MarkDuplicates \\
-          INPUT=$bam \\
-          OUTPUT=${bam.baseName}.markDups.bam \\
-          METRICS_FILE=${bam.baseName}.markDups_metrics.txt \\
-          REMOVE_DUPLICATES=false \\
-          ASSUME_SORTED=true \\
-          PROGRAM_RECORD_ID='null' \\
-          VALIDATION_STRINGENCY=LENIENT
-      samtools index ${bam.baseName}.markDups.bam
-      """
+        script:
+        markdup_java_options = (task.memory.toGiga() > 8) ? params.markdup_java_options : "\"-Xms" +  (task.memory.toGiga() / 2 )+"g "+ "-Xmx" + (task.memory.toGiga() - 1)+ "g\""
+        """
+        picard ${markdup_java_options} MarkDuplicates \\
+            INPUT=$bam \\
+            OUTPUT=${bam.baseName}.markDups.bam \\
+            METRICS_FILE=${bam.baseName}.markDups_metrics.txt \\
+            REMOVE_DUPLICATES=false \\
+            ASSUME_SORTED=true \\
+            PROGRAM_RECORD_ID='null' \\
+            VALIDATION_STRINGENCY=LENIENT
+        samtools index ${bam.baseName}.markDups.bam
+        """
+    }
+  } else {
+    bam_md = Channel.empty()
+    picard_results = Channel.empty()
   }
+
 
   /*
    * STEP 7 - Qualimap
    */
-  process qualimap {
-      label 'low_memory'
-      tag "${bam.baseName}"
-      publishDir "${params.outdir}/qualimap", mode: 'copy'
+  if (!params.skipQC || !params.skipQualimap) {
+    process qualimap {
+        label 'low_memory'
+        tag "${bam.baseName}"
+        publishDir "${params.outdir}/${name}/qualimap", mode: params.publish_dir_mode
 
-      when:
-      !params.skipQC && !params.skipQualimap
+        input:
+        set val(name), file(bam) from bam_qualimap
+        file gtf from gtf_qualimap.collect()
+        val(single_end) from ch_single_qualimap
 
-      input:
-      set val(name), file(bam) from bam_qualimap
-      file gtf from gtf_qualimap.collect()
-      val(single_end) from ch_single_qualimap
-
-      output:
-      file "${bam.baseName}" into qualimap_results
-      set val(name), path("${name}.coverage.txt") into ch_file_coverage_mrkd
-      set val(name), path("${name}.genome_coverage_across_reference.png") into ch_figure_coverage_mrkd
+        output:
+        file "${bam.baseName}" into qualimap_results
+        set val(name), path("${name}.coverage.txt") into ch_file_coverage_mrkd
+        set val(name), path("${name}.genome_coverage_across_reference.png") into ch_figure_coverage_mrkd
 
 
-      script:
-      def qualimap_direction = 'non-strand-specific'
-      if (forwardStranded) {
-          qualimap_direction = 'strand-specific-forward'
-      }else if (reverseStranded) {
-          qualimap_direction = 'strand-specific-reverse'
-      }
-      def paired = single_end ? '' : '-pe'
-      memory = task.memory.toGiga() + "G"
-      """
-      unset DISPLAY
-      qualimap --java-mem-size=${memory} rnaseq $qualimap_direction $paired -s -bam $bam -gtf $gtf -outdir ${bam.baseName}
-      grep -E " bias" '${bam.baseName}/rnaseq_qc_results.txt' > '${name}.coverage.txt'
-      cp "${bam.baseName}/images_qualimapReport/Coverage Profile Along Genes (Total).png" '${name}.genome_coverage_across_reference.png'
-      """
+        script:
+        def qualimap_direction = 'non-strand-specific'
+        if (forwardStranded) {
+            qualimap_direction = 'strand-specific-forward'
+        }else if (reverseStranded) {
+            qualimap_direction = 'strand-specific-reverse'
+        }
+        def paired = single_end ? '' : '-pe'
+        memory = task.memory.toGiga() + "G"
+        """
+        unset DISPLAY
+        qualimap --java-mem-size=${memory} rnaseq $qualimap_direction $paired -s -bam $bam -gtf $gtf -outdir ${bam.baseName}
+        grep -E " bias" '${bam.baseName}/rnaseq_qc_results.txt' > '${name}.coverage.txt'
+        cp "${bam.baseName}/images_qualimapReport/Coverage Profile Along Genes (Total).png" '${name}.genome_coverage_across_reference.png'
+        """
+    }
+  } else {
+    qualimap_results = Channel.empty()
+    ch_file_coverage_mrkd = Channel.empty()
+    ch_figure_coverage_mrkd = Channel.empty()
   }
+
 
   /*
    * STEP 8 - dupRadar
    */
-  process dupradar {
-      label 'low_memory'
-      tag "${bam_md.baseName - '.sorted.markDups'}"
-      publishDir "${params.outdir}/dupradar", mode: 'copy',
-          saveAs: {filename ->
-              if (filename.indexOf("_duprateExpDens.pdf") > 0) "scatter_plots/$filename"
-              else if (filename.indexOf("_duprateExpBoxplot.pdf") > 0) "box_plots/$filename"
-              else if (filename.indexOf("_expressionHist.pdf") > 0) "histograms/$filename"
-              else if (filename.indexOf("_dupMatrix.txt") > 0) "gene_data/$filename"
-              else if (filename.indexOf("_duprateExpDensCurve.txt") > 0) "scatter_curve_data/$filename"
-              else if (filename.indexOf("_intercept_slope.txt") > 0) "intercepts_slopes/$filename"
-              else "$filename"
-          }
+  if (!params.skipQC || !params.skipDupRadar) {
+    process dupradar {
+        label 'low_memory'
+        tag "${bam.baseName - '.sorted.markDups'}"
+        publishDir "${params.outdir}/${name}/dupradar", mode: params.publish_dir_mode,
+            saveAs: {filename ->
+                if (filename.indexOf("_duprateExpDens.pdf") > 0) "scatter_plots/$filename"
+                else if (filename.indexOf("_duprateExpBoxplot.pdf") > 0) "box_plots/$filename"
+                else if (filename.indexOf("_expressionHist.pdf") > 0) "histograms/$filename"
+                else if (filename.indexOf("_dupMatrix.txt") > 0) "gene_data/$filename"
+                else if (filename.indexOf("_duprateExpDensCurve.txt") > 0) "scatter_curve_data/$filename"
+                else if (filename.indexOf("_intercept_slope.txt") > 0) "intercepts_slopes/$filename"
+                else "$filename"
+            }
 
-      when:
-      !params.skipQC && !params.skipDupRadar
+        input:
+        set val(name), file(bam) from bam_md
+        file gtf from gtf_dupradar.collect()
+        val(single_end) from ch_single_dupradar
 
-      input:
-      file bam_md
-      file gtf from gtf_dupradar.collect()
-      val(single_end) from ch_single_dupradar
+        output:
+        file "*.{pdf,txt}" into dupradar_results
 
-      output:
-      file "*.{pdf,txt}" into dupradar_results
-
-      script: // This script is bundled with the pipeline, in nfcore/rnaseq/bin/
-      def dupradar_direction = 0
-      if (forwardStranded && !unStranded) {
-          dupradar_direction = 1
-      } else if (reverseStranded && !unStranded) {
-          dupradar_direction = 2
-      }
-      def paired = single_end ? 'single' :  'paired'
-      """
-      dupRadar.r $bam_md $gtf $dupradar_direction $paired ${task.cpus}
-      """
+        script: // This script is bundled with the pipeline, in nfcore/rnaseq/bin/
+        def dupradar_direction = 0
+        if (forwardStranded && !unStranded) {
+            dupradar_direction = 1
+        } else if (reverseStranded && !unStranded) {
+            dupradar_direction = 2
+        }
+        def paired = single_end ? 'single' :  'paired'
+        """
+        dupRadar.r $bam $gtf $dupradar_direction $paired ${task.cpus}
+        """
+    }
   }
 
   /*
@@ -1516,7 +1522,7 @@ if (!params.skipAlignment) {
   process featureCounts {
       label 'low_memory'
       tag "${bam.baseName - '.sorted'}"
-      publishDir "${params.outdir}/featureCounts", mode: 'copy',
+      publishDir "${params.outdir}/${name}/featureCounts", mode: params.publish_dir_mode,
           saveAs: {filename ->
               if (filename.indexOf("biotype_counts") > 0) "biotype_counts/$filename"
               else if (filename.indexOf("_gene.featureCounts.txt.summary") > 0) "gene_count_summaries/$filename"
@@ -1586,7 +1592,7 @@ if (!params.skipAlignment) {
    */
   process stringtieFPKM {
       tag "${bam.baseName - '.sorted'}"
-      publishDir "${params.outdir}/stringtieFPKM", mode: 'copy',
+      publishDir "${params.outdir}/${name}/stringtieFPKM", mode: 'copy',
           saveAs: {filename ->
               if (filename.indexOf("transcripts.gtf") > 0) "transcripts/$filename"
               else if (filename.indexOf("cov_refs.gtf") > 0) "cov_refs/$filename"
@@ -1628,40 +1634,40 @@ if (!params.skipAlignment) {
   /*
    * STEP 13 - edgeR MDS and heatmap
    */
-  process sample_correlation {
-      label 'low_memory'
-      tag "${input_files[0].toString() - '.sorted_gene.featureCounts.txt' - 'Aligned'}"
-      publishDir "${params.outdir}/sample_correlation", mode: 'copy'
 
-      when:
-      !params.skipQC && !params.skipEdgeR
+  if(!params.skipQC || !params.skipEdgeR) {
+    process sample_correlation {
+        label 'low_memory'
+        tag "${input_files[0].toString() - '.sorted_gene.featureCounts.txt' - 'Aligned'}"
+        publishDir "${params.outdir}/sample_correlation", mode: params.publish_dir_mode
 
-      input:
-      file input_files from geneCounts.collect()
-      val num_bams from bam_count.count()
-      file mdsplot_header from ch_mdsplot_header
-      file heatmap_header from ch_heatmap_header
+        input:
+        file input_files from geneCounts.collect()
+        val num_bams from bam_count.count()
+        file mdsplot_header from ch_mdsplot_header
+        file heatmap_header from ch_heatmap_header
 
-      output:
-      file "*.{txt,pdf,csv}" into sample_correlation_results
+        output:
+        file "*.{txt,pdf,csv}" into sample_correlation_results
 
-      when:
-      num_bams > 2 && (!params.sampleLevel)
+        when:
+        num_bams > 2 && (!params.sampleLevel)
 
-      script: // This script is bundled with the pipeline, in nfcore/rnaseq/bin/
-      """
-      edgeR_heatmap_MDS.r $input_files
-      cat $mdsplot_header edgeR_MDS_Aplot_coordinates_mqc.csv >> tmp_file
-      mv tmp_file edgeR_MDS_Aplot_coordinates_mqc.csv
-      cat $heatmap_header log2CPM_sample_correlation_mqc.csv >> tmp_file
-      mv tmp_file log2CPM_sample_correlation_mqc.csv
-      """
+        script: // This script is bundled with the pipeline, in nfcore/rnaseq/bin/
+        """
+        edgeR_heatmap_MDS.r $input_files
+        cat $mdsplot_header edgeR_MDS_Aplot_coordinates_mqc.csv >> tmp_file
+        mv tmp_file edgeR_MDS_Aplot_coordinates_mqc.csv
+        cat $heatmap_header log2CPM_sample_correlation_mqc.csv >> tmp_file
+        mv tmp_file log2CPM_sample_correlation_mqc.csv
+        """
+    }
+
   }
 
 
 } else {
   star_log = Channel.from(false)
-  hisat_stdout = Channel.from(false)
   alignment_logs = Channel.from(false)
   rseqc_results = Channel.from(false)
   qualimap_results = Channel.from(false)
@@ -1677,116 +1683,116 @@ if (!params.skipAlignment) {
  * STEP 11 - Transcriptome quantification with Salmon
  */
 //if (params.pseudo_aligner == 'salmon') {
-    process salmon {
-        label 'salmon'
-        tag "$sample"
-        publishDir "${params.outdir}/salmon", mode: 'copy'
+process salmon {
+  label 'salmon'
+  tag "$sample"
+  publishDir "${params.outdir}/salmon", mode: 'copy'
 
-        input:
-        set sample, val(single_end), file(reads) from trimmed_reads_salmon
-        file index from salmon_index.collect()
-        file gtf from gtf_salmon.collect()
-        val(single_end) from ch_single_salmon
-
-
-        output:
-        file "${sample}/" into salmon_logs
-        set val(sample), file("${sample}/") into salmon_tximport, salmon_parsegtf
-
-        script:
-        def rnastrandness = single_end ? 'U' : 'IU'
-        if (forwardStranded && !unStranded) {
-            rnastrandness = single_end ? 'SF' : 'ISF'
-        } else if (reverseStranded && !unStranded) {
-            rnastrandness = single_end ? 'SR' : 'ISR'
-        }
-        def endedness = single_end ? "-r ${reads[0]}" : "-1 ${reads[0]} -2 ${reads[1]}"
-        unmapped = params.saveUnaligned ? "--writeUnmappedNames" : ''
-        """
-        salmon quant --validateMappings \\
-                        --seqBias --useVBOpt --gcBias \\
-                        --geneMap ${gtf} \\
-                        --threads ${task.cpus} \\
-                        --libType=${rnastrandness} \\
-                        --index ${index} \\
-                        $endedness $unmapped\\
-                        -o ${sample}
-        """
-        }
+  input:
+  set sample, val(single_end), file(reads) from trimmed_reads_salmon
+  file index from salmon_index.collect()
+  file gtf from gtf_salmon.collect()
+  val(single_end) from ch_single_salmon
 
 
-    process salmon_tx2gene {
-      label 'low_memory'
-      publishDir "${params.outdir}/salmon", mode: 'copy'
+  output:
+  file "${sample}/" into salmon_logs
+  set val(sample), file("${sample}/") into salmon_tximport, salmon_parsegtf
 
-      input:
-      file ("salmon/*") from salmon_parsegtf.collect()
-      file gtf from gtf_salmon_merge
-
-      output:
-      file "tx2gene.csv" into salmon_tx2gene, salmon_merge_tx2gene
-
-      script:
-      """
-      parse_gtf.py --gtf $gtf --salmon salmon --id ${params.fc_group_features} --extra ${params.fc_extra_attributes} -o tx2gene.csv
-      """
+  script:
+  def rnastrandness = single_end ? 'U' : 'IU'
+  if (forwardStranded && !unStranded) {
+    rnastrandness = single_end ? 'SF' : 'ISF'
+    } else if (reverseStranded && !unStranded) {
+      rnastrandness = single_end ? 'SR' : 'ISR'
     }
+    def endedness = single_end ? "-r ${reads[0]}" : "-1 ${reads[0]} -2 ${reads[1]}"
+    unmapped = params.saveUnaligned ? "--writeUnmappedNames" : ''
+    """
+    salmon quant --validateMappings \\
+    --seqBias --useVBOpt --gcBias \\
+    --geneMap ${gtf} \\
+    --threads ${task.cpus} \\
+    --libType=${rnastrandness} \\
+    --index ${index} \\
+    $endedness $unmapped\\
+    -o ${sample}
+    """
+}
 
-    process salmon_tximport {
-      label 'low_memory'
-      publishDir "${params.outdir}/salmon", mode: 'copy'
 
-      input:
-      set val(name), file ("salmon/*") from salmon_tximport
-      file tx2gene from salmon_tx2gene.collect()
+process salmon_tx2gene {
+  label 'low_memory'
+  publishDir "${params.outdir}/salmon", mode: 'copy'
 
-      output:
-      file "${name}_salmon_gene_tpm.csv" into salmon_gene_tpm
-      file "${name}_salmon_gene_counts.csv" into salmon_gene_counts
-      file "${name}_salmon_transcript_tpm.csv" into salmon_transcript_tpm
-      file "${name}_salmon_transcript_counts.csv" into salmon_transcript_counts
+  input:
+  file ("salmon/*") from salmon_parsegtf.collect()
+  file gtf from gtf_salmon_merge
 
-      script:
-      """
-      tximport.r NULL salmon ${name}
-      """
-    }
+  output:
+  file "tx2gene.csv" into salmon_tx2gene, salmon_merge_tx2gene
 
-    process salmon_merge {
-      label 'mid_memory'
-      publishDir "${params.outdir}/salmon", mode: 'copy'
+  script:
+  """
+  parse_gtf.py --gtf $gtf --salmon salmon --id ${params.fc_group_features} --extra ${params.fc_extra_attributes} -o tx2gene.csv
+  """
+}
 
-      input:
-      file gene_tpm_files from salmon_gene_tpm.collect()
-      file gene_count_files from salmon_gene_counts.collect()
-      file transcript_tpm_files from salmon_transcript_tpm.collect()
-      file transcript_count_files from salmon_transcript_counts.collect()
-      file tx2gene from salmon_merge_tx2gene
+process salmon_tximport {
+  label 'low_memory'
+  publishDir "${params.outdir}/salmon", mode: 'copy'
 
-      output:
-      file "salmon_merged*.csv" into salmon_merged_ch
-      file "*.rds"
+  input:
+  set val(name), file ("salmon/*") from salmon_tximport
+  file tx2gene from salmon_tx2gene.collect()
 
-      script:
-      // First field is the gene/transcript ID
-      gene_ids = "<(cut -f1 -d, ${gene_tpm_files[0]} | tail -n +2 | cat <(echo '${params.fc_group_features}') - )"
-      transcript_ids = "<(cut -f1 -d, ${transcript_tpm_files[0]} | tail -n +2 | cat <(echo 'transcript_id') - )"
+  output:
+  file "${name}_salmon_gene_tpm.csv" into salmon_gene_tpm
+  file "${name}_salmon_gene_counts.csv" into salmon_gene_counts
+  file "${name}_salmon_transcript_tpm.csv" into salmon_transcript_tpm
+  file "${name}_salmon_transcript_counts.csv" into salmon_transcript_counts
 
-      // Second field is counts/TPM
-      gene_tpm = gene_tpm_files.collect{f -> "<(cut -d, -f2 ${f})"}.join(" ")
-      gene_counts = gene_count_files.collect{f -> "<(cut -d, -f2 ${f})"}.join(" ")
-      transcript_tpm = transcript_tpm_files.collect{f -> "<(cut -d, -f2 ${f})"}.join(" ")
-      transcript_counts = transcript_count_files.collect{f -> "<(cut -d, -f2 ${f})"}.join(" ")
-      """
-      paste -d, $gene_ids $gene_tpm > salmon_merged_gene_tpm.csv
-      paste -d, $gene_ids $gene_counts > salmon_merged_gene_counts.csv
-      paste -d, $transcript_ids $transcript_tpm > salmon_merged_transcript_tpm.csv
-      paste -d, $transcript_ids $transcript_counts > salmon_merged_transcript_counts.csv
+  script:
+  """
+  tximport.r NULL salmon ${name}
+  """
+}
 
-      se.r NULL salmon_merged_gene_counts.csv salmon_merged_gene_tpm.csv
-      se.r NULL salmon_merged_transcript_counts.csv salmon_merged_transcript_tpm.csv
-      """
-   }
+process salmon_merge {
+  label 'mid_memory'
+  publishDir "${params.outdir}/salmon", mode: 'copy'
+
+  input:
+  file gene_tpm_files from salmon_gene_tpm.collect()
+  file gene_count_files from salmon_gene_counts.collect()
+  file transcript_tpm_files from salmon_transcript_tpm.collect()
+  file transcript_count_files from salmon_transcript_counts.collect()
+  file tx2gene from salmon_merge_tx2gene
+
+  output:
+  file "salmon_merged*.csv" into salmon_merged_ch
+  file "*.rds"
+
+  script:
+  // First field is the gene/transcript ID
+  gene_ids = "<(cut -f1 -d, ${gene_tpm_files[0]} | tail -n +2 | cat <(echo '${params.fc_group_features}') - )"
+  transcript_ids = "<(cut -f1 -d, ${transcript_tpm_files[0]} | tail -n +2 | cat <(echo 'transcript_id') - )"
+
+  // Second field is counts/TPM
+  gene_tpm = gene_tpm_files.collect{f -> "<(cut -d, -f2 ${f})"}.join(" ")
+  gene_counts = gene_count_files.collect{f -> "<(cut -d, -f2 ${f})"}.join(" ")
+  transcript_tpm = transcript_tpm_files.collect{f -> "<(cut -d, -f2 ${f})"}.join(" ")
+  transcript_counts = transcript_count_files.collect{f -> "<(cut -d, -f2 ${f})"}.join(" ")
+  """
+  paste -d, $gene_ids $gene_tpm > salmon_merged_gene_tpm.csv
+  paste -d, $gene_ids $gene_counts > salmon_merged_gene_counts.csv
+  paste -d, $transcript_ids $transcript_tpm > salmon_merged_transcript_tpm.csv
+  paste -d, $transcript_ids $transcript_counts > salmon_merged_transcript_counts.csv
+
+  se.r NULL salmon_merged_gene_counts.csv salmon_merged_gene_tpm.csv
+  se.r NULL salmon_merged_transcript_counts.csv salmon_merged_transcript_tpm.csv
+  """
+}
 //} else {
 //    salmon_logs = Channel.empty()
 //}
@@ -1817,32 +1823,32 @@ ch_mrkd = ch_count_reads
 process MARKDOWN_REPORT {
   tag "$sample"
   label 'process_low'
-  publishDir "${params.outdir}/${sample}/Report", mode: params.publish_dir_mode
+  publishDir "${params.outdir}/${name}/Report", mode: params.publish_dir_mode
   if (workflow.profile.contains('webserver')) {
     publishDir "${params.frontendoutdir}", mode: params.publish_dir_mode
   }
 
   input:
   //set val(sample), val(single_end), path(reads), file('fastp/*'), file('fastp/*'), file('kraken2/*'), file('kraken2/*'), file('bowtie2/*'), file("qualimap/*"), file("qualimap/*"), file("ivar_trim/*"), file("ivar_var/*"), file("mutations/*") from ch_mrkd
-  set val(sample), val(single_end), path(reads), file('trim_galore/*'), file('trim_galore/*'), file("star/"), file("qualimap/*"), file("qualimap/*") from ch_mrkd
+  set val(name), val(single_end), path(reads), file('trim_galore/*'), file('trim_galore/*'), file("star/"), file("qualimap/*"), file("qualimap/*") from ch_mrkd
   path report_docs from ch_report_docs
   path image from ch_image_docs
 
   output:
-  set val(sample), path ('*.html') into ch_report_sample_zip
+  set val(name), path ('*.html') into ch_report_sample_zip
 
   script:
   se = single_end ? "" : "paired"
   """
   mkdir fastqc
   if $single_end; then
-      zcat $reads | wc -l > fastqc/${sample}_total_sequences.txt
+      zcat $reads | wc -l > fastqc/${name}_total_sequences.txt
   else
-      zcat ${reads[0]} | wc -l > fastqc/${sample}_total_sequences.txt
-      zcat ${reads[1]} | wc -l >> fastqc/${sample}_total_sequences.txt
+      zcat ${reads[0]} | wc -l > fastqc/${name}_total_sequences.txt
+      zcat ${reads[1]} | wc -l >> fastqc/${name}_total_sequences.txt
   fi
   cp $report_docs 'report_to_html.Rmd'
-  Rscript -e "sample='${sample}'; single_end='$se'; rmarkdown::render(input = 'report_to_html.Rmd', output_file = '${sample}.html')"
+  Rscript -e "sample='${name}'; single_end='$se'; rmarkdown::render(input = 'report_to_html.Rmd', output_file = '${name}.html')"
   """
 }
 
@@ -1857,7 +1863,7 @@ process MARKDOWN_REPORT {
  * STEP 14 - MultiQC
  */
 process multiqc {
-    publishDir "${params.outdir}/MultiQC", mode: 'copy'
+    publishDir "${params.outdir}/MultiQC", mode: params.publish_dir_mode
 
     when:
     !params.skipMultiQC
@@ -1898,7 +1904,7 @@ process multiqc {
  */
 
 process output_documentation {
-    publishDir "${params.outdir}/pipeline_info", mode: 'copy'
+    publishDir "${params.outdir}/pipeline_info", mode: params.publish_dir_mode
 
     input:
     file output_docs from ch_output_docs
@@ -1918,12 +1924,12 @@ process output_documentation {
 workflow.onComplete {
 
     // Set up the e-mail variables
-    def subject = "[nf-core/rnaseq] Successful: $workflow.runName"
+    def subject = "[Flomics/rnaseq] Successful: $workflow.runName"
     if (skipped_poor_alignment.size() > 0) {
-        subject = "[nf-core/rnaseq] Partially Successful (${skipped_poor_alignment.size()} skipped): $workflow.runName"
+        subject = "[Flomics/rnaseq] Partially Successful (${skipped_poor_alignment.size()} skipped): $workflow.runName"
     }
     if (!workflow.success) {
-      subject = "[nf-core/rnaseq] FAILED: $workflow.runName"
+      subject = "[Flomics/rnaseq] FAILED: $workflow.runName"
     }
     def email_fields = [:]
     email_fields['version'] = workflow.manifest.version
@@ -1956,12 +1962,12 @@ workflow.onComplete {
         if (workflow.success && !params.skipMultiQC) {
             mqc_report = multiqc_report.getVal()
             if (mqc_report.getClass() == ArrayList) {
-                log.warn "[nf-core/rnaseq] Found multiple reports from process 'multiqc', will use only one"
+                log.warn "[Flomics/rnaseq] Found multiple reports from process 'multiqc', will use only one"
                 mqc_report = mqc_report[0]
             }
         }
     } catch (all) {
-        log.warn "[nf-core/rnaseq] Could not attach MultiQC report to summary email"
+        log.warn "[Flomics/rnaseq] Could not attach MultiQC report to summary email"
     }
 
     // Check if we are only sending emails on failure
@@ -1993,11 +1999,11 @@ workflow.onComplete {
           if (params.plaintext_email) { throw GroovyException('Send plaintext e-mail, not HTML') }
           // Try to send HTML e-mail using sendmail
           [ 'sendmail', '-t' ].execute() << sendmail_html
-          log.info "[nf-core/rnaseq] Sent summary e-mail to $email_address (sendmail)"
+          log.info "[Flomics/rnaseq] Sent summary e-mail to $email_address (sendmail)"
         } catch (all) {
           // Catch failures and try with plaintext
           [ 'mail', '-s', subject, email_address ].execute() << email_txt
-          log.info "[nf-core/rnaseq] Sent summary e-mail to $email_address (mail)"
+          log.info "[Flomics/rnaseq] Sent summary e-mail to $email_address (mail)"
         }
     }
 
@@ -2017,7 +2023,7 @@ workflow.onComplete {
     c_red = params.monochrome_logs ? '' : "\033[0;31m";
 
     if (skipped_poor_alignment.size() > 0) {
-        log.info "${c_purple}[nf-core/rnaseq]${c_red} WARNING - ${skipped_poor_alignment.size()} samples skipped due to poor mapping percentages!${c_reset}"
+        log.info "${c_purple}[Flomics/rnaseq]${c_red} WARNING - ${skipped_poor_alignment.size()} samples skipped due to poor mapping percentages!${c_reset}"
     }
     if (workflow.stats.ignoredCount > 0 && workflow.success) {
         log.info "${c_purple}Warning, pipeline completed, but with errored process(es) ${c_reset}"
@@ -2026,10 +2032,10 @@ workflow.onComplete {
     }
 
     if (workflow.success) {
-        log.info "${c_purple}[nf-core/rnaseq]${c_green} Pipeline completed successfully${c_reset}"
+        log.info "${c_purple}[Flomics/rnaseq]${c_green} Pipeline completed successfully${c_reset}"
     } else {
         checkHostname()
-        log.info "${c_purple}[nf-core/rnaseq]${c_red} Pipeline completed with errors${c_reset}"
+        log.info "${c_purple}[Flomics/rnaseq]${c_red} Pipeline completed with errors${c_reset}"
     }
 
 }
@@ -2039,46 +2045,41 @@ def hasExtension(it, extension) {
     it.toString().toLowerCase().endsWith(extension.toLowerCase())
 }
 
-def nfcoreHeader() {
-    // Log colors ANSI codes
-    c_reset = params.monochrome_logs ? '' : "\033[0m";
-    c_dim = params.monochrome_logs ? '' : "\033[2m";
-    c_black = params.monochrome_logs ? '' : "\033[0;30m";
-    c_green = params.monochrome_logs ? '' : "\033[0;32m";
-    c_yellow = params.monochrome_logs ? '' : "\033[0;33m";
-    c_blue = params.monochrome_logs ? '' : "\033[0;34m";
-    c_purple = params.monochrome_logs ? '' : "\033[0;35m";
-    c_cyan = params.monochrome_logs ? '' : "\033[0;36m";
-    c_white = params.monochrome_logs ? '' : "\033[0;37m";
+def flomicsHeader() {
+  // Log colors ANSI codes
+  c_blue = params.monochrome_logs ? '' : "\033[0;34m";
+  c_dim = params.monochrome_logs ? '' : "\033[2m";
+  c_white = params.monochrome_logs ? '' : "\033[0;37m";
+  c_reset = params.monochrome_logs ? '' : "\033[0m";
 
-    return """    -${c_dim}--------------------------------------------------${c_reset}-
-                                            ${c_green},--.${c_black}/${c_green},-.${c_reset}
-    ${c_blue}        ___     __   __   __   ___     ${c_green}/,-._.--~\'${c_reset}
-    ${c_blue}  |\\ | |__  __ /  ` /  \\ |__) |__         ${c_yellow}}  {${c_reset}
-    ${c_blue}  | \\| |       \\__, \\__/ |  \\ |___     ${c_green}\\`-._,-`-,${c_reset}
-                                            ${c_green}`._,._,\'${c_reset}
-    ${c_purple}  nf-core/rnaseq v${workflow.manifest.version}${c_reset}
-    -${c_dim}--------------------------------------------------${c_reset}-
-    """.stripIndent()
+
+  return """    -${c_dim}--------------------------------------------------${c_reset}-
+  ${c_blue}  ____      __    _  _      __  __     ${c_reset}
+  ${c_blue}  |__  |   |  | \\/ \\/ \\/ | |   |__          ${c_reset}
+  ${c_blue}  |    |__ |__| /\\_/\\_/\\ | |__  __|       ${c_reset}
+  ${c_white}  Flomics/rnaseq v${workflow.manifest.version}${c_reset}
+  -${c_dim}--------------------------------------------------${c_reset}-
+  """.stripIndent()
 }
 
+
 def checkHostname() {
-    def c_reset = params.monochrome_logs ? '' : "\033[0m"
-    def c_white = params.monochrome_logs ? '' : "\033[0;37m"
-    def c_red = params.monochrome_logs ? '' : "\033[1;91m"
-    def c_yellow_bold = params.monochrome_logs ? '' : "\033[1;93m"
-    if (params.hostnames) {
-        def hostname = "hostname".execute().text.trim()
-        params.hostnames.each { prof, hnames ->
-            hnames.each { hname ->
-                if (hostname.contains(hname) && !workflow.profile.contains(prof)) {
-                    log.error "====================================================\n" +
-                            "  ${c_red}WARNING!${c_reset} You are running with `-profile $workflow.profile`\n" +
-                            "  but your machine hostname is ${c_white}'$hostname'${c_reset}\n" +
-                            "  ${c_yellow_bold}It's highly recommended that you use `-profile $prof${c_reset}`\n" +
-                            "============================================================"
-                }
-            }
+  def c_reset = params.monochrome_logs ? '' : "\033[0m"
+  def c_white = params.monochrome_logs ? '' : "\033[0;37m"
+  def c_red = params.monochrome_logs ? '' : "\033[1;91m"
+  def c_yellow_bold = params.monochrome_logs ? '' : "\033[1;93m"
+  if (params.hostnames) {
+    def hostname = "hostname".execute().text.trim()
+    params.hostnames.each { prof, hnames ->
+      hnames.each { hname ->
+        if (hostname.contains(hname) && !workflow.profile.contains(prof)) {
+          log.error "====================================================\n" +
+          "  ${c_red}WARNING!${c_reset} You are running with `-profile $workflow.profile`\n" +
+          "  but your machine hostname is ${c_white}'$hostname'${c_reset}\n" +
+          "  ${c_yellow_bold}It's highly recommended that you use `-profile $prof${c_reset}`\n" +
+          "============================================================"
         }
+      }
     }
+  }
 }
