@@ -945,30 +945,30 @@ if (!params.salmon_index) {
 /*
  * STEP 1 - FastQC
  */
-if (!params.skipQC || !params.skipFastQC) {
+ if (!params.skipQC || !params.skipFastQC) {
 
-  process fastqc {
-      tag "$name"
-      label 'process_medium'
-      publishDir "${params.outdir}/${name}/fastqc", mode: params.publish_dir_mode,
-          saveAs: { filename ->
-            filename.indexOf(".zip") > 0 ? "zips/$filename" : "$filename"
-          }
+   process fastqc {
+     tag "$name"
+     label 'process_medium'
+     publishDir "${params.outdir}/${name}/1-fastqc", mode: 'copy',
+     saveAs: { filename ->
+       filename.endsWith(".zip") ? "zips/$filename" : filename
+     }
 
-      input:
-      set val(name), val(single_end), file(reads) from raw_reads_fastqc
+     input:
+     set val(name), val(single_end), file(reads) from raw_reads_fastqc
 
-      output:
-      file "*_fastqc.{zip,html}" into fastqc_results
+     output:
+     file "*_fastqc.{zip,html}" into fastqc_results
 
-      script:
-      """
-      fastqc --quiet --threads $task.cpus $reads
-      """
-  }
-} else {
-  fastqc_results = Channel.empty()
-}
+     script:
+     """
+     fastqc --quiet --threads $task.cpus $reads
+     """
+   }
+   } else {
+     fastqc_results = Channel.empty()
+   }
 
 
 
@@ -979,14 +979,18 @@ if (!params.skipTrimming) {
     process trim_galore {
         label 'low_memory'
         tag "$name"
-        publishDir "${params.outdir}/${name}/trim_galore", mode: params.publish_dir_mode,
-            saveAs: {filename ->
-                if (filename.indexOf("_fastqc") > 0) "FastQC/$filename"
-                else if (filename.indexOf("trimming_report.txt") > 0) "logs/$filename"
-                else if (!params.saveTrimmed && filename == "where_are_my_files.txt") filename
-                else if (params.saveTrimmed && filename != "where_are_my_files.txt") filename
-                else null
-            }
+
+        publishDir "${params.outdir}/${name}/2-trim_galore", mode: params.publish_dir_mode,
+            saveAs: { filename ->
+                          if (filename.indexOf("_fastqc") > 0) filename
+                          else if (filename.endsWith("_fastqc.html")) "fastqc/$filename"
+                          else if (filename.endsWith(".zip")) "fastqc/zips/$filename"
+                          else if (filename.endsWith(".log") || filename.indexOf("trimming_report.txt") > 0) "logs/$filename"
+                          else if (!params.saveTrimmed && filename == "where_are_my_files.txt") filename
+                          else if (params.saveTrimmed && filename != "where_are_my_files.txt") filename
+                          else null
+                    }
+
 
         input:
         set val(name), val(single_end), file(reads) from raw_reads_trimgalore
@@ -1036,10 +1040,10 @@ if (!params.skipTrimming) {
 /*
  * STEP 2+ - SortMeRNA - remove rRNA sequences on request
  */
-if (!params.removeRiboRNA) {
-    trimgalore_reads
-        .into { trimmed_reads_alignment; trimmed_reads_salmon }
-    sortmerna_logs = Channel.empty()
+//if (!params.removeRiboRNA) {
+trimgalore_reads
+ .into { trimmed_reads_alignment; trimmed_reads_salmon }
+/*    sortmerna_logs = Channel.empty()
 } else {
     process sortmerna_index {
         label 'low_memory'
@@ -1062,7 +1066,7 @@ if (!params.removeRiboRNA) {
     process sortmerna {
         label 'low_memory'
         tag "$name"
-        publishDir "${params.outdir}/${name}/SortMeRNA", mode: params.publish_dir_mode,
+        publishDir "${params.outdir}/${name}/3-SortMeRNA", mode: params.publish_dir_mode,
             saveAs: {filename ->
                 if (filename.indexOf("_rRNA_report.txt") > 0) "logs/$filename"
                 else if (params.saveNonRiboRNAReads) "reads/$filename"
@@ -1156,12 +1160,13 @@ if (!params.skipAlignment) {
   process star {
     label 'high_memory'
     tag "$name"
-    publishDir "${params.outdir}/${name}/STAR", mode: params.publish_dir_mode,
+    publishDir "${params.outdir}/${name}/3-STAR", mode: params.publish_dir_mode,
     saveAs: {filename ->
       if (filename.indexOf(".bam") == -1) "logs/$filename"
       else if (params.saveUnaligned && filename != "where_are_my_files.txt" && 'Unmapped' in filename) unmapped/filename
       else if (!params.saveAlignedIntermediates && filename == "where_are_my_files.txt") filename
       else if (params.saveAlignedIntermediates && filename != "where_are_my_files.txt") filename
+      else if (filename.indexOf(".bam") > 0) "$filename"
       else null
     }
 
@@ -1173,6 +1178,8 @@ if (!params.skipAlignment) {
 
     output:
     set val(name), file("*Log.final.out"), file('*.bam') into star_aligned
+    set val(name), file("*.bam") into bam_zip
+    set val(name), file("${prefix}Aligned.sortedByCoord.out.bam.bai") into bam_index_zip
     file "*.out" into alignment_logs
     file "*SJ.out.tab"
     file "*Log.out" into star_log
@@ -1323,7 +1330,7 @@ if (!params.skipAlignment) {
   process rseqc {
       label 'mid_memory'
       tag "${bam.baseName - '.sorted'}"
-      publishDir "${params.outdir}/${name}/rseqc" , mode: params.publish_dir_mode,
+      publishDir "${params.outdir}/${name}/4-rseqc" , mode: params.publish_dir_mode,
           saveAs: {filename ->
                    if (filename.indexOf("bam_stat.txt") > 0)                      "bam_stat/$filename"
               else if (filename.indexOf("infer_experiment.txt") > 0)              "infer_experiment/$filename"
@@ -1378,7 +1385,7 @@ if (!params.skipAlignment) {
   if (!params.skipQC || !params.skipPreseq) {
     process preseq {
         tag "${bam.baseName - '.sorted'}"
-        publishDir "${params.outdir}/${name}/preseq", mode: params.publish_dir_mode
+        publishDir "${params.outdir}/${name}/5-preseq", mode: params.publish_dir_mode
 
         input:
         set val(name), file(bam) from bam_preseq
@@ -1402,14 +1409,15 @@ if (!params.skipAlignment) {
   if (!params.skipQC || !params.skipDupRadar) {
     process markDuplicates {
         tag "${bam.baseName - '.sorted'}"
-        publishDir "${params.outdir}/${name}/markDuplicates", mode: params.publish_dir_mode,
+        publishDir "${params.outdir}/${name}/6-markDuplicates", mode: params.publish_dir_mode,
             saveAs: {filename -> filename.indexOf("_metrics.txt") > 0 ? "metrics/$filename" : "$filename"}
 
         input:
         set val(name), file(bam) from bam_markduplicates
 
         output:
-        set val(name), file("${bam.baseName}.markDups.bam") into bam_md
+        set val(name), file("${bam.baseName}.markDups.bam") into bam_md, bam_dup_zip
+        set val(name), file("${bam.baseName}.markDups.bam.bai") into bam_dup_index_zip
         file "${bam.baseName}.markDups_metrics.txt" into picard_results
         file "${bam.baseName}.markDups.bam.bai"
 
@@ -1440,7 +1448,7 @@ if (!params.skipAlignment) {
     process qualimap {
         label 'low_memory'
         tag "${bam.baseName}"
-        publishDir "${params.outdir}/${name}/qualimap", mode: params.publish_dir_mode
+        publishDir "${params.outdir}/${name}/7-qualimap", mode: params.publish_dir_mode
 
         input:
         set val(name), file(bam) from bam_qualimap
@@ -1483,7 +1491,7 @@ if (!params.skipAlignment) {
     process dupradar {
         label 'low_memory'
         tag "${bam.baseName - '.sorted.markDups'}"
-        publishDir "${params.outdir}/${name}/dupradar", mode: params.publish_dir_mode,
+        publishDir "${params.outdir}/${name}/8-dupradar", mode: params.publish_dir_mode,
             saveAs: {filename ->
                 if (filename.indexOf("_duprateExpDens.pdf") > 0) "scatter_plots/$filename"
                 else if (filename.indexOf("_duprateExpBoxplot.pdf") > 0) "box_plots/$filename"
@@ -1501,6 +1509,8 @@ if (!params.skipAlignment) {
 
         output:
         file "*.{pdf,txt}" into dupradar_results
+        set val(name), file("*.pdf") into dupradar_pdf_zip
+        set val(name), file("*.txt") into dupradar_txt_zip
 
         script: // This script is bundled with the pipeline, in nfcore/rnaseq/bin/
         def dupradar_direction = 0
@@ -1522,7 +1532,7 @@ if (!params.skipAlignment) {
   process featureCounts {
       label 'low_memory'
       tag "${bam.baseName - '.sorted'}"
-      publishDir "${params.outdir}/${name}/featureCounts", mode: params.publish_dir_mode,
+      publishDir "${params.outdir}/${name}/9-featureCounts", mode: params.publish_dir_mode,
           saveAs: {filename ->
               if (filename.indexOf("biotype_counts") > 0) "biotype_counts/$filename"
               else if (filename.indexOf("_gene.featureCounts.txt.summary") > 0) "gene_count_summaries/$filename"
@@ -1535,10 +1545,14 @@ if (!params.skipAlignment) {
       file gtf from gtf_featureCounts.collect()
       file biotypes_header from ch_biotypes_header.collect()
 
+
       output:
       file "${bam.baseName}_gene.featureCounts.txt" into geneCounts, featureCounts_to_merge
       file "${bam.baseName}_gene.featureCounts.txt.summary" into featureCounts_logs
       file "${bam.baseName}_biotype_counts*mqc.{txt,tsv}" optional true into featureCounts_biotype
+      set val(name), file("${bam.baseName}_gene.featureCounts.txt") into featureCounts_zip
+      set val(name), file("${bam.baseName}_gene.featureCounts.txt.summary") into featureCounts_sum_zip
+
 
       script:
       def featureCounts_direction = 0
@@ -1567,13 +1581,13 @@ if (!params.skipAlignment) {
   process merge_featureCounts {
       label "mid_memory"
       tag "${input_files[0].baseName - '.sorted'}"
-      publishDir "${params.outdir}/featureCounts", mode: 'copy'
+      publishDir "${params.outdir}/2-All_featureCounts", mode: 'copy'
 
       input:
       file input_files from featureCounts_to_merge.collect()
 
       output:
-      file 'merged_gene_counts.txt' into featurecounts_merged
+      file 'merged_gene_counts.txt' into featurecounts_merged, featurecounts_merge_zip
 
       script:
       // Redirection (the `<()`) for the win!
@@ -1592,7 +1606,7 @@ if (!params.skipAlignment) {
    */
   process stringtieFPKM {
       tag "${bam.baseName - '.sorted'}"
-      publishDir "${params.outdir}/${name}/stringtieFPKM", mode: 'copy',
+      publishDir "${params.outdir}/${name}/10-stringtieFPKM", mode: 'copy',
           saveAs: {filename ->
               if (filename.indexOf("transcripts.gtf") > 0) "transcripts/$filename"
               else if (filename.indexOf("cov_refs.gtf") > 0) "cov_refs/$filename"
@@ -1609,6 +1623,7 @@ if (!params.skipAlignment) {
       file "${bam.baseName}.gene_abund.txt"
       file "${bam}.cov_refs.gtf"
       file "${bam.baseName}_ballgown"
+      set val(name), file("${bam.baseName}_transcripts.gtf") into stringtiefpkm_zip
 
       script:
       def st_direction = ''
@@ -1639,7 +1654,7 @@ if (!params.skipAlignment) {
     process sample_correlation {
         label 'low_memory'
         tag "${input_files[0].toString() - '.sorted_gene.featureCounts.txt' - 'Aligned'}"
-        publishDir "${params.outdir}/sample_correlation", mode: params.publish_dir_mode
+        publishDir "${params.outdir}/3-sample_correlation", mode: params.publish_dir_mode
 
         input:
         file input_files from geneCounts.collect()
@@ -1648,7 +1663,7 @@ if (!params.skipAlignment) {
         file heatmap_header from ch_heatmap_header
 
         output:
-        file "*.{txt,pdf,csv}" into sample_correlation_results
+        file "*.{txt,pdf,csv}" into sample_correlation_results, sample_correlation_zip
 
         when:
         num_bams > 2 && (!params.sampleLevel)
@@ -1685,19 +1700,19 @@ if (!params.skipAlignment) {
 //if (params.pseudo_aligner == 'salmon') {
 process salmon {
   label 'salmon'
-  tag "$sample"
-  publishDir "${params.outdir}/salmon", mode: 'copy'
+  tag "$name"
+  publishDir "${params.outdir}/${name}/11-salmon", mode: params.publish_dir_mode
 
   input:
-  set sample, val(single_end), file(reads) from trimmed_reads_salmon
+  set val(name), val(single_end), file(reads) from trimmed_reads_salmon
   file index from salmon_index.collect()
   file gtf from gtf_salmon.collect()
   val(single_end) from ch_single_salmon
 
 
   output:
-  file "${sample}/" into salmon_logs
-  set val(sample), file("${sample}/") into salmon_tximport, salmon_parsegtf
+  file "${name}/" into salmon_logs
+  set val(name), file("${name}/") into salmon_tximport, salmon_parsegtf
 
   script:
   def rnastrandness = single_end ? 'U' : 'IU'
@@ -1716,14 +1731,15 @@ process salmon {
     --libType=${rnastrandness} \\
     --index ${index} \\
     $endedness $unmapped\\
-    -o ${sample}
+    -o ${name}
     """
 }
 
 
 process salmon_tx2gene {
   label 'low_memory'
-  publishDir "${params.outdir}/salmon", mode: 'copy'
+  publishDir "${params.outdir}/4-salmon/tx2gene", mode: params.publish_dir_mode
+
 
   input:
   file ("salmon/*") from salmon_parsegtf.collect()
@@ -1740,7 +1756,7 @@ process salmon_tx2gene {
 
 process salmon_tximport {
   label 'low_memory'
-  publishDir "${params.outdir}/salmon", mode: 'copy'
+  publishDir "${params.outdir}/${name}/11-salmon/tximport", mode: params.publish_dir_mode
 
   input:
   set val(name), file ("salmon/*") from salmon_tximport
@@ -1760,7 +1776,7 @@ process salmon_tximport {
 
 process salmon_merge {
   label 'mid_memory'
-  publishDir "${params.outdir}/salmon", mode: 'copy'
+  publishDir "${params.outdir}/4-salmon", mode: params.publish_dir_mode
 
   input:
   file gene_tpm_files from salmon_gene_tpm.collect()
@@ -1770,7 +1786,7 @@ process salmon_merge {
   file tx2gene from salmon_merge_tx2gene
 
   output:
-  file "salmon_merged*.csv" into salmon_merged_ch
+  file "salmon_merged*.csv" into salmon_merged_ch, salmon_merged_zip
   file "*.rds"
 
   script:
@@ -1821,15 +1837,15 @@ ch_mrkd = ch_count_reads
 
 
 process MARKDOWN_REPORT {
-  tag "$sample"
+  tag "$name"
   label 'process_low'
-  publishDir "${params.outdir}/${name}/Report", mode: params.publish_dir_mode
+  publishDir "${params.outdir}/${name}/12-Report", mode: params.publish_dir_mode
   if (workflow.profile.contains('webserver')) {
     publishDir "${params.frontendoutdir}", mode: params.publish_dir_mode
   }
 
   input:
-  //set val(sample), val(single_end), path(reads), file('fastp/*'), file('fastp/*'), file('kraken2/*'), file('kraken2/*'), file('bowtie2/*'), file("qualimap/*"), file("qualimap/*"), file("ivar_trim/*"), file("ivar_var/*"), file("mutations/*") from ch_mrkd
+  //set val(name), val(single_end), path(reads), file('fastp/*'), file('fastp/*'), file('kraken2/*'), file('kraken2/*'), file('bowtie2/*'), file("qualimap/*"), file("qualimap/*"), file("ivar_trim/*"), file("ivar_var/*"), file("mutations/*") from ch_mrkd
   set val(name), val(single_end), path(reads), file('trim_galore/*'), file('trim_galore/*'), file("star/"), file("qualimap/*"), file("qualimap/*") from ch_mrkd
   path report_docs from ch_report_docs
   path image from ch_image_docs
@@ -1862,8 +1878,17 @@ process MARKDOWN_REPORT {
 /*
  * STEP 14 - MultiQC
  */
-process multiqc {
-    publishDir "${params.outdir}/MultiQC", mode: params.publish_dir_mode
+ process multiqc {
+   publishDir "${params.outdir}/1-Report.General", mode: params.publish_dir_mode,
+   saveAs: { filename ->
+     if (filename.endsWith(".html")) filename
+   }
+   if (workflow.profile.contains('webserver')) {
+     publishDir "${params.frontendoutdir}", mode: params.publish_dir_mode,
+     saveAs: { filename ->
+       if (filename.endsWith(".html")) filename
+     }
+   }
 
     when:
     !params.skipMultiQC
@@ -1881,12 +1906,12 @@ process multiqc {
     file ('featureCounts_biotype/*') from featureCounts_biotype.collect()
     file ('salmon/*') from salmon_logs.collect().ifEmpty([])
     file ('sample_correlation_results/*') from sample_correlation_results.collect().ifEmpty([]) // If the Edge-R is not run create an Empty array
-    file ('sortmerna/*') from sortmerna_logs.collect().ifEmpty([])
+    //file ('sortmerna/*') from sortmerna_logs.collect().ifEmpty([])
     file ('software_versions/*') from software_versions_yaml.collect()
     file workflow_summary from create_workflow_summary(summary)
 
     output:
-    file "*general.report.html" into multiqc_report
+    file "*general.report.html" into multiqc_report, ch_multiqc_zip
     file "*_data"
     file "multiqc_plots"
 
@@ -1917,6 +1942,65 @@ process output_documentation {
     markdown_to_html.r $output_docs results_description.html
     """
 }
+
+
+
+ch_logs_zip = ch_report_sample_zip
+  .join(bam_zip, remainder: true)
+  .join(bam_index_zip, remainder: true)
+  .join(bam_dup_zip, remainder: true)
+  .join(bam_dup_index_zip, remainder: true)
+  .join(dupradar_pdf_zip, remainder: true)
+  .join(dupradar_txt_zip, remainder: true)
+  .join(featureCounts_zip, remainder: true)
+  .join(featureCounts_sum_zip, remainder: true)
+  .join(stringtiefpkm_zip, remainder: true)
+
+process ORGANIZE_FILES {
+  label 'process_low'
+
+  input:
+  set val(sample), path("${sample}/1-Report_Sample/*"), file("${sample}/2-Bam/*"), file("${sample}/2-Bam/*"), file("${sample}/3-MarkDuplicates/*"), file("${sample}/3-MarkDuplicates/*"), file("${sample}/4-DupRadar/*"), file("${sample}/4-DupRadar/*"), file("${sample}/5-FeatureCounts/*"), file("${sample}/5-FeatureCounts/*"), file("${sample}/6-Transcripts/*") from ch_logs_zip
+
+  output:
+  path("${sample}") into ch_folders_zip
+
+  """
+  """
+}
+
+
+process ZIP_FILES {
+  label 'process_high'
+  if (workflow.profile.contains('webserver')) {
+    publishDir "${params.frontendoutdir}", mode: params.publish_dir_mode,
+    saveAs: { filename ->
+                  if (filename.endsWith(".zip")) filename
+    }
+  }
+  publishDir "${params.outdir}", mode: params.publish_dir_mode,
+  saveAs: { filename ->
+                if (filename.endsWith(".zip")) filename
+  }
+
+  input:
+  path("*") from ch_folders_zip.collect()
+  path("1-Report.General/*") from ch_multiqc_zip
+  path("2-FeatureCounts/*") from featurecounts_merge_zip
+  path("3-Salmon/*") from salmon_merged_zip
+  path("4-SampleCorrelation/") from sample_correlation_zip
+
+
+  output:
+  path("*.zip")
+
+  script:
+  """
+  zip results.zip * -r
+  """
+}
+
+
 
 /*
  * Completion e-mail notification
