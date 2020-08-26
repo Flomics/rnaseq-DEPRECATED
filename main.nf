@@ -306,9 +306,9 @@ else{
 
 //Output folders
 if (workflow.profile.contains('webserver')) {
-  params.outdir= 's3://aws-nextflow-covid19/' + params.user + '/' + params.request + '/' + params.run
+  params.outdir= 's3://aws-nextflow-pipelines/' + params.user + '/' + params.request + '/' + params.run
 } else if (workflow.profile.contains('awsbatch')) {
-  params.outdir= 's3://aws-nextflow-covid19/' + params.run
+  params.outdir= 's3://aws-nextflow-pipelines/' + params.run
 } else if (!params.outdir) {
   params.outdir = params.run
 }
@@ -1025,8 +1025,8 @@ if (!params.skipTrimming) {
             zcat ${name}_1.fastq.gz | wc -l > ${name}_number_sequences.txt
             zcat ${name}_2.fastq.gz | wc -l >> ${name}_number_sequences.txt
             trim_galore --paired --fastqc --gzip $c_r1 $c_r2 $tpc_r1 $tpc_r2 $nextseq ${name}_1.fastq.gz ${name}_2.fastq.gz
-            unzip -p '${name}_1_trimmed_val_1_fastqc.zip' ${name}_1_val_1_fastqc/fastqc_data.txt | grep -E "Total Sequences|Filename*" > '${name}_after_trimming_sequences.txt'
-            unzip -p '${name}_2_trimmed_val_2_fastqc.zip' ${name}_2_val_2_fastqc/fastqc_data.txt | grep -E "Total Sequences|Filename*" >> '${name}_after_trimming_sequences.txt'
+            unzip -p '${name}_1_val_1_fastqc.zip' ${name}_1_val_1_fastqc/fastqc_data.txt | grep -E "Total Sequences|Filename*" > '${name}_after_trimming_sequences.txt'
+            unzip -p '${name}_2_val_2_fastqc.zip' ${name}_2_val_2_fastqc/fastqc_data.txt | grep -E "Total Sequences|Filename*" >> '${name}_after_trimming_sequences.txt'
             """
         }
     }
