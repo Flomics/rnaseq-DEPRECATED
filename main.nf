@@ -306,9 +306,9 @@ else{
 
 //Output folders
 if (workflow.profile.contains('webserver')) {
-  params.outdir= 's3://aws-nextflow-covid19/' + params.user + '/' + params.request + '/' + params.run
+  params.outdir= 's3://aws-nextflow-pipelines/' + params.user + '/' + params.request + '/' + params.run
 } else if (workflow.profile.contains('awsbatch')) {
-  params.outdir= 's3://aws-nextflow-covid19/' + params.run
+  params.outdir= 's3://aws-nextflow-pipelines/' + params.run
 } else if (!params.outdir) {
   params.outdir = params.run
 }
