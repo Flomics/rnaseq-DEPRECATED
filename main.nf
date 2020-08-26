@@ -74,7 +74,7 @@ def helpMessage() {
       --fc_extra_attributes         Define which extra parameters should also be included in featureCounts (default: 'gene_name')
       --fc_group_features           Define the attribute type used to group features. (default: 'gene_id')
       --fc_count_type               Define the type used to assign reads. (default: 'exon')
-      --fc_group_features_type      Define the type attribute used to group features based on the group attribute (default: 'gene_biotype')
+      --fc_group_features_type      Define the type attribute used to group features based on the group attribute (default: 'gene_id')
 
     QC:
       --skipQC                      Skip all QC steps apart from MultiQC
