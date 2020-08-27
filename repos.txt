@@ -1,6 +1,6 @@
 flomicsbiotech/sarscov2:latest
 flomicsbiotech/sarscov2:1.1
-flomicsbiotech/sarscov:dev
+flomicsbiotech/sarscov2:dev
 flomicsbiotech/rnaseq:latest
 flomicsbiotech/rnaseq:dev
 flomicsbiotech/lifebitsarscov2:1.0.0
