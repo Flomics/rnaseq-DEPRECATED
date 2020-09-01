@@ -125,7 +125,13 @@ params.fasta = params.genome ? params.genomes[ params.genome ].fasta ?: false : 
 params.gtf = params.genome ? params.genomes[ params.genome ].gtf ?: false : false
 params.gff = params.genome ? params.genomes[ params.genome ].gff ?: false : false
 params.bed12 = params.genome ? params.genomes[ params.genome ].bed12 ?: false : false
-params.hisat2_index = params.genome ? params.genomes[ params.genome ].hisat2 ?: false : false
+params.gencode_v = params.genome ? params.genomes[ params.genome ].gencode_v ?: false : false
+params.genome_v = params.genome ? params.genomes[ params.genome ].fasta_v ?: false : false
+params.annotation_v = params.genome ? params.genomes[ params.genome ].gtf_v ?: false : false
+
+
+
+//params.hisat2_index = params.genome ? params.genomes[ params.genome ].hisat2 ?: false : false
 
 ch_mdsplot_header = Channel.fromPath("$baseDir/assets/mdsplot_header.txt", checkIfExists: true)
 ch_heatmap_header = Channel.fromPath("$baseDir/assets/heatmap_header.txt", checkIfExists: true)
@@ -1855,6 +1861,10 @@ process MARKDOWN_REPORT {
 
   script:
   se = single_end ? "" : "paired"
+  version = params.genome_v ? params.genome_v : ""
+  annotation = params.annotation_v ? params.annotation_v : ""
+  gencode = params.gencode_v ? params.gencode_v : ""
+
   """
   mkdir fastqc
   if $single_end; then
@@ -1864,7 +1874,7 @@ process MARKDOWN_REPORT {
       zcat ${reads[1]} | wc -l >> fastqc/${name}_total_sequences.txt
   fi
   cp $report_docs 'report_to_html.Rmd'
-  Rscript -e "sample='${name}'; single_end='$se'; rmarkdown::render(input = 'report_to_html.Rmd', output_file = '${name}.html')"
+  Rscript -e "sample='${name}'; single_end='$se'; genome='$version'; gtf='$annotation'; gencode='$gencode'; rmarkdown::render(input = 'report_to_html.Rmd', output_file = '${name}.html')"
   """
 }
 

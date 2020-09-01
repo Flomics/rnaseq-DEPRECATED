@@ -13,6 +13,9 @@ output:
 keep_md: true
 sample: "`r sample`"
 single_end: "`r single_end`"
+genome: "` r genome`"
+gtf: "`r gtf`"
+gencode: "`r gencode`"
 ---
 
 ```{r setup, include=FALSE}
@@ -25,6 +28,13 @@ library(kableExtra)
 # <font size="5"><span style="color: #00AEEF;">**Parameters**</span></font>
 
 ```{r echo = FALSE}
+if (genome != "") {
+  parameters <- data.frame(parameter = c("Genome version", "Annotation version (Ensembl)", "Gencode version"), Value = c(genome, gtf, gencode))
+  kable(parameters, align = 'l') %>%
+    kable_styling(full_width = F) %>%
+    column_spec(1, width = "50em") %>%
+    column_spec(2, width = "30em")
+}
 #parameters <- data.frame(parameter = c("Protocol", "Kit", "Allele frequency threshold (VC iVar)", "Minimum base quality (VC iVar)", "Minimum coverage (VC iVar)"), Value = c(protocol, kit, threshold, min_base_qual, min_coverage))
 #kable(parameters, align = 'l') %>%
 #  kable_styling(full_width = F) %>%
@@ -90,7 +100,11 @@ if (file.exists(path)){
 # <font size="5"><span style="color: #00AEEF;">**Number of mapped reads**</span></font>
 
 ```{r echo = FALSE}
-mapfile <- paste("star/", sample, "Log.final.out", sep = "")
+if (single_end == "paired") {
+  mapfile <- paste("star/", sample, "_1Log.final.out", sep = "")
+} else {
+  mapfile <- paste("star/", sample, "Log.final.out", sep = "")
+}
 mappath <- file.path(getwd(), mapfile)
 if (file.exists(mappath)){
   mapped <- read.table(mappath, stringsAsFactors = FALSE, sep = "\\")
