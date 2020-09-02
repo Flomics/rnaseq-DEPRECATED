@@ -16,10 +16,7 @@ dependencies:
   - conda-forge::r-stringi=1.4.6
   - conda-forge::r-kableextra=1.1.0
   - conda-forge::r-openimager=1.1.7
-  - conda-forge::graphviz=2.40.1
-  - conda-forge::pymdown-extensions=7.1
-  - conda-forge::pygments=2.6.1
-  - conda-forge::r-shinythemes=1.1.2
+
 
 
 

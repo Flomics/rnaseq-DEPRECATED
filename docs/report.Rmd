@@ -10,8 +10,6 @@ output:
     toc: true
     toc_float: true
     theme: cerulean
-    #css: my-style.css
-    #css: "bootstrap.min.css"
 keep_md: true
 sample: "`r sample`"
 single_end: "`r single_end`"
