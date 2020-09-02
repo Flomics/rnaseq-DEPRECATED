@@ -400,39 +400,19 @@ if (params.genome) summary['Genome'] = params.genome
 if (params.pico) summary['Library Prep'] = "SMARTer Stranded Total RNA-Seq Kit - Pico Input"
 summary['Strandedness'] = (unStranded ? 'None' : forwardStranded ? 'Forward' : reverseStranded ? 'Reverse' : 'None')
 summary['Trimming'] = "5'R1: $clip_r1 / 5'R2: $clip_r2 / 3'R1: $three_prime_clip_r1 / 3'R2: $three_prime_clip_r2 / NextSeq Trim: $params.trim_nextseq"
-if (params.aligner == 'star') {
-    summary['Aligner'] = "STAR"
-    if (params.star_index)summary['STAR Index'] = params.star_index
-    else if (params.fasta)summary['Fasta Ref'] = params.fasta
-} else if (params.aligner == 'hisat2') {
-    summary['Aligner'] = "HISAT2"
-    if (params.hisat2_index)summary['HISAT2 Index'] = params.hisat2_index
-    else if (params.fasta)summary['Fasta Ref'] = params.fasta
-    if (params.splicesites)summary['Splice Sites'] = params.splicesites
-}
+summary['Aligner'] = "STAR"
 //if (params.pseudo_aligner == 'salmon') {
     summary['Pseudo Aligner'] = "Salmon"
     if (params.transcript_fasta)summary['Transcript Fasta'] = params.transcript_fasta
 //}
-if (params.gtf) summary['GTF Annotation'] = params.gtf
-if (params.gff) summary['GFF3 Annotation'] = params.gff
-if (params.bed12) summary['BED Annotation'] = params.bed12
 if (params.gencode) summary['GENCODE'] = params.gencode
 if (params.stringTieIgnoreGTF) summary['StringTie Ignore GTF'] = params.stringTieIgnoreGTF
-summary['Remove Ribosomal RNA'] = params.removeRiboRNA
 if (params.fc_group_features_type) summary['Biotype GTF field'] = biotype
 summary['Save prefs'] = "Ref Genome: "+(params.saveReference ? 'Yes' : 'No')+" / Trimmed FastQ: "+(params.saveTrimmed ? 'Yes' : 'No')+" / Alignment intermediates: "+(params.saveAlignedIntermediates ? 'Yes' : 'No')
 summary['Max Resources'] = "$params.max_memory memory, $params.max_cpus cpus, $params.max_time time per job"
 if (workflow.containerEngine) summary['Container'] = "$workflow.containerEngine - $workflow.container"
-summary['Output dir'] = params.outdir
-summary['Launch dir'] = workflow.launchDir
-summary['Working dir'] = workflow.workDir
-summary['Script dir'] = workflow.projectDir
 summary['User'] = workflow.userName
-if (workflow.profile == 'awsbatch') {
-  summary['AWS Region']     = params.awsregion
-  summary['AWS Queue']      = params.awsqueue
-}
+
 summary['Config Profile'] = workflow.profile
 if (params.config_profile_description) summary['Config Description'] = params.config_profile_description
 if (params.config_profile_contact)     summary['Config Contact']     = params.config_profile_contact
