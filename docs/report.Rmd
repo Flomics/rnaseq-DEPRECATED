@@ -3,17 +3,19 @@ title: |
   ![](flomics_icon.png){width=3in}
   <p style="color:#00AEEF">________________________________________________________</p>
 
-  <p style="color:#00AEEF">**RNAseq report from `r sample`**</p>
+  <p style="color:#00AEEF">RNAseq report from `r sample`</p>
 date: <h4 style="font-style:normal"><p style="color:#00AEEF">`r Sys.Date()`</p></h4><br />
 output:
   html_document:
     toc: true
     toc_float: true
     theme: cerulean
+    #css: my-style.css
+    #css: "bootstrap.min.css"
 keep_md: true
 sample: "`r sample`"
 single_end: "`r single_end`"
-genome: "` r genome`"
+genome: "`r genome`"
 gtf: "`r gtf`"
 gencode: "`r gencode`"
 ---
@@ -25,7 +27,23 @@ library(OpenImageR)
 library(kableExtra)
 ```
 
-# <font size="5"><span style="color: #00AEEF;">**Parameters**</span></font>
+```{css, echo = FALSE}
+h1 {
+  color: #00AEEF;
+  font-weight: bold;
+  font-size: 24px;
+}
+h2 {
+  color: #00AEEF;
+  font-weight: bold;
+  font-size: 18px;
+}
+```
+
+
+#  General analyses
+
+## Parameters
 
 ```{r echo = FALSE}
 if (genome != "") {
@@ -35,15 +53,11 @@ if (genome != "") {
     column_spec(1, width = "50em") %>%
     column_spec(2, width = "30em")
 }
-#parameters <- data.frame(parameter = c("Protocol", "Kit", "Allele frequency threshold (VC iVar)", "Minimum base quality (VC iVar)", "Minimum coverage (VC iVar)"), Value = c(protocol, kit, threshold, min_base_qual, min_coverage))
-#kable(parameters, align = 'l') %>%
-#  kable_styling(full_width = F) %>%
-#  column_spec(1, width = "50em") %>%
-#  column_spec(2, width = "30em")
 ```
 
-#  <br /><font size="5"><span style="color: #00AEEF;">**Number of reads**</span></font>
+##  Number of reads
 
+```{r echo = FALSE}
 ```{r echo = FALSE}
 tabseq <- paste("fastqc/", sample, "_total_sequences.txt", sep = "")
 seqpath <- file.path(getwd(), tabseq)
@@ -67,7 +81,7 @@ if (file.exists(seqpath)){
 ```
 
 
-#  <br /><font size="5"><span style="color: #00AEEF;">**Number of trimmed reads**</span></font>
+##  Number of trimmed reads
 
 ```{r echo = FALSE}
 tabtrim <- paste("trim_galore/", sample, "_after_trimming_sequences.txt", sep = "")
@@ -86,7 +100,7 @@ if (file.exists(path)){
     trim <- data.frame(sample_name = c("single_end"), Discarded_reads = c(as.numeric(numseq[1,1])/4-as.numeric(trimmed[2,2])))
     colnames(trim)[1] <- sample
   }
-  kable(trim, align = "l") %>%
+  kable(trim) %>%
     kable_styling(full_width = F) %>%
     column_spec(1, width = "50em") %>%
     column_spec(2, width = "30em")
@@ -96,8 +110,7 @@ if (file.exists(path)){
 
 ```
 
-
-# <font size="5"><span style="color: #00AEEF;">**Number of mapped reads**</span></font>
+## Number of mapped reads
 
 ```{r echo = FALSE}
 if (single_end == "paired") {
@@ -110,7 +123,7 @@ if (file.exists(mappath)){
   mapped <- read.table(mappath, stringsAsFactors = FALSE, sep = "\\")
   input <- as.numeric(gsub("[A-Za-z]+|\t|\\|| ", "", mapped[5,]))
   mapped <- as.numeric(gsub("[A-Za-z]+|\t|\\|| ", "", mapped[8,])) + as.numeric(gsub("[A-Za-z]+|\t|\\|| ", "", mapped[23,])) + as.numeric(gsub("[A-Za-z]+|\t|\\|| ", "", mapped[25,]))
-  mapped_percentage <- mapped/input * 100
+  mapped_percentage <- round(mapped/input * 100, 2)
   if (single_end == "paired") {
     total_reads <- input*2
     mapped_reads <- mapped*2
@@ -118,8 +131,7 @@ if (file.exists(mappath)){
     total_reads <- input
     mapped_reads <- mapped
   }
-  mapped_percentage <- round(mapped_reads/total_reads, 2)
-  maptab <- data.frame(names = c("Total reads for mapping", "%mapped reads", "mapped reads"), Values = c(total_reads, mapped_percentage, mapped_reads))
+  maptab <- data.frame(names = c("Total reads for mapping", "%mapped reads", "mapped reads"), Values = c(as.integer(total_reads), mapped_percentage, as.integer(mapped_reads)))
   kable(maptab, row.names = NA, col.names = c("", "value"))  %>%
     kable_styling(full_width = F) %>%
     column_spec(1, width = "50em") %>%
@@ -131,7 +143,7 @@ if (file.exists(mappath)){
 ```
 
 
-# <br /><font size="5"><span style="color: #00AEEF;">**Transcript coverage profile**</span></font>
+## Transcript coverage profile
 
 ```{r echo = FALSE}
 file <- paste("qualimap/", sample, ".coverage.txt", sep = "")
@@ -144,7 +156,6 @@ kable(coverage.df, row.names = NA, col.names = c("Bias", "Value")) %>%
 ```
 
 ```{r echo = FALSE}
-#Image
 im_file <- paste("qualimap/", sample, ".genome_coverage_across_reference.png", sep = "")
 path <- file.path(getwd(), im_file)
 im <- readImage(path)
@@ -152,19 +163,6 @@ imageShow(im)
 ```
 
 
-# <br /><font size="4"><span style="color: #00AEEF;">**Number of variants**</span></font>
+# Contact
 
-```{r echo = FALSE}
-
-```
-
-# <br /><font size="4"><span style="color: #00AEEF;">**Variants interpretation**</span></font>
-
-```{r echo = FALSE}
-```
-
-
-
-# <br /><font size="5"><span style="color: #00AEEF;">**Contact**</span></font>
-
-<font sieze="3">If you have any question, please contact [**support@flomics.com**](mailto:support@flomics.com) </font>
+<font size="3">If you have any question, please contact [support@flomics.com](mailto:support@flomics.com) </font>
