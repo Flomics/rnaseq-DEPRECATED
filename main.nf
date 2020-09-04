@@ -1,11 +1,11 @@
 #!/usr/bin/env nextflow
 /*
 ========================================================================================
-                         nf-core/rnaseq
+                         Flomics/rnaseq
 ========================================================================================
- nf-core/rnaseq Analysis Pipeline.
+ Flomics/rnaseq Analysis Pipeline.
  #### Homepage / Documentation
- https://github.com/nf-core/rnaseq
+ https://github.com/Flomics/rnaseq
 ----------------------------------------------------------------------------------------
 */
 
@@ -1536,6 +1536,7 @@ if (!params.skipAlignment) {
       file "${bam.baseName}_gene.featureCounts.txt" into geneCounts, featureCounts_to_merge
       file "${bam.baseName}_gene.featureCounts.txt.summary" into featureCounts_logs
       file "${bam.baseName}_biotype_counts*mqc.{txt,tsv}" optional true into featureCounts_biotype
+      set val(name), file ("${bam.baseName}_biotype_counts*mqc.txt") optional true into ch_featureCounts_mrkd
       set val(name), file("${bam.baseName}_gene.featureCounts.txt") into featureCounts_zip
       set val(name), file("${bam.baseName}_gene.featureCounts.txt.summary") into featureCounts_sum_zip
 
@@ -1817,6 +1818,7 @@ ch_mrkd = ch_count_reads
   .join(ch_star_mrkd, remainder: true)
   .join(ch_file_coverage_mrkd, remainder: true)
   .join(ch_figure_coverage_mrkd, remainder: true)
+  .join(ch_featureCounts_mrkd, remainder: true)
 //  .join(ch_trimmed_primer_mrkd, remainder: true)
 //  .join(ch_indels_mrkd, remainder: true)
 //  .join(ch_mutation_report_mrkd, remainder: true)
@@ -1832,7 +1834,7 @@ process MARKDOWN_REPORT {
 
   input:
   //set val(name), val(single_end), path(reads), file('fastp/*'), file('fastp/*'), file('kraken2/*'), file('kraken2/*'), file('bowtie2/*'), file("qualimap/*"), file("qualimap/*"), file("ivar_trim/*"), file("ivar_var/*"), file("mutations/*") from ch_mrkd
-  set val(name), val(single_end), path(reads), file('trim_galore/*'), file('trim_galore/*'), file("star/"), file("qualimap/*"), file("qualimap/*") from ch_mrkd
+  set val(name), val(single_end), path(reads), file('trim_galore/*'), file('trim_galore/*'), file("star/"), file("qualimap/*"), file("qualimap/*"), file("features/*") from ch_mrkd
   path report_docs from ch_report_docs
   path image from ch_image_docs
 

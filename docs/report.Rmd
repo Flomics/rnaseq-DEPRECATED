@@ -41,6 +41,9 @@ h2 {
 
 #  General analyses
 
+\
+
+
 ## Parameters
 
 ```{r echo = FALSE}
@@ -52,6 +55,9 @@ if (genome != "") {
     column_spec(2, width = "30em")
 }
 ```
+
+\
+
 
 ##  Number of reads
 
@@ -77,6 +83,8 @@ if (file.exists(seqpath)){
   message ("Step fastqc was skipped")
 }
 ```
+
+\
 
 
 ##  Number of trimmed reads
@@ -107,6 +115,9 @@ if (file.exists(path)){
 }
 
 ```
+
+\
+
 
 ## Number of mapped reads
 
@@ -141,6 +152,9 @@ if (file.exists(mappath)){
 ```
 
 
+\
+
+
 ## Transcript coverage profile
 
 ```{r echo = FALSE}
@@ -159,6 +173,25 @@ path <- file.path(getwd(), im_file)
 im <- readImage(path)
 imageShow(im)
 ```
+
+
+\
+
+
+## Number of reads per gene biotype
+
+```{r echo = FALSE}
+file <- paste("features/", sample, "Aligned.sortedByCoord.out_biotype_counts_mqc.txt", sep = "")
+biotypes <- read.table(file, header = FALSE, stringsAsFactors = FALSE)
+#coverage.df <- data.frame(bias = coverage$V1, value = coverage$V4)
+kable(biotypes, row.names = NA, col.names = c("Biotype", "Number of Reads")) %>%
+  kable_styling(full_width = F) %>%
+  column_spec(1, width = "50em") %>%
+  column_spec(2, width = "30em")
+```
+
+
+\
 
 
 # Contact
