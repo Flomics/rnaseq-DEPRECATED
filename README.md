@@ -1,4 +1,4 @@
-# ![Flomics/rnaseq](docs/images/Flomics-rnaseq_logo.png)
+# ![Flomics/rnaseq](docs/images/Flomics_icon.png)
 
 [![Build Status](https://travis-ci.org/Flomics/rnaseq.svg?branch=master)](https://travis-ci.org/Flomics/rnaseq)
 [![Nextflow](https://img.shields.io/badge/nextflow-%E2%89%A519.04.0-brightgreen.svg)](https://www.nextflow.io/)
