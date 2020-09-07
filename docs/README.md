@@ -1,6 +1,6 @@
-# nf-core/rnaseq: Documentation
+# Flomics/rnaseq: Documentation
 
-The nf-core/rnaseq documentation is split into the following files:
+The Flomics/rnaseq documentation is split into the following files:
 
 1. [Installation](https://nf-co.re/usage/installation)
 2. Pipeline configuration

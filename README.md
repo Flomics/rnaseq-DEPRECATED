@@ -1,6 +1,6 @@
-# ![nf-core/rnaseq](docs/images/nf-core-rnaseq_logo.png)
+# ![Flomics/rnaseq](docs/images/Flomics-rnaseq_logo.png)
 
-[![Build Status](https://travis-ci.org/nf-core/rnaseq.svg?branch=master)](https://travis-ci.org/nf-core/rnaseq)
+[![Build Status](https://travis-ci.org/Flomics/rnaseq.svg?branch=master)](https://travis-ci.org/Flomics/rnaseq)
 [![Nextflow](https://img.shields.io/badge/nextflow-%E2%89%A519.04.0-brightgreen.svg)](https://www.nextflow.io/)
 [![DOI](https://zenodo.org/badge/127293091.svg)](https://zenodo.org/badge/latestdoi/127293091)
 
@@ -9,7 +9,7 @@
 
 ### Introduction
 
-**nf-core/rnaseq** is a bioinformatics analysis pipeline used for RNA sequencing data.
+**Flomics/rnaseq** is a bioinformatics analysis pipeline used for RNA sequencing data.
 
 The workflow processes raw data from
  FastQ inputs ([FastQC](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/),
@@ -40,20 +40,20 @@ ii. Install one of [`docker`](https://docs.docker.com/engine/installation/), [`s
 iii. Download the pipeline and test it on a minimal dataset with a single command
 
 ```bash
-nextflow run nf-core/rnaseq -profile test,<docker/singularity/conda>
+nextflow run Flomics/rnaseq -profile test,<docker/singularity/conda>
 ```
 
 iv. Start running your own analysis!
 
 ```bash
-nextflow run nf-core/rnaseq -profile <docker/singularity/conda> --reads '*_R{1,2}.fastq.gz' --genome GRCh37
+nextflow run Flomics/rnaseq -profile <docker/singularity/conda> --reads '*_R{1,2}.fastq.gz' --genome GRCh37
 ```
 
 See [usage docs](docs/usage.md) for all of the available options when running the pipeline.
 
 ### Documentation
 
-The nf-core/rnaseq pipeline comes with documentation about the pipeline, found in the `docs/` directory:
+The Flomics/rnaseq pipeline comes with documentation about the pipeline, found in the `docs/` directory:
 
 1. [Installation](https://nf-co.re/usage/installation)
 2. Pipeline configuration
@@ -66,29 +66,11 @@ The nf-core/rnaseq pipeline comes with documentation about the pipeline, found i
 
 ### Credits
 
-These scripts were originally written for use at the [National Genomics Infrastructure](https://portal.scilifelab.se/genomics/), part of [SciLifeLab](http://www.scilifelab.se/) in Stockholm, Sweden, by Phil Ewels ([@ewels](https://github.com/ewels)) and Rickard Hammarén ([@Hammarn](https://github.com/Hammarn)).
+These scripts were originally written for use at the [National Genomics Infrastructure](https://portal.scilifelab.se/genomics/), part of [SciLifeLab](http://www.scilifelab.se/) in Stockholm, Sweden, by Phil Ewels ([@ewels](https://github.com/ewels)) and Rickard Hammarén ([@Hammarn](https://github.com/Hammarn)). Adapted to Flomics needs by Marta Pozuelo ([@mpozuelo-flomics](https://github.com/mpozuelo-flomics))
 
-Many thanks to other who have helped out along the way too, including (but not limited to):
-[@Galithil](https://github.com/Galithil),
-[@pditommaso](https://github.com/pditommaso),
-[@orzechoj](https://github.com/orzechoj),
-[@apeltzer](https://github.com/apeltzer),
-[@colindaven](https://github.com/colindaven),
-[@lpantano](https://github.com/lpantano),
-[@olgabot](https://github.com/olgabot),
-[@jburos](https://github.com/jburos),
-[@drpatelh](https://github.com/drpatelh).
 
 ## Contributions and Support
 
 If you would like to contribute to this pipeline, please see the [contributing guidelines](.github/CONTRIBUTING.md).
 
 For further information or help, don't hesitate to get in touch on [Slack](https://nfcore.slack.com/channels/rnaseq) (you can join with [this invite](https://nf-co.re/join/slack)).
-
-## Citation
-
-If you use nf-core/rnaseq for your analysis, please cite it using the following doi: [10.5281/zenodo.1400710](https://doi.org/10.5281/zenodo.1400710)
-
-You can cite the `nf-core` pre-print as follows:  
-
-> Ewels PA, Peltzer A, Fillinger S, Alneberg JA, Patel H, Wilm A, Garcia MU, Di Tommaso P, Nahnsen S. **nf-core: Community curated bioinformatics pipelines**. *bioRxiv*. 2019. p. 610741. [doi: 10.1101/610741](https://www.biorxiv.org/content/10.1101/610741v1).
