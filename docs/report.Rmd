@@ -195,7 +195,11 @@ kable(distribution, row.names = NA,  col.names = c("Group", "Tag counts")) %>%
 ## Number of reads per gene biotype
 
 ```{r echo = FALSE}
-biotypes_file <- paste("features/", sample, "Aligned.sortedByCoord.out_biotype_counts_mqc.txt", sep = "")
+if (single_end == "paired") {
+  biotypes_file <- paste("features/", sample, "_1Aligned.sortedByCoord.out_biotype_counts_mqc.txt", sep = "")
+} else {
+  biotypes_file <- paste("features/", sample, "Aligned.sortedByCoord.out_biotype_counts_mqc.txt", sep = "")
+}
 biotypes <- read.table(biotypes_file, header = FALSE, stringsAsFactors = FALSE)
 #coverage.df <- data.frame(bias = coverage$V1, value = coverage$V4)
 kable(biotypes, row.names = NA, col.names = c("Biotype", "Number of Reads")) %>%
