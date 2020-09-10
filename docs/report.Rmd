@@ -23,6 +23,7 @@ knitr::opts_chunk$set(echo = TRUE)
 library(knitr)
 library(OpenImageR)
 library(kableExtra)
+library(ggplot2)
 ```
 
 ```{css, echo = FALSE}
@@ -194,15 +195,59 @@ kable(distribution, row.names = NA,  col.names = c("Group", "Tag counts")) %>%
 
 ## Number of reads per gene biotype
 
+\
+
 ```{r echo = FALSE}
 if (single_end == "paired") {
   biotypes_file <- paste("features/", sample, "_1Aligned.sortedByCoord.out_biotype_counts_mqc.txt", sep = "")
 } else {
   biotypes_file <- paste("features/", sample, "Aligned.sortedByCoord.out_biotype_counts_mqc.txt", sep = "")
 }
-biotypes <- read.table(biotypes_file, header = FALSE, stringsAsFactors = FALSE)
+
+biotypes <- read.table(biotypes_file, header = FALSE, stringsAsFactors = FALSE, row.names = 1)
+colnames(biotypes) <- "reads"
+biotypes$reads <- as.numeric(biotypes$reads)
+biotypes$biotype <- row.names(biotypes)
+biotypes_sorted <- data.frame(biotypes[order(biotypes$reads, decreasing = TRUE),])
+total_reads <- sum(biotypes_sorted$reads)
+biotypes_sorted$percentage <- biotypes_sorted$reads/total_reads*100
+#reads_low <- rowSums(biotypes_final$reads[biotypes_final$percentage<1])
+reads_low <- sum(biotypes_sorted$reads[biotypes_sorted$percentage<1])
+percentage_low <- sum(biotypes_sorted$percentage[biotypes_sorted$percentage<1])
+
+biotypes_sorted <- data.frame(biotypes_sorted[biotypes_sorted$percentage > 1,])
+
+if (nrow(biotypes_sorted) > 0) {
+  biotypes_plot <- rbind(biotypes_sorted, c(reads_low, "Other", percentage_low))
+} else {
+  biotypes_plot <- data.frame(reads = reads_low, biotype = "Other", percentage = percentage_low)
+}
+biotypes_plot$reads <- as.numeric(biotypes_plot$reads)
+biotypes_plot$biotype <- factor(biotypes_plot$biotype, levels = c(biotypes_sorted$biotype, "Other"))
+
+
+ggplot(biotypes_plot, aes(x=reorder(biotype, reads), y=reads))+
+  geom_bar(width = 1, stat = "identity", fill = "dodgerblue4", colour = "white") +
+  coord_flip() +
+  ggtitle("Reads per biotype") +
+  labs(x = "", y = "Reads") +
+  theme_minimal()+
+  theme(
+    panel.border = element_blank(),
+    panel.grid=element_blank(),
+    axis.ticks = element_blank(),
+    plot.title=element_text(size=14, face="bold", hjust = 0.5),
+    legend.position = "none"
+  )
+
+biotypes_print <- biotypes_plot[order(biotypes_plot$reads, decreasing = TRUE), c("biotype", "reads")]
+row.names(biotypes_print) <- seq(1:nrow(biotypes_print))
+```
+\
+
+```{r echo = FALSE}
 #coverage.df <- data.frame(bias = coverage$V1, value = coverage$V4)
-kable(biotypes, row.names = NA, col.names = c("Biotype", "Number of Reads")) %>%
+kable(biotypes_print, row.names = NA, col.names = c("Biotype", "Number of Reads")) %>%
   kable_styling(full_width = F) %>%
   column_spec(1, width = "50em") %>%
   column_spec(2, width = "30em")
