@@ -353,6 +353,7 @@ ch_report_docs = file("$baseDir/docs/report.Rmd", checkIfExists: true)
 ch_image_docs = file("$baseDir/docs/images/flomics_icon.png", checkIfExists: true)
 
 
+
 /*
  * Create a channel for input read files
  */
