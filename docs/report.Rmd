@@ -178,12 +178,34 @@ imageShow(im)
 
 \
 
-## Number of tags per region
+## Number of tags per genomic region
 Note: This information was generated with rseqc. Take into account that tags are not the same than reads. For more information about tags check [rseqc documentation](http://rseqc.sourceforge.net/#read-distribution-py).
+
+\
 
 ```{r echo = FALSE}
 rseqc <- paste("rseqc/", sample, "_read_distribution.txt", sep = "")
 distribution <- read.csv(rseqc, header = TRUE, stringsAsFactors = FALSE, sep = "\t")
+colnames(distribution) <- c("group", "tags")
+
+ggplot(distribution, aes(x=reorder(group, tags), y=tags))+
+  geom_bar(width = 1, stat = "identity", fill = "dodgerblue4", colour = "white") +
+  coord_flip() +
+  ggtitle("Tags per genomic region") +
+  labs(x = "", y = "Tags") +
+  theme_bw()+
+  theme(
+    panel.grid=element_blank(),
+    axis.ticks = element_blank(),
+    plot.title=element_text(size=14, face="bold", hjust = 0.5),
+    legend.position = "none"
+  )
+```
+
+\
+
+```{r echo = FALSE}
+
 kable(distribution, row.names = NA,  col.names = c("Group", "Tag counts")) %>%
   kable_styling(full_width = F) %>%
   column_spec(1, width = "50em") %>%
@@ -231,9 +253,8 @@ ggplot(biotypes_plot, aes(x=reorder(biotype, reads), y=reads))+
   coord_flip() +
   ggtitle("Reads per biotype") +
   labs(x = "", y = "Reads") +
-  theme_minimal()+
+  theme_bw()+
   theme(
-    panel.border = element_blank(),
     panel.grid=element_blank(),
     axis.ticks = element_blank(),
     plot.title=element_text(size=14, face="bold", hjust = 0.5),
