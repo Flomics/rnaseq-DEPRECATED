@@ -1680,6 +1680,7 @@ if (!params.skipAlignment) {
   dupradar_results = Channel.from(false)
   preseq_results = Channel.from(false)
   featureCounts_biotype = Channel.from(false)
+  sample_correlation_zip = Channel.from(false)
 }
 
 
@@ -1980,11 +1981,11 @@ process ZIP_FILES {
   }
 
   input:
-  path("*") from ch_folders_zip.collect()
-  path("1-Report.General/*") from ch_multiqc_zip
-  path("2-FeatureCounts/*") from featurecounts_merge_zip
-  path("3-Salmon/*") from salmon_merged_zip
-  path("4-SampleCorrelation/") from sample_correlation_zip
+  path("*") from ch_folders_zip.collect().ifEmpty([])
+  path("1-Report.General/*") from ch_multiqc_zip.ifEmpty([])
+  path("2-FeatureCounts/*") from featurecounts_merge_zip.ifEmpty([])
+  path("3-Salmon/*") from salmon_merged_zip.ifEmpty([])
+  path("4-SampleCorrelation/") from sample_correlation_zip.ifEmpty([])
 
 
   output:
