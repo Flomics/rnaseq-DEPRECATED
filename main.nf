@@ -53,7 +53,7 @@ def helpMessage() {
       --three_prime_clip_r1 [int]   Instructs Trim Galore to remove bp from the 3' end of read 1 AFTER adapter/quality trimming has been performed
       --three_prime_clip_r2 [int]   Instructs Trim Galore to remove bp from the 3' end of read 2 AFTER adapter/quality trimming has been performed
       --trim_nextseq [int]          Instructs Trim Galore to apply the --nextseq=X option, to trim based on quality after removing poly-G tails
-      --pico                        Sets trimming and standedness settings for the SMARTer Stranded Total RNA-Seq Kit - Pico Input kit. Equivalent to: --forwardStranded --clip_r1 3 --three_prime_clip_r2 3
+      --kit                         Sets trimming and standedness settings for the SMARTer Stranded Total RNA-Seq Kit - Pico Input kit. Equivalent to: --forwardStranded --clip_r1 3 --three_prime_clip_r2 3
       --saveTrimmed                 Save trimmed FastQ file intermediates
 
     Ribosomal RNA removal:
@@ -149,7 +149,7 @@ reverseStranded = params.reverseStranded
 unStranded = params.unStranded
 
 // Preset trimming options
-if (params.pico) {
+if (params.kit == "pico.v1") {
     clip_r1 = 3
     clip_r2 = 0
     three_prime_clip_r1 = 0
@@ -157,7 +157,38 @@ if (params.pico) {
     forwardStranded = true
     reverseStranded = false
     unStranded = false
+} else if (params.kit == "pico.v2") {
+  clip_r1 = 0
+  clip_r2 = 3
+  three_prime_clip_r1 = 3
+  three_prime_clip_r2 = 0
+  forwardStranded = false
+  reverseStranded = true
+  unStranded = false
+} else if (params.kit == "truseq") {
+  skipTrimming = false
+  clip_r1 = 0
+  clip_r2 = 0
+  three_prime_clip_r1 = 0
+  three_prime_clip_r2 = 0
+  trim_nextseq = 0
+  forwardStranded = false
+  reverseStranded = false
+  unStranded = false
+} else if (params.kit == "CORALL") {
+  skipTrimming = false
+  clip_r1 = 12
+  clip_r2 = 0
+  three_prime_clip_r1 = 0
+  three_prime_clip_r2 = 0
+  trim_nextseq = 0
+  forwardStranded = true
+  reverseStranded = false
+  unStranded = false
+} else {
+    exit 1, "The provided genome '${params.kit}' is not available. Please provide a valid option: pico.v1, pico.v2, truseq, CORALL"
 }
+
 
 // Get rRNA databases
 // Default is set to bundled DB list in `assets/rrna-db-defaults.txt`
@@ -1429,6 +1460,7 @@ if (!params.skipAlignment) {
   }
 
 
+
   /*
    * STEP 7 - Qualimap
    */
@@ -1590,6 +1622,125 @@ if (!params.skipAlignment) {
       """
   }
 
+
+    /*
+     * STEP 11 - Transcriptome quantification with Salmon
+     */
+    //if (params.pseudo_aligner == 'salmon') {
+    process salmon {
+      label 'salmon'
+      tag "$name"
+      publishDir "${params.outdir}/${name}/11-salmon", mode: params.publish_dir_mode
+
+      input:
+      set val(name), val(single_end), file(reads) from trimmed_reads_salmon
+      file index from salmon_index.collect()
+      file gtf from gtf_salmon.collect()
+      val(single_end) from ch_single_salmon
+
+
+      output:
+      file "${name}/" into salmon_logs
+      set val(name), file("${name}/") into salmon_tximport, salmon_parsegtf
+
+      script:
+          def rnastrandness = single_end ? 'U' : 'IU'
+        if (forwardStranded && !unStranded) {
+            rnastrandness = single_end ? 'SF' : 'ISF'
+        } else if (reverseStranded && !unStranded) {
+            rnastrandness = single_end ? 'SR' : 'ISR'
+        }
+        def endedness = single_end ? "-r ${reads[0]}" : "-1 ${reads[0]} -2 ${reads[1]}"
+        unmapped = params.saveUnaligned ? "--writeUnmappedNames" : ''
+
+        """
+        salmon quant --validateMappings \\
+        --seqBias --useVBOpt --gcBias \\
+        --geneMap ${gtf} \\
+        --threads ${task.cpus} \\
+        --libType=${rnastrandness} \\
+        --index ${index} \\
+        $endedness $unmapped\\
+        -o ${name}
+        """
+    }
+
+
+    process salmon_tx2gene {
+      label 'low_memory'
+      publishDir "${params.outdir}/4-salmon/tx2gene", mode: params.publish_dir_mode
+
+
+      input:
+      file ("salmon/*") from salmon_parsegtf.collect()
+      file gtf from gtf_salmon_merge
+
+      output:
+      file "tx2gene.csv" into salmon_tx2gene, salmon_merge_tx2gene
+
+      script:
+      """
+      parse_gtf.py --gtf $gtf --salmon salmon --id ${params.fc_group_features} --extra ${params.fc_extra_attributes} -o tx2gene.csv
+      """
+    }
+
+    process salmon_tximport {
+      label 'low_memory'
+      publishDir "${params.outdir}/${name}/11-salmon/tximport", mode: params.publish_dir_mode
+
+      input:
+      set val(name), file ("salmon/*") from salmon_tximport
+      file tx2gene from salmon_tx2gene.collect()
+
+      output:
+      file "${name}_salmon_gene_tpm.csv" into salmon_gene_tpm
+      file "${name}_salmon_gene_counts.csv" into salmon_gene_counts
+      file "${name}_salmon_transcript_tpm.csv" into salmon_transcript_tpm
+      file "${name}_salmon_transcript_counts.csv" into salmon_transcript_counts
+
+      script:
+      """
+      tximport.r NULL salmon ${name}
+      """
+    }
+
+    process salmon_merge {
+      label 'mid_memory'
+      publishDir "${params.outdir}/4-salmon", mode: params.publish_dir_mode
+
+      input:
+      file gene_tpm_files from salmon_gene_tpm.collect()
+      file gene_count_files from salmon_gene_counts.collect()
+      file transcript_tpm_files from salmon_transcript_tpm.collect()
+      file transcript_count_files from salmon_transcript_counts.collect()
+      file tx2gene from salmon_merge_tx2gene
+
+      output:
+      file "salmon_merged*.csv" into salmon_merged_ch, salmon_merged_zip
+      file "*.rds"
+
+      script:
+      // First field is the gene/transcript ID
+      gene_ids = "<(cut -f1 -d, ${gene_tpm_files[0]} | tail -n +2 | cat <(echo '${params.fc_group_features}') - )"
+      transcript_ids = "<(cut -f1 -d, ${transcript_tpm_files[0]} | tail -n +2 | cat <(echo 'transcript_id') - )"
+
+      // Second field is counts/TPM
+      gene_tpm = gene_tpm_files.collect{f -> "<(cut -d, -f2 ${f})"}.join(" ")
+      gene_counts = gene_count_files.collect{f -> "<(cut -d, -f2 ${f})"}.join(" ")
+      transcript_tpm = transcript_tpm_files.collect{f -> "<(cut -d, -f2 ${f})"}.join(" ")
+      transcript_counts = transcript_count_files.collect{f -> "<(cut -d, -f2 ${f})"}.join(" ")
+      """
+      paste -d, $gene_ids $gene_tpm > salmon_merged_gene_tpm.csv
+      paste -d, $gene_ids $gene_counts > salmon_merged_gene_counts.csv
+      paste -d, $transcript_ids $transcript_tpm > salmon_merged_transcript_tpm.csv
+      paste -d, $transcript_ids $transcript_counts > salmon_merged_transcript_counts.csv
+
+      se.r NULL salmon_merged_gene_counts.csv salmon_merged_gene_tpm.csv
+      se.r NULL salmon_merged_transcript_counts.csv salmon_merged_transcript_tpm.csv
+      """
+    }
+
+
   /*
    * STEP 12 - stringtie FPKM
    */
@@ -1684,121 +1835,7 @@ if (!params.skipAlignment) {
 }
 
 
-/*
- * STEP 11 - Transcriptome quantification with Salmon
- */
-//if (params.pseudo_aligner == 'salmon') {
-process salmon {
-  label 'salmon'
-  tag "$name"
-  publishDir "${params.outdir}/${name}/11-salmon", mode: params.publish_dir_mode
 
-  input:
-  set val(name), val(single_end), file(reads) from trimmed_reads_salmon
-  file index from salmon_index.collect()
-  file gtf from gtf_salmon.collect()
-  val(single_end) from ch_single_salmon
-
-
-  output:
-  file "${name}/" into salmon_logs
-  set val(name), file("${name}/") into salmon_tximport, salmon_parsegtf
-
-  script:
-  def rnastrandness = single_end ? 'U' : 'IU'
-  if (forwardStranded && !unStranded) {
-    rnastrandness = single_end ? 'SF' : 'ISF'
-    } else if (reverseStranded && !unStranded) {
-      rnastrandness = single_end ? 'SR' : 'ISR'
-    }
-    def endedness = single_end ? "-r ${reads[0]}" : "-1 ${reads[0]} -2 ${reads[1]}"
-    unmapped = params.saveUnaligned ? "--writeUnmappedNames" : ''
-    """
-    salmon quant --validateMappings \\
-    --seqBias --useVBOpt --gcBias \\
-    --geneMap ${gtf} \\
-    --threads ${task.cpus} \\
-    --libType=${rnastrandness} \\
-    --index ${index} \\
-    $endedness $unmapped\\
-    -o ${name}
-    """
-}
-
-
-process salmon_tx2gene {
-  label 'low_memory'
-  publishDir "${params.outdir}/4-salmon/tx2gene", mode: params.publish_dir_mode
-
-
-  input:
-  file ("salmon/*") from salmon_parsegtf.collect()
-  file gtf from gtf_salmon_merge
-
-  output:
-  file "tx2gene.csv" into salmon_tx2gene, salmon_merge_tx2gene
-
-  script:
-  """
-  parse_gtf.py --gtf $gtf --salmon salmon --id ${params.fc_group_features} --extra ${params.fc_extra_attributes} -o tx2gene.csv
-  """
-}
-
-process salmon_tximport {
-  label 'low_memory'
-  publishDir "${params.outdir}/${name}/11-salmon/tximport", mode: params.publish_dir_mode
-
-  input:
-  set val(name), file ("salmon/*") from salmon_tximport
-  file tx2gene from salmon_tx2gene.collect()
-
-  output:
-  file "${name}_salmon_gene_tpm.csv" into salmon_gene_tpm
-  file "${name}_salmon_gene_counts.csv" into salmon_gene_counts
-  file "${name}_salmon_transcript_tpm.csv" into salmon_transcript_tpm
-  file "${name}_salmon_transcript_counts.csv" into salmon_transcript_counts
-
-  script:
-  """
-  tximport.r NULL salmon ${name}
-  """
-}
-
-process salmon_merge {
-  label 'mid_memory'
-  publishDir "${params.outdir}/4-salmon", mode: params.publish_dir_mode
-
-  input:
-  file gene_tpm_files from salmon_gene_tpm.collect()
-  file gene_count_files from salmon_gene_counts.collect()
-  file transcript_tpm_files from salmon_transcript_tpm.collect()
-  file transcript_count_files from salmon_transcript_counts.collect()
-  file tx2gene from salmon_merge_tx2gene
-
-  output:
-  file "salmon_merged*.csv" into salmon_merged_ch, salmon_merged_zip
-  file "*.rds"
-
-  script:
-  // First field is the gene/transcript ID
-  gene_ids = "<(cut -f1 -d, ${gene_tpm_files[0]} | tail -n +2 | cat <(echo '${params.fc_group_features}') - )"
-  transcript_ids = "<(cut -f1 -d, ${transcript_tpm_files[0]} | tail -n +2 | cat <(echo 'transcript_id') - )"
-
-  // Second field is counts/TPM
-  gene_tpm = gene_tpm_files.collect{f -> "<(cut -d, -f2 ${f})"}.join(" ")
-  gene_counts = gene_count_files.collect{f -> "<(cut -d, -f2 ${f})"}.join(" ")
-  transcript_tpm = transcript_tpm_files.collect{f -> "<(cut -d, -f2 ${f})"}.join(" ")
-  transcript_counts = transcript_count_files.collect{f -> "<(cut -d, -f2 ${f})"}.join(" ")
-  """
-  paste -d, $gene_ids $gene_tpm > salmon_merged_gene_tpm.csv
-  paste -d, $gene_ids $gene_counts > salmon_merged_gene_counts.csv
-  paste -d, $transcript_ids $transcript_tpm > salmon_merged_transcript_tpm.csv
-  paste -d, $transcript_ids $transcript_counts > salmon_merged_transcript_counts.csv
-
-  se.r NULL salmon_merged_gene_counts.csv salmon_merged_gene_tpm.csv
-  se.r NULL salmon_merged_transcript_counts.csv salmon_merged_transcript_tpm.csv
-  """
-}
 //} else {
 //    salmon_logs = Channel.empty()
 //}
