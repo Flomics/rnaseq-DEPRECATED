@@ -423,13 +423,13 @@ def summary = [:]
 if (workflow.revision) summary['Pipeline Release'] = workflow.revision
 summary['Run Name'] = custom_runName ?: workflow.runName
 summary['Input'] = params.input
-if (params.resds == 'single') {
+if (params.reads == 'single') {
   summary['Data Type'] = 'Single-End'
 } else {
   summary['Data Type'] = 'Paired-End'
 }
 if (params.genome) summary['Genome'] = params.genome
-if (params.pico) summary['Library Prep'] = "SMARTer Stranded Total RNA-Seq Kit - Pico Input"
+if (params.kit) summary['Library Prep'] = params.kit
 summary['Strandedness'] = (unStranded ? 'None' : forwardStranded ? 'Forward' : reverseStranded ? 'Reverse' : 'None')
 summary['Trimming'] = "5'R1: $clip_r1 / 5'R2: $clip_r2 / 3'R1: $three_prime_clip_r1 / 3'R2: $three_prime_clip_r2 / NextSeq Trim: $params.trim_nextseq"
 summary['Aligner'] = "STAR"
@@ -570,20 +570,22 @@ def validate_input(LinkedHashMap sample) {
 ch_samplesheet_reformat
   .splitCsv(header:true, sep:',')
   .map { validate_input(it) }
-  .set { ch_reads_all}
+  .set { ch_reads_all }
 
 ch_reads_all
   .map { [ it[0], it[1], it[2] ] }
   .into { raw_reads_fastqc
           raw_reads_trimgalore
-          ch_single
-          ch_count_reads }
+          ch_count_reads
+          ch_single_qualimap
+          ch_single_dupradar
+          ch_single_salmon }
 
-ch_single
+/*ch_single
   .map { [ it[1] ] }
   .into { ch_single_qualimap
           ch_single_dupradar
-          ch_single_salmon }
+          ch_single_salmon }*/
 
 
 
@@ -1473,7 +1475,7 @@ if (!params.skipAlignment) {
         input:
         set val(name), file(bam) from bam_qualimap
         file gtf from gtf_qualimap.collect()
-        val(single_end) from ch_single_qualimap
+        set val(name), val(single_end), file(reads) from ch_single_qualimap
 
         output:
         file "${bam.baseName}" into qualimap_results
@@ -1525,7 +1527,7 @@ if (!params.skipAlignment) {
         input:
         set val(name), file(bam) from bam_md
         file gtf from gtf_dupradar.collect()
-        val(single_end) from ch_single_dupradar
+        set val(name), val(single_end), file(reads) from ch_single_qualimap from ch_single_dupradar
 
         output:
         file "*.{pdf,txt}" into dupradar_results
@@ -1636,7 +1638,7 @@ if (!params.skipAlignment) {
       set val(name), val(single_end), file(reads) from trimmed_reads_salmon
       file index from salmon_index.collect()
       file gtf from gtf_salmon.collect()
-      val(single_end) from ch_single_salmon
+      set val(name), val(single_end), file(reads) from ch_single_qualimap from ch_single_salmon
 
 
       output:
