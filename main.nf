@@ -173,7 +173,7 @@ if (params.kit == "pico.v1") {
   three_prime_clip_r2 = 0
   trim_nextseq = 0
   forwardStranded = false
-  reverseStranded = false
+  reverseStranded = true
   unStranded = false
 } else if (params.kit == "CORALL") {
   skipTrimming = false
@@ -1197,7 +1197,7 @@ if (!params.skipAlignment) {
     file wherearemyfiles from ch_where_star.collect()
 
     output:
-    set val(name), file("*Log.final.out"), file('*.bam') into star_aligned
+    set val(name), val(single_end), file("*Log.final.out"), file('*.bam') into star_aligned
     set val(name), file("*.bam") into bam_zip
     set val(name), file("${prefix}Aligned.sortedByCoord.out.bam.bai") into bam_index_zip
     file "*.out" into alignment_logs
@@ -1233,9 +1233,9 @@ if (!params.skipAlignment) {
   }
   // Filter removes all 'aligned' channels that fail the check
   star_aligned
-  .filter { name, logs, bams -> check_log(logs) }
-  .map { [ it[0], it[2] ] }
-  .into { bam_count; bam_rseqc; bam_qualimap; bam_preseq; bam_markduplicates; bam_featurecounts; bam_stringtieFPKM; bam_forSubsamp; bam_skipSubsamp  }
+  .filter { name, single_end, logs, bams -> check_log(logs) }
+  .map { [ it[0], it[1], it[3] ] }
+  .into { bam_count; bam_rseqc; bam_qualimap; bam_preseq; bam_markduplicates; bam_featurecounts; bam_stringtieFPKM }
 
 
 
@@ -1380,7 +1380,7 @@ if (!params.skipAlignment) {
       !params.skipQC && !params.skipRseQC
 
       input:
-      set val(name), file(bam) from bam_rseqc
+      set val(name), val(single_end), file(bam) from bam_rseqc
       file index from bam_index_rseqc
       file bed12 from bed_rseqc.collect()
 
@@ -1409,7 +1409,7 @@ if (!params.skipAlignment) {
         publishDir "${params.outdir}/${name}/5-preseq", mode: params.publish_dir_mode
 
         input:
-        set val(name), file(bam) from bam_preseq
+        set val(name), val(single_end), file(bam) from bam_preseq
 
         output:
         file "${bam.baseName}.ccurve.txt" into preseq_results
@@ -1434,7 +1434,7 @@ if (!params.skipAlignment) {
             saveAs: {filename -> filename.indexOf("_metrics.txt") > 0 ? "metrics/$filename" : "$filename"}
 
         input:
-        set val(name), file(bam) from bam_markduplicates
+        set val(name), val(single_end), file(bam) from bam_markduplicates
 
         output:
         set val(name), file("${bam.baseName}.markDups.bam") into bam_md, bam_dup_zip
@@ -1473,9 +1473,9 @@ if (!params.skipAlignment) {
         publishDir "${params.outdir}/${name}/7-qualimap", mode: params.publish_dir_mode
 
         input:
-        set val(name), file(bam) from bam_qualimap
+        set val(name), val(single_end), file(bam) from bam_qualimap
         file gtf from gtf_qualimap.collect()
-        set val(name), val(single_end), file(reads) from ch_single_qualimap
+        //set val(name), val(single_end), file(reads) from ch_single_qualimap
 
         output:
         file "${bam.baseName}" into qualimap_results
@@ -1563,7 +1563,7 @@ if (!params.skipAlignment) {
           }
 
       input:
-      set val(name), file(bam) from bam_featurecounts
+      set val(name), val(single_end), file(bam) from bam_featurecounts
       file gtf from gtf_featureCounts.collect()
       file biotypes_header from ch_biotypes_header.collect()
 
@@ -1757,7 +1757,7 @@ if (!params.skipAlignment) {
           }
 
       input:
-      set val(name), file(bam) from bam_stringtieFPKM
+      set val(name), val(single_end), file(bam) from bam_stringtieFPKM
       file gtf from gtf_stringtieFPKM.collect()
 
       output:
