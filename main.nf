@@ -118,6 +118,8 @@ if (params.genomes && params.genome && !params.genomes.containsKey(params.genome
     exit 1, "The provided genome '${params.genome}' is not available in the iGenomes file. Currently the available genomes are ${params.genomes.keySet().join(", ")}"
 }
 
+
+
 // Reference index path configuration
 // Define these here - after the profiles are loaded with the iGenomes paths
 params.star_index = params.genome ? params.genomes[ params.genome ].star ?: false : false
@@ -186,7 +188,7 @@ if (params.kit == "pico.v1") {
   reverseStranded = false
   unStranded = false
 } else {
-    exit 1, "The provided genome '${params.kit}' is not available. Please provide a valid option: pico.v1, pico.v2, truseq, CORALL"
+    exit 1, "The provided kit '${params.kit}' is not available. Please provide a valid option: pico.v1, pico.v2, truseq, CORALL"
 }
 
 
@@ -317,9 +319,13 @@ if (params.bed12) {
 
 if (params.gencode) {
   biotype = "gene_type"
+} else if  (params.genome == "GRCh38" | params.genome == "GRCh38.GC35") {
+    biotype = 'gene_type'
 } else {
   biotype = params.fc_group_features_type
 }
+
+
 /*
 if (params.skipAlignment && !params.pseudo_aligner) {
   exit 1, "--skipAlignment specified without --pseudo_aligner .. did you mean to specify --pseudo_aligner salmon"
@@ -976,10 +982,11 @@ if (!params.salmon_index) {
      }
 
      input:
-     set val(name), val(single_end), file(reads) from raw_reads_fastqc
+     set val(name), val(single_end), path(reads) from raw_reads_fastqc
 
      output:
      file "*_fastqc.{zip,html}" into fastqc_results
+     set val(name), file("*_fastqc.html") into ch_fastqc_zip
 
      script:
      """
@@ -1023,6 +1030,7 @@ if (!params.skipTrimming) {
         file "where_are_my_files.txt"
         set val(name), path("*_after_trimming_sequences.txt") into ch_trimgalore_mrkd
         set val(name), path("${name}_number_sequences.txt") into ch_trimgalore_seq_mrkd
+        set val(name), path("*_fastqc.html") into ch_trimgalore_zip
 
 
         script:
@@ -1199,6 +1207,7 @@ if (!params.skipAlignment) {
     output:
     set val(name), val(single_end), file("*Log.final.out"), file('*.bam') into star_aligned
     set val(name), file("*.bam") into bam_zip
+    set val(name), path("*Log.final.out") into ch_star_log_zip
     set val(name), file("${prefix}Aligned.sortedByCoord.out.bam.bai") into bam_index_zip
     file "*.out" into alignment_logs
     file "*SJ.out.tab"
@@ -1386,7 +1395,8 @@ if (!params.skipAlignment) {
 
       output:
       file "*.{txt,pdf,r,xls}" into rseqc_results
-      set val(name), file("*read_distribution.txt") into ch_rseqc_mrkd
+      set val(name), file("*read_distribution.txt") into ch_rseqc_mrkd, ch_rseqc_zip
+      set val(name), path("*.pdf") into ch_rseqc_plots_zip
 
       script:
       """
@@ -1413,6 +1423,8 @@ if (!params.skipAlignment) {
 
         output:
         file "${bam.baseName}.ccurve.txt" into preseq_results
+        set val(name), path("${bam.baseName}.ccurve.txt") into preseq_zip
+
 
         script:
         """
@@ -1481,6 +1493,7 @@ if (!params.skipAlignment) {
         file "${bam.baseName}" into qualimap_results
         set val(name), path("${name}.coverage.txt") into ch_file_coverage_mrkd
         set val(name), path("${name}.genome_coverage_across_reference.png") into ch_figure_coverage_mrkd
+        set val(name), path("${bam.baseName}") into qualimap_zip
 
 
         script:
@@ -1643,7 +1656,8 @@ if (!params.skipAlignment) {
 
       output:
       file "${name}/" into salmon_logs
-      set val(name), file("${name}/") into salmon_tximport, salmon_parsegtf
+      set val(name), file("${name}/") into salmon_tximport, salmon_parsegtf, salmon_logs_zip
+      //set val(name), file("qualimapReport.html") into qualimap_zip
 
       script:
           def rnastrandness = single_end ? 'U' : 'IU'
@@ -1699,6 +1713,7 @@ if (!params.skipAlignment) {
       file "${name}_salmon_gene_counts.csv" into salmon_gene_counts
       file "${name}_salmon_transcript_tpm.csv" into salmon_transcript_tpm
       file "${name}_salmon_transcript_counts.csv" into salmon_transcript_counts
+      set val(name), path("*.csv") into salmon_individual_zip
 
       script:
       """
@@ -1766,6 +1781,8 @@ if (!params.skipAlignment) {
       file "${bam}.cov_refs.gtf"
       file "${bam.baseName}_ballgown"
       set val(name), file("${bam.baseName}_transcripts.gtf") into stringtiefpkm_zip
+      set val(name), file("*.txt") into stringtiefpkm_txt_zip
+
 
       script:
       def st_direction = ''
@@ -1882,7 +1899,7 @@ process MARKDOWN_REPORT {
   path image from ch_image_docs
 
   output:
-  set val(name), path ('*.html') into ch_report_sample_zip
+  set val(name), path('*.html') into ch_report_sample_zip
 
   script:
   se = single_end ? "" : "paired"
@@ -1981,22 +1998,38 @@ process output_documentation {
 
 
 
-ch_logs_zip = ch_report_sample_zip
+ch_organize = ch_report_sample_zip
+  .join(ch_fastqc_zip, remainder: true)
+  .join(ch_trimgalore_zip, remainder: true)
   .join(bam_zip, remainder: true)
   .join(bam_index_zip, remainder: true)
+  .join(ch_rseqc_plots_zip, remainder: true)
+  .join(ch_rseqc_zip, remainder: true)
+  .join(preseq_zip, remainder: true)
   .join(bam_dup_zip, remainder: true)
   .join(bam_dup_index_zip, remainder: true)
+  .join(qualimap_zip, remainder: true)
   .join(dupradar_pdf_zip, remainder: true)
   .join(dupradar_txt_zip, remainder: true)
   .join(featureCounts_zip, remainder: true)
   .join(featureCounts_sum_zip, remainder: true)
+  .join(salmon_individual_zip, remainder: true)
   .join(stringtiefpkm_zip, remainder: true)
+  .join(stringtiefpkm_txt_zip, remainder: true)
+  .join(ch_star_log_zip, remainder: true)
+  .join(salmon_logs_zip, remainder: true)
+
+/*ch_zip
+  .into{ ch_trial
+         ch_organize }
+
+ch_trial.println()*/
 
 process ORGANIZE_FILES {
   label 'process_low'
 
   input:
-  set val(sample), path("${sample}/1-Report_Sample/*"), file("${sample}/2-Bam/*"), file("${sample}/2-Bam/*"), file("${sample}/3-MarkDuplicates/*"), file("${sample}/3-MarkDuplicates/*"), file("${sample}/4-DupRadar/*"), file("${sample}/4-DupRadar/*"), file("${sample}/5-FeatureCounts/*"), file("${sample}/5-FeatureCounts/*"), file("${sample}/6-Transcripts/*") from ch_logs_zip
+  set val(sample), file("${sample}/1-Sample_Report/*"), file("${sample}/2-FastQC-Quality_control/*"), file("${sample}/3-FastQC-Quality_control_after_trimming/*"), file("${sample}/4-STAR-Bam/*"), file("${sample}/4-STAR-Bam/*"), file("${sample}/5-rseqc-RNAseq_quality/*"), file("${sample}/5-rseqc-RNAseq_quality/*"), file("${sample}/6-preseq-library_preparation/*"), file("${sample}/7-MarkDuplicates-Bam/*"), file("${sample}/7-MarkDuplicates-Bam/*"), file("${sample}/8-Qualimap-Coverage_summary/*"), file("${sample}/9-DupRadar-Duplication_rate/*"), file("${sample}/9-DupRadar-Duplication_rate/*"), file("${sample}/10-FeatureCounts-Read_distribution/*"), file("${sample}/10-FeatureCounts-Read_distribution/*"), file("${sample}/12-Salmon-Transcripts/*"), file("${sample}/11-StringTie-Potential_transcripts/*"), file("${sample}/11-StringTie-Potential_transcripts/*"), file("${sample}/13-logs/STAR/*"), file("${sample}/13-logs/Salmon/*") from ch_organize
 
   output:
   path("${sample}") into ch_folders_zip
