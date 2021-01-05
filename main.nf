@@ -187,6 +187,16 @@ if (params.kit == "pico.v1") {
   forwardStranded = true
   reverseStranded = false
   unStranded = false
+  } else if (params.kit == "Default") {
+  skipTrimming = false
+  clip_r1 = 0
+  clip_r2 = 0
+  three_prime_clip_r1 = 0
+  three_prime_clip_r2 = 0
+  trim_nextseq = 0
+  forwardStranded = false
+  reverseStranded = false
+  unStranded = false
 } else {
     exit 1, "The provided kit '${params.kit}' is not available. Please provide a valid option: pico.v1, pico.v2, truseq, CORALL"
 }
