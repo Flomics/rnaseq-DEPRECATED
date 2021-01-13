@@ -53,7 +53,7 @@ def helpMessage() {
       --three_prime_clip_r1 [int]   Instructs Trim Galore to remove bp from the 3' end of read 1 AFTER adapter/quality trimming has been performed
       --three_prime_clip_r2 [int]   Instructs Trim Galore to remove bp from the 3' end of read 2 AFTER adapter/quality trimming has been performed
       --trim_nextseq [int]          Instructs Trim Galore to apply the --nextseq=X option, to trim based on quality after removing poly-G tails
-      --kit                         Sets trimming and standedness settings for the SMARTer Stranded Total RNA-Seq Kit - Pico Input kit. Equivalent to: --forwardStranded --clip_r1 3 --three_prime_clip_r2 3
+      --kit                         Sets trimming and standedness settings for the Kit (available are: 'pico.v1', 'pico.v2', 'truseq', 'CORALL', 'Default')
       --saveTrimmed                 Save trimmed FastQ file intermediates
 
     Ribosomal RNA removal:
@@ -67,7 +67,7 @@ def helpMessage() {
       --stringTieIgnoreGTF          Perform reference-guided de novo assembly of transcripts using StringTie i.e. dont restrict to those in GTF file
       --seq_center                  Add sequencing center in @RG line of output BAM header
       --saveAlignedIntermediates    Save the BAM files from the aligment step - not done by default
-      --saveUnaligned               Save unaligned reads from either STAR, HISAT2 or Salmon to extra output files.
+      --saveUnaligned               Save unaligned reads from either STAR, HISAT2 or Salmon to extra output files
       --skipAlignment               Skip alignment altogether (usually in favor of pseudoalignment)
 
     Read Counting:
@@ -198,7 +198,7 @@ if (params.kit == "pico.v1") {
   reverseStranded = false
   unStranded = false
 } else {
-    exit 1, "The provided kit '${params.kit}' is not available. Please provide a valid option: pico.v1, pico.v2, truseq, CORALL"
+    exit 1, "The provided kit '${params.kit}' is not available. Please provide a valid option: pico.v1, pico.v2, truseq, CORALL, Default"
 }
 
 
