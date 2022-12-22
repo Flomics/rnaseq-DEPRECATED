@@ -108,6 +108,7 @@ include { MULTIQC_CUSTOM_BIOTYPE             } from '../modules/local/multiqc_cu
 include { MULTIQC_TSV_FROM_LIST as MULTIQC_TSV_FAIL_MAPPED  } from '../modules/local/multiqc_tsv_from_list'
 include { MULTIQC_TSV_FROM_LIST as MULTIQC_TSV_FAIL_TRIMMED } from '../modules/local/multiqc_tsv_from_list'
 include { MULTIQC_TSV_FROM_LIST as MULTIQC_TSV_STRAND_CHECK } from '../modules/local/multiqc_tsv_from_list'
+include { MULTIQC_TEST                            } from '../modules/local/test'
 
 //
 // SUBWORKFLOW: Consisting of a mix of local and nf-core/modules
@@ -118,6 +119,7 @@ include { ALIGN_STAR     } from '../subworkflows/local/align_star'
 include { QUANTIFY_RSEM  } from '../subworkflows/local/quantify_rsem'
 include { QUANTIFY_SALMON as QUANTIFY_STAR_SALMON } from '../subworkflows/local/quantify_salmon'
 include { QUANTIFY_SALMON as QUANTIFY_SALMON      } from '../subworkflows/local/quantify_salmon'
+include { FLOMICS_QC  } from '../subworkflows/local/Flomics_QC'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -800,8 +802,31 @@ workflow RNASEQ {
             ch_readduplication_multiqc.collect{it[1]}.ifEmpty([]),
             ch_tin_multiqc.collect{it[1]}.ifEmpty([])
         )
-        multiqc_report = MULTIQC.out.report.toList()
+
     }
+
+    //
+    // SUBWORKFLOW: Extra layer of QC by FLOMICS
+    //
+    ch_Flomics_UMI_dedup_rate_QC = Channel.empty()
+
+    if (params.with_umi) {
+        FLOMICS_UMI_DEDUP_QC (
+            ALIGN_STAR.out.bam_transcript,
+            DEDUP_UMI_UMITOOLS_TRANSCRIPTOME.out.bam
+        )
+    }    
+    FLOMICS_QC (
+        MULTIQC.out.data.collect(),
+        ch_genome_bam,
+        ch_genome_bam_index,
+        ch_transcriptome_bam,
+        PREPARE_GENOME.out.gtf,
+        ch_Flomics_UMI_dedup_rate_QC.collect{it}.ifEmpty([]),
+        QUANTIFY_SALMON.out.results.collect{it[1]}
+    )
+
+
 }
 
 /*
