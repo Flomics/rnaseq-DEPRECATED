@@ -119,7 +119,8 @@ include { ALIGN_STAR     } from '../subworkflows/local/align_star'
 include { QUANTIFY_RSEM  } from '../subworkflows/local/quantify_rsem'
 include { QUANTIFY_SALMON as QUANTIFY_STAR_SALMON } from '../subworkflows/local/quantify_salmon'
 include { QUANTIFY_SALMON as QUANTIFY_SALMON      } from '../subworkflows/local/quantify_salmon'
-include { FLOMICS_QC  } from '../subworkflows/local/Flomics_QC'
+include { FLOMICS_UMI_DEDUP_QC  } from '../subworkflows/local/Flomics_UMI_dedup_QC'
+include { FLOMICS_QC            } from '../subworkflows/local/Flomics_QC'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -823,7 +824,7 @@ workflow RNASEQ {
         ch_transcriptome_bam,
         PREPARE_GENOME.out.gtf,
         ch_Flomics_UMI_dedup_rate_QC.collect{it}.ifEmpty([]),
-        QUANTIFY_SALMON.out.results.collect{it[1]}
+        ch_salmon_multiqc.collect{it[1]}
     )
 
 
