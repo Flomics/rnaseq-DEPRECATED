@@ -4,7 +4,6 @@ outdir=$2
 prefix=$3
 project_name=${outdir#"s3://flomics-data/"}
 folder_name=${project_name%/*}
-folder_name=${folder_name%/*}
 project_name=${project_name%%/*}
 
 s3_bucket_name="s3://flomics-public/RNAseq_pipeline_trackHubs/"$folder_name"/"

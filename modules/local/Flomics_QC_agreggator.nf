@@ -1,5 +1,4 @@
 process FLOMICS_QC_AGGREGATOR{
-    tag "$meta.id"
     label 'process_low'
 
     container "flomicsbiotech/flomics_qc_rnaseq:latest"
@@ -14,15 +13,13 @@ process FLOMICS_QC_AGGREGATOR{
     path insert_size
     path umi_dedup_rate_data
     path library_balance_data
-    tuple val(meta), path(bai)
-
+    path fastqc_files
 
     output:
     path "QC_table.tsv", emit: flomics_report
 
 
     shell:
-    def paired = meta.single_end ? "" : "paired"
     outdir  = params.outdir
 
     '''
@@ -35,8 +32,14 @@ process FLOMICS_QC_AGGREGATOR{
 
     biotype_table_parser.r  #Sorts the columns of the biotypes according to last table
     gene_coverage_profile_calculation.r #Calculates the gene coverage profile
-    fastQC_parser.sh #Parses the fastQC
 
+
+    echo -e "basic_statistics\tper_base_sequence_quality\tper_sequence_quality_scores\tper_base_sequence_content\tper_sequence_gc_content\tper_base_n_content\tsequence_length_distribution\tsequence_duplication_levels\toverrepresented_sequences\tadapter_content" > fastqc_QC.tsv
+    for file in *_fastqc_QC.tsv; do
+        cat $file >> fastqc_QC.tsv
+    done
+
+    
     echo -e "dataset\tuniqMappedReads\tsplicedReads\t%splicedReads" > splicedReads_grouped.stats.tsv
     for file in *splicedReads.stats.tsv; do
         tail -n +2 $file >> splicedReads_grouped.stats.tsv
@@ -47,7 +50,7 @@ process FLOMICS_QC_AGGREGATOR{
         tail -n +2 $file >> spliceJunctions_grouped.stats.tsv
     done
 
-    echo -e "dataset\tmedian_insert_size" > insert_size.tsv
+    echo -e "median_insert_size" > insert_size.tsv
     for file in *.insert_size_median.tsv; do
         tail -n +2 $file >> insert_size.tsv
     done
@@ -58,8 +61,8 @@ process FLOMICS_QC_AGGREGATOR{
     done
 
     echo -e "Number_mapped_unique molecules\tPercentage_unique_molecules" > UMI_dedup_grouped.tsv
-    if compgen -G "./*.UMI_dedup.tsv" > /dev/null; then
-        for file in *.UMI_dedup.tsv; do
+    if compgen -G "./*_UMI_dedup.tsv" > /dev/null; then
+        for file in *_UMI_dedup.tsv; do
             tail -n +2 $file >> UMI_dedup_grouped.tsv
         done
 
@@ -69,14 +72,11 @@ process FLOMICS_QC_AGGREGATOR{
         done
     fi
 
-    for file in *.insert_size_median.tsv; do
-        tail -n +2 $file >> insert_size.tsv
-    done
-
-
     cut -f1 spliceJunctions_grouped.stats.tsv > samplenames.tsv
     echo -e "Read_number\tReads_passing_trimming\tPercentage_reads_passing_trimming"> cutadapt_QC.tsv
-    awk 'NR % 2 == 0' multiqc_data/multiqc_cutadapt.txt | cut -f 3,5 | awk '{print $1"\t"$2"\t"($2/$1*100)}' >> cutadapt_QC.tsv
+    cut -f1 multiqc_data/multiqc_cutadapt.txt | sed 's/_[0-9]//g' > tmp.cutadapt.txt
+    paste tmp.cutadapt.txt multiqc_data/multiqc_cutadapt.txt | awk '!seen[$1]++' > tmp2.cutadapt.txt
+    cut -f 4,6 tmp2.cutadapt.txt | awk '{print $1"\t"$2"\t"($2/$1*100)}' | tail -n +2>> cutadapt_QC.tsv
 
     echo -e "Sample\tExonic\tIntronic\tIntergenic\tExonic_percentage\tIntronic_percentage\tIntergenic_percentage" > qualimap_QC.tsv
     tail -n +2 multiqc_data/mqc_qualimap_genomic_origin_1.txt | awk '{print $0"\t"$2/($2+$3+$4)*100"\t"$3/($2+$3+$4)*100"\t"$4/($2+$3+$4)*100'} >> qualimap_QC.tsv

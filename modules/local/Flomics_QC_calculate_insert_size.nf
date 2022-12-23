@@ -15,9 +15,14 @@ process FLOMICS_QC_CALCULATE_INSERT_SIZE{
 
     script:
     prefix   = task.ext.prefix ?: "${meta.id}"
-
+    def num_ends_sequencing = meta.single_end ? "single_end" : "paired_end"
 
     """
-    picard_transcriptome_insert.sh -b $bam -p $prefix
+    if [[ "$num_ends_sequencing" == "paired_end" ]]
+    then
+        picard_transcriptome_insert.sh -b $bam -p $prefix
+    else
+        echo -e "MEDIAN_INSERT_SIZE\nNA" > ${prefix}.insert_size_median.tsv
+    fi
     """
 }

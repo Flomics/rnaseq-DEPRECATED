@@ -12,6 +12,8 @@ process FLOMICS_QC_SPLICED_READS{
     output:
     path("*.splicedReads.stats.tsv")   , emit: splicedReads_QC
     path("*.spliceJunctions.stats.tsv")   , emit: spliceJunctions_QC
+    val meta, emit: meta
+
 
 
 

@@ -5,16 +5,17 @@
 
 include { FLOMICS_TRACKHUBS                     } from '../../modules/local/Flomics_trackhubs.nf'
 include { FLOMICS_QC_SPLICED_READS              } from '../../modules/local/Flomics_QC_spliced_reads.nf'
+include { FLOMICS_QC_PARSER                     } from '../../modules/local/Flomics_FastQC_parser.nf'
 include { FLOMICS_QC_CALCULATE_INSERT_SIZE      } from '../../modules/local/Flomics_QC_calculate_insert_size.nf'
 include { FLOMICS_QC_CALCULATE_LIBRARY_BALANCE  } from '../../modules/local/Flomics_QC_calculate_library_balance.nf'
 include { FLOMICS_QC_AGGREGATOR                 } from '../../modules/local/Flomics_QC_agreggator.nf'
 
 workflow FLOMICS_QC{
     take:
-    multiqc_data    // data from MultiQC 
+    multiqc_data    // channel: multiqc_data/* 
     bam_genome     // channel: [ val(meta), [ bam ]]
-    bam_genome_indices
-    bam_transcriptome
+    bam_genome_indices // channel: [ val(meta), [ bam ]]
+    bam_transcriptome // channel: [ val(meta), [ bam ]]
     gtf     // channel: /path/to/genome.gtf
     umi_dedup_rate_data
     salmon_results
@@ -41,6 +42,13 @@ workflow FLOMICS_QC{
     ch_Flomics_spliceJunctions_QC   =   FLOMICS_QC_SPLICED_READS.out.spliceJunctions_QC.collect()
 
     ///
+    /// Parse the FastQC file
+    ///
+    ch_Flomics_FastQC       = Channel.empty()
+    FLOMICS_QC_PARSER(bam_genome_indices, multiqc_data)
+    ch_Flomics_FastQC       = FLOMICS_QC_PARSER.out.fastqc_files.collect()
+
+    ///
     /// Calculate the insert size
     ///
     ch_Flomics_insert_size_QC       = Channel.empty()
@@ -58,7 +66,7 @@ workflow FLOMICS_QC{
     /// Aggregate all the QC from multiQC and extra QC into a new tsv
     ///
     FLOMICS_QC_AGGREGATOR ( multiqc_data, ch_Flomics_trackhubs, ch_Flomics_trackDbs, ch_Flomics_splicedReads_QC, ch_Flomics_spliceJunctions_QC,
-    ch_Flomics_insert_size_QC, umi_dedup_rate_data, ch_Flomics_library_balance, bam_genome_indices)
+    ch_Flomics_insert_size_QC, umi_dedup_rate_data, ch_Flomics_library_balance, ch_Flomics_FastQC)
 
     
 }

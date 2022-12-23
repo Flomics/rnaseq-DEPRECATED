@@ -10,7 +10,7 @@ process FLOMICS_QC_CALCULATE_UMI_DEDUP_RATE{
     tuple val(meta), path(bam_dedup)
     
     output:
-    path("*.UMI_dedup.tsv")   , emit: umi_dedup_rate
+    path("*_UMI_dedup.tsv")   , emit: umi_dedup_rate
 
 
 
