@@ -18,4 +18,7 @@ workflow FLOMICS_UMI_DEDUP_QC{
     FLOMICS_QC_CALCULATE_UMI_DEDUP_RATE(bam_transcriptome, bam_transcriptome_dedup)
     ch_Flomics_UMI_dedup_rate_QC       = FLOMICS_QC_CALCULATE_UMI_DEDUP_RATE.out.umi_dedup_rate.collect()
 
+    emit:
+    umi_dedup_rate                       = FLOMICS_QC_CALCULATE_UMI_DEDUP_RATE.out.umi_dedup_rate                     // channel: [ val(meta), results_dir ]
+
 }

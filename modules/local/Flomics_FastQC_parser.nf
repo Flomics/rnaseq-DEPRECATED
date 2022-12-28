@@ -1,6 +1,6 @@
 process FLOMICS_QC_PARSER{
     tag "$meta.id"
-    label 'process_high'
+    label 'process_low'
 
     container "flomicsbiotech/flomics_qc_rnaseq:latest"
 

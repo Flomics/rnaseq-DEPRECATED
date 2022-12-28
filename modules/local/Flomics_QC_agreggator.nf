@@ -61,16 +61,9 @@ process FLOMICS_QC_AGGREGATOR{
     done
 
     echo -e "Number_mapped_unique molecules\tPercentage_unique_molecules" > UMI_dedup_grouped.tsv
-    if compgen -G "./*_UMI_dedup.tsv" > /dev/null; then
-        for file in *_UMI_dedup.tsv; do
-            tail -n +2 $file >> UMI_dedup_grouped.tsv
-        done
-
-    else
-        for file in *splicedReads.stats.tsv; do
-            echo -e "NA\tNA" >> UMI_dedup_grouped.tsv
-        done
-    fi
+    for file in *_UMI_dedup.tsv; do
+        tail -n +2 $file >> UMI_dedup_grouped.tsv
+    done
 
     cut -f1 spliceJunctions_grouped.stats.tsv > samplenames.tsv
     echo -e "Read_number\tReads_passing_trimming\tPercentage_reads_passing_trimming"> cutadapt_QC.tsv
@@ -92,7 +85,8 @@ process FLOMICS_QC_AGGREGATOR{
     
     paste samplenames.tsv trackhub_links.tsv fastqc_QC.tsv cutadapt_QC.tsv STAR_QC.tsv UMI_dedup_grouped.tsv qualimap_QC.tsv splicedReads_grouped.stats.tsv \\
     spliceJunctions_grouped.stats.tsv Junction_saturation.tsv gene_coverage_profile_table.tsv insert_size.tsv library_balance.tsv \\
-    strandedness_library_prep.tsv biotype_table.tsv > QC_table.tsv
+    strandedness_library_prep.tsv biotype_table.tsv | cut --complement -f 16,28,35,39,44> QC_table.tsv
+
     '''
 
 
