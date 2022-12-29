@@ -837,7 +837,7 @@ workflow RNASEQ {
             ALIGN_STAR.out.bai,
             ALIGN_STAR.out.bam,
             PREPARE_GENOME.out.gtf,
-            ch_Flomics_UMI_dedup_rate_QC,
+            ch_Flomics_UMI_dedup_rate_QC.collect{it[1]}.ifEmpty([]),
             QUANTIFY_STAR_SALMON.out.results.collect{it[1]}
         )
     }

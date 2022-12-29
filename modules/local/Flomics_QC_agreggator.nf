@@ -56,14 +56,17 @@ process FLOMICS_QC_AGGREGATOR{
     done
 
     echo -e "genes_contributing_to_1%_of_reads\tgenes_contributing_to_5%_of_reads\tgenes_contributing_to_10%_of_reads\tgenes_contributing_to_50%_of_reads\tgenes_contributing_to_80%_of_reads" > library_balance.tsv
-    for file in *_genes_contributing_to_percentage_reads.tsv; do
-        tail -n +2 $file >> library_balance.tsv
-    done
 
     echo -e "Number_mapped_unique molecules\tPercentage_unique_molecules" > UMI_dedup_grouped.tsv
-    for file in *_UMI_dedup.tsv; do
-        tail -n +2 $file >> UMI_dedup_grouped.tsv
-    done
+    if ls *_UMI_dedup.tsv 1> /dev/null 2>&1; then
+        for file in *_UMI_dedup.tsv; do
+            tail -n +2 $file >> UMI_dedup_grouped.tsv
+        done
+    else
+        for file in *splicedReads.stats.tsv; do
+            echo -e "NA\tNA" >> UMI_dedup_grouped.tsv
+        done
+    fi
 
     cut -f1 spliceJunctions_grouped.stats.tsv > samplenames.tsv
     echo -e "Read_number\tReads_passing_trimming\tPercentage_reads_passing_trimming"> cutadapt_QC.tsv
