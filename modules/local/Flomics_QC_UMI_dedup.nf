@@ -17,7 +17,7 @@ process FLOMICS_QC_CALCULATE_UMI_DEDUP_RATE{
     script:
     prefix   = task.ext.prefix ?: "${meta.id}"
 
-
+    
     """
     umitools_dedup_rate.sh $bam_dedup $bam $prefix
     """

@@ -814,8 +814,8 @@ workflow RNASEQ {
 
     if (params.with_umi) {
         FLOMICS_UMI_DEDUP_QC (
-            ALIGN_STAR.out.bam_transcript,
-            DEDUP_UMI_UMITOOLS_TRANSCRIPTOME.out.bam
+            ch_transcriptome_sorted_bam,
+            ch_transcriptome_bam
         )
         ch_Flomics_UMI_dedup_rate_QC = FLOMICS_UMI_DEDUP_QC.out.umi_dedup_rate.collect()
     }
@@ -824,7 +824,7 @@ workflow RNASEQ {
             MULTIQC.out.data.collect(),
             DEDUP_UMI_UMITOOLS_GENOME.out.bam,
             DEDUP_UMI_UMITOOLS_GENOME.out.bai,
-            DEDUP_UMI_UMITOOLS_TRANSCRIPTOME.out.bam,
+            ch_transcriptome_bam,
             PREPARE_GENOME.out.gtf,
             ch_Flomics_UMI_dedup_rate_QC,
             QUANTIFY_STAR_SALMON.out.results.collect{it[1]}
@@ -835,7 +835,7 @@ workflow RNASEQ {
             MULTIQC.out.data.collect(),
             ALIGN_STAR.out.bam,
             ALIGN_STAR.out.bai,
-            ALIGN_STAR.out.bam,
+            ch_transcriptome_bam,
             PREPARE_GENOME.out.gtf,
             ch_Flomics_UMI_dedup_rate_QC.collect{it[1]}.ifEmpty([]),
             QUANTIFY_STAR_SALMON.out.results.collect{it[1]}
