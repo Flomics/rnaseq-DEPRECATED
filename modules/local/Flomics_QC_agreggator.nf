@@ -61,7 +61,7 @@ process FLOMICS_QC_AGGREGATOR{
         tail -n +2 $file >> library_balance.tsv
     done
 
-    echo -e "Number_mapped_unique molecules\tPercentage_unique_molecules" > UMI_dedup_grouped.tsv
+    echo -e "Number_mapped_unique_molecules\tPercentage_unique_molecules" > UMI_dedup_grouped.tsv
     if ls *_UMI_dedup.tsv 1> /dev/null 2>&1; then
         for file in *_UMI_dedup.tsv; do
             tail -n +2 $file >> UMI_dedup_grouped.tsv
