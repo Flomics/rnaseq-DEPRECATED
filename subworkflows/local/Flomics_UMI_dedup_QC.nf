@@ -7,15 +7,14 @@ include { FLOMICS_QC_CALCULATE_UMI_DEDUP_RATE      } from '../../modules/local/F
 workflow FLOMICS_UMI_DEDUP_QC{
     take:
     
-    bam_transcriptome // channel: [ val(meta), [ bam ]]
-    bam_transcriptome_dedup // channel: [ val(meta), [ bam ]]    
+    bam_files // channel: [ val(meta), [ bam_dedup ], [ bam_without_deduplication ]]
 
     main:
 
     ///
     /// Calculate the UMI deduplication rate
     ///
-    FLOMICS_QC_CALCULATE_UMI_DEDUP_RATE(bam_transcriptome, bam_transcriptome_dedup)
+    FLOMICS_QC_CALCULATE_UMI_DEDUP_RATE(bam_files)
     ch_Flomics_UMI_dedup_rate_QC       = FLOMICS_QC_CALCULATE_UMI_DEDUP_RATE.out.umi_dedup_rate.collect()
 
     emit:
