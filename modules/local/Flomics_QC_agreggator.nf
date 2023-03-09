@@ -3,7 +3,7 @@ process FLOMICS_QC_AGGREGATOR{
 
     container "flomicsbiotech/flomics_qc_rnaseq:latest"
 
-    
+
     input:
     path multiqc_data
     path trackhub_links
@@ -14,6 +14,7 @@ process FLOMICS_QC_AGGREGATOR{
     path umi_dedup_rate_data
     path library_balance_data
     path fastqc_files
+    path spike_in_qc
 
     output:
     path "QC_table.tsv", emit: flomics_report
@@ -39,12 +40,12 @@ process FLOMICS_QC_AGGREGATOR{
         cat $file >> fastqc_QC.tsv
     done
 
-    
+
     echo -e "dataset\tuniqMappedReads\tsplicedReads\t%splicedReads" > splicedReads_grouped.stats.tsv
     for file in *splicedReads.stats.tsv; do
         tail -n +2 $file >> splicedReads_grouped.stats.tsv
     done
-    
+
     echo -e "dataset\ttotalSJs\tknownSJs\t%knownSJs" > spliceJunctions_grouped.stats.tsv
     for file in *spliceJunctions.stats.tsv; do
         tail -n +2 $file >> spliceJunctions_grouped.stats.tsv
@@ -80,19 +81,23 @@ process FLOMICS_QC_AGGREGATOR{
 
     echo -e "Sample\tExonic\tIntronic\tIntergenic\tExonic_percentage\tIntronic_percentage\tIntergenic_percentage" > qualimap_QC.tsv
     tail -n +2 multiqc_data/mqc_qualimap_genomic_origin_1.txt | awk '{print $0"\t"$2/($2+$3+$4)*100"\t"$3/($2+$3+$4)*100"\t"$4/($2+$3+$4)*100'} >> qualimap_QC.tsv
-    
+
     echo -e "Sample\ttotal_reads\tavg_input_read_length\tnumber_of_uniquely_mapped_reads\tpercentage_of_uniquely_mapped_reads\tavg_mapped_read_length\tnumber_of_multimapped_reads\tpercentage_of_unmapped_too_short_reads\tmapped_percentage\taverage_mapped_length_percentage" > STAR_QC.tsv
     tail -n +2  multiqc_data/multiqc_star.txt | cut -f1,2,3,4,5,6,18,23 | awk '{print $0"\t"($4+$7)/$2*100"\t"($6/$3)*100}' >> STAR_QC.tsv
-    
+
     echo "Junction_saturation_slope" > Junction_saturation.tsv
     tail -n +2 multiqc_data/mqc_rseqc_junction_saturation_plot_All_Junctions.txt | cut -f21,20  | awk '{print ($2-$1)/$2*100}' >> Junction_saturation.tsv
 
     echo -e "Reads_mapping_sense_percentage\tReads_mapping_antisense_percentage\tReads_undetermined_strandedness_percentage" > strandedness_library_prep.tsv
     tail -n +2 multiqc_data/mqc_rseqc_infer_experiment_plot_1.txt | cut -f 2,3,4 >> strandedness_library_prep.tsv
-    
+
+    awk '{print $2"\t"$3"\t"$4}' correlation_coefs.tsv > new_corr.tsv
+
     paste samplenames.tsv trackhub_links.tsv fastqc_QC.tsv cutadapt_QC.tsv STAR_QC.tsv UMI_dedup_grouped.tsv qualimap_QC.tsv splicedReads_grouped.stats.tsv \\
     spliceJunctions_grouped.stats.tsv Junction_saturation.tsv gene_coverage_profile_table.tsv insert_size.tsv library_balance.tsv \\
-    strandedness_library_prep.tsv biotype_table.tsv | cut --complement -f 16,28,35,39,44> QC_table.tsv
+    strandedness_library_prep.tsv biotype_table.tsv new_corr.tsv | cut --complement -f 16,28,35,39,44> QC_table.tsv
+
+
 
     '''
 

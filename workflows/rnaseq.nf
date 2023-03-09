@@ -71,7 +71,7 @@ def is_aws_igenome = false
 if (params.fasta && params.gtf) {
     if ((file(params.fasta).getName() - '.gz' == 'genome.fa') && (file(params.gtf).getName() - '.gz' == 'genes.gtf')) {
         is_aws_igenome = true
-    }    
+    }
 }
 
 /*
@@ -87,6 +87,9 @@ ch_multiqc_custom_config = params.multiqc_config ? Channel.fromPath(params.multi
 ch_pca_header_multiqc        = file("$projectDir/assets/multiqc/deseq2_pca_header.txt", checkIfExists: true)
 ch_clustering_header_multiqc = file("$projectDir/assets/multiqc/deseq2_clustering_header.txt", checkIfExists: true)
 ch_biotypes_header_multiqc   = file("$projectDir/assets/multiqc/biotypes_header.txt", checkIfExists: true)
+
+// Spike-in concentration file
+ch_spike_in_concentration = file("$projectDir/assets/ercc_concentration_table.csv", checkIfExists: true)
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -200,7 +203,7 @@ workflow RNASEQ {
         meta, fastq ->
             def meta_clone = meta.clone()
             meta_clone.id = meta_clone.id.split('_')[0..-2].join('_')
-            [ meta_clone, fastq ] 
+            [ meta_clone, fastq ]
     }
     .groupTuple(by: [0])
     .branch {
@@ -267,7 +270,7 @@ workflow RNASEQ {
                 }
             }
             .set { ch_num_trimmed_reads }
-        
+
         MULTIQC_TSV_FAIL_TRIMMED (
             ch_num_trimmed_reads.collect(),
             ["Sample", "Reads after trimming"],
@@ -811,7 +814,7 @@ workflow RNASEQ {
     //
 
     ch_Flomics_UMI_dedup_rate_QC = Channel.empty()
-    
+
     if (params.with_umi) {
         ch_bams_umi_dedup= ch_transcriptome_bam.join(ch_transcriptome_sorted_bam)
 
@@ -828,7 +831,9 @@ workflow RNASEQ {
             ch_transcriptome_bam,
             PREPARE_GENOME.out.gtf,
             ch_Flomics_UMI_dedup_rate_QC,
-            QUANTIFY_STAR_SALMON.out.results.collect{it[1]}
+            QUANTIFY_STAR_SALMON.out.results.collect{it[1]},
+            ch_spike_in_concentration,
+            QUANTIFY_STAR_SALMON.out.tpm_gene
         )
     }
     else{
@@ -839,7 +844,9 @@ workflow RNASEQ {
             ch_transcriptome_bam,
             PREPARE_GENOME.out.gtf,
             ch_Flomics_UMI_dedup_rate_QC.collect{it[1]}.ifEmpty([]),
-            QUANTIFY_STAR_SALMON.out.results.collect{it[1]}
+            QUANTIFY_STAR_SALMON.out.results.collect{it[1]},
+            ch_spike_in_concentration,
+            QUANTIFY_STAR_SALMON.out.tpm_gene
         )
     }
 
