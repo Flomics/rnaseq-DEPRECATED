@@ -10,7 +10,8 @@ process FLOMICS_QC_SPIKE_INS{
     path(gene_tpm)
 
     output:
-    path("correlation_coefs.tsv")   , emit: correlation_coefficients_table
+    path("correlation_coefs.tsv") , emit: correlation_coefficients_table
+    path("plots_correlation.pdf") , emit: correlation_pdf
 
     script:
     """
