@@ -4,6 +4,7 @@ args = commandArgs(trailingOnly=TRUE)
 library(stringr)
 library(dplyr)
 library(ggplot2)
+library(egg)
 
 # load concentration table and tpm matrix
 ercc_conc <- read.csv(args[1]) #change this in pipeline with the path to bin
@@ -32,13 +33,19 @@ ercc_plot <- ercc_plot %>%
 
 i=1
 while (i < ncol(ercc_plot)) {
-  #print(length(ercc_plot$conc)==length(ercc_plot[,i]))
-  png(file=paste(gsub("X", "",colnames(ercc_plot)[i]), "_TPM_correlation_plot.png", sep = ""))
-  print(ggplot(ercc_plot, aes(x=ercc_plot$conc, y=ercc_plot[,i])) + geom_point() +
-    ylab("Spike-in TPMs") +
-    xlab("Spike-in concentration [attomoles/μL]") +
-    theme_minimal())
-  #plot(x=ercc_plot$conc, y=ercc_plot[,i], main = gsub("X", "",colnames(ercc_plot)[i]), xlab = "Spike-in concentration [attomoles/μL]", ylab = "Spike-in TPMs")
+ml <- lm(ercc_plot$conc~ercc_plot[,i])
+  # Extracting R-squared parameter from summary
+  r_squared <- summary(ml)$r.squared
+  plot_title <- gsub("X", "", colnames(ercc_plot)[i])
+
+  png(file=paste(gsub("X", "",colnames(ercc_plot)[i]), "_TPM_correlation_plot.png", sep = ""), width = 700, height = 700)
+  print(ercc_plot, aes(x=log10(ercc_plot$conc), y=log10(ercc_plot[,i]+0.01)) + geom_point() +
+          ylab("Spike-in TPMs (log10+0.01)") +
+          xlab("Spike-in concentration [attomoles/microL] (log10)") +
+          labs(title = plot_title) +
+          geom_smooth(method = 'lm', se = TRUE) +
+          annotate(geom = "text", x = -1.3, y = max(log10(ercc_plot[,i]+0.01)), label=paste("R² = ", r_squared, sep = "")) +
+          theme_minimal())
   dev.off()
   i <- i + 1
 }
