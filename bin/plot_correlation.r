@@ -38,7 +38,7 @@ while (i < ncol(ercc_plot)) {
     plot_title <- gsub("X", "", colnames(ercc_plot)[i])
 
     png(file=paste(gsub("X", "",colnames(ercc_plot)[i]), "_TPM_correlation_plot.png", sep = ""), width = 700, height = 700)
-    print(ercc_plot, aes(x=log10(ercc_plot$conc), y=log10(ercc_plot[,i]+0.01)) + geom_point() +
+    print(ggplot(ercc_plot, aes(x=log10(ercc_plot$conc), y=log10(ercc_plot[,i]+0.01))) + geom_point() +
         ylab("Spike-in TPMs (log10+0.01)") +
         xlab("Spike-in concentration [attomoles/microL] (log10)") +
         labs(title = plot_title) +
