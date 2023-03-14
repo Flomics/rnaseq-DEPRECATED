@@ -10,7 +10,7 @@ ercc_conc <- read.csv(args[1]) #change this in pipeline with the path to bin
 tpm_matrix <- read.delim(args[2], sep = "\t")
 
 
-if ("ERCC" %in% tpm_matrix) {
+if (grep("ERCC", tpm_matrix$gene_name, fixed = TRUE)[1] != 0) {
   #remove all first column and all rows that are not ERCC
   ercc_tpm_matrix <- tpm_matrix %>%
     filter(str_detect(gene_id, "ERCC")) %>%
@@ -95,5 +95,6 @@ if ("ERCC" %in% tpm_matrix) {
   write.table(final_df, file = "correlation_coefs.tsv", row.names = FALSE)
 
   png(filename = "no_spike_ins.png")
+  plot.new()
   dev.off()
 }
