@@ -11,7 +11,7 @@ process FLOMICS_QC_SPIKE_INS{
 
     output:
     path("correlation_coefs.tsv") , emit: correlation_coefficients_table
-    path("plots_correlation.pdf") , emit: correlation_pdf
+    path("*.png") , emit: correlation_png
 
     script:
     """
