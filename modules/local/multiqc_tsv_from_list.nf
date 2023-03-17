@@ -1,7 +1,5 @@
 process MULTIQC_TSV_FROM_LIST {
-
-    executor 'local'
-    memory 100.MB
+    label 'process_low'
 
     input:
     val tsv_data   // [ ['foo', 1], ['bar', 1] ]
