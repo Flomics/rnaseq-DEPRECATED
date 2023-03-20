@@ -1,5 +1,6 @@
 process MULTIQC_TSV_FROM_LIST {
     label 'process_low'
+    executor 'awsbatch'
 
     input:
     val tsv_data   // [ ['foo', 1], ['bar', 1] ]
