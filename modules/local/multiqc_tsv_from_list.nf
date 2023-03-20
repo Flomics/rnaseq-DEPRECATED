@@ -1,8 +1,7 @@
 process MULTIQC_TSV_FROM_LIST {
-    label 'process_low'
-    executor 'awsbatch'
 
-    container "flomicsbiotech/sarscov2:dsl2"
+    executor 'local'
+    memory 100.MB
 
     input:
     val tsv_data   // [ ['foo', 1], ['bar', 1] ]
