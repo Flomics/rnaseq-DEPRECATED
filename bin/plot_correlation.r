@@ -1,5 +1,5 @@
 #!/usr/bin/env Rscript
-args = commandArgs(trailingOnly = TRUE)
+args <- commandArgs(trailingOnly = TRUE)
 
 library(stringr)
 library(dplyr)
@@ -30,29 +30,29 @@ if (grep("ERCC", tpm_matrix$gene_name, fixed = TRUE)[1] != 0) {
   ercc_plot <- ercc_plot %>%
     select(-1)
 
-  i=1
+  i <- 1
   while (i < ncol(ercc_plot)) {
-    ml <- lm(ercc_plot$conc~ercc_plot[,i])
+    ml <- lm(ercc_plot$conc ~ ercc_plot[, i])
     # Extracting R-squared parameter from summary
     r_squared <- summary(ml)$r.squared
     plot_title <- gsub("X", "", colnames(ercc_plot)[i])
 
-    png(file=paste(gsub("X", "",colnames(ercc_plot)[i]), "_TPM_correlation_plot.png", sep = ""), width = 700, height = 700)
-    print(ggplot(ercc_plot, aes(x=log10(ercc_plot$conc), y=log10(ercc_plot[,i]+0.01))) + geom_point() +
+    png(file = paste(gsub("X", "", colnames(ercc_plot)[i]), "_TPM_correlation_plot.png", sep = ""), width = 700, height = 700) #nolint
+    print(ggplot(ercc_plot, aes(x = log10(ercc_plot$conc), y = log10(ercc_plot[, i] + 0.01))) + geom_point() + #nolint
             ylab("Spike-in TPMs (log10+0.01)") +
             xlab("Spike-in concentration [attomoles/microL] (log10)") +
             labs(title = plot_title) +
-            geom_smooth(method = 'lm', se = TRUE) +
-            annotate(geom = "text", x = -1.3, y = max(log10(ercc_plot[,i]+0.01)), label=paste("R² = ", r_squared, sep = "")) +
+            geom_smooth(method = "lm", se = TRUE) +
+            annotate(geom = "text", x = -1.3, y = max(log10(ercc_plot[, i] + 0.01)), label = paste("R² = ", r_squared, sep = "")) + #nolint
             theme_minimal())
     dev.off()
     i <- i + 1
   }
 
-  #obtain correlation coeficients
+  #obtain correlation coefficients
   pearson_vector <- vector()
   spearman_vector <- vector()
-  i = 1
+  i <- 1
   while (i < ncol(ercc_plot)) {
     pearson_cor <- cor(ercc_plot$conc, ercc_plot[, i], method = "pearson")
     spearman_cor <- cor(ercc_plot$conc, ercc_plot[, i], method = "spearman")
@@ -64,7 +64,7 @@ if (grep("ERCC", tpm_matrix$gene_name, fixed = TRUE)[1] != 0) {
 
   #create linear model to obtain R squared
   r_squared_vector <- vector()
-  i = 1
+  i <- 1
   while (i < ncol(ercc_plot)) {
     ml <- lm(ercc_plot$conc ~ ercc_plot[, i])
     # Extracting R-squared parameter from summary
@@ -76,22 +76,22 @@ if (grep("ERCC", tpm_matrix$gene_name, fixed = TRUE)[1] != 0) {
 
   #create small table with those three coefficients
   sample_names_vector <- colnames(ercc_plot)[-length(colnames(ercc_plot))]
-  final_df <- data.frame(sample_names_vector,pearson_vector, spearman_vector, r_squared_vector)
+  final_df <- data.frame(sample_names_vector, pearson_vector, spearman_vector, r_squared_vector) #nolint
   final_df$sample_names_vector <- gsub("X", "", final_df$sample_names_vector)
-  colnames(final_df) <- c("sample", "pearson_coef", "spearman_coef", "r_squared")
+  colnames(final_df) <- c("sample", "pearson_coef", "spearman_coef", "r_squared") #nolint
   write.table(final_df, file = "correlation_coefs.tsv", row.names = FALSE)
 
 } else {
 
   ercc_tpm_matrix <- tpm_matrix %>%
-    select(c(-1,-2))
+    select(c(-1, -2))
   n_samples <- ncol(ercc_tpm_matrix)
 
   final_matrix <- matrix(data = "no_spike_ins", nrow = n_samples, ncol = 3)
   sample_names_vector <- colnames(ercc_tpm_matrix)
   final_df <- data.frame(sample_names_vector, final_matrix)
   final_df$sample_names_vector <- gsub("X", "", final_df$sample_names_vector)
-  colnames(final_df) <- c("sample", "pearson_coef", "spearman_coef", "r_squared")
+  colnames(final_df) <- c("sample", "pearson_coef", "spearman_coef", "r_squared") #nolint
   write.table(final_df, file = "correlation_coefs.tsv", row.names = FALSE)
 
   png(filename = "no_spike_ins.png")
