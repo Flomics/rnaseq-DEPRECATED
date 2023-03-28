@@ -6,7 +6,7 @@ process PREPROCESS_FEATURECOUNTS{
 
 
     input:
-    path(biotype_counts)
+    tuple val(meta), path(biotype_counts)
 
     output:
     tuple val(meta), path("*.biotype_counts.tsv"), emit: biotype_counts_processed
@@ -16,6 +16,5 @@ process PREPROCESS_FEATURECOUNTS{
     """
     sed -e '1,11d' $biotype_counts > processed.tsv
     ( echo $prefix && cat processed.tsv ) > ${prefix}.biotype_counts.tsv
-
     """
 }
