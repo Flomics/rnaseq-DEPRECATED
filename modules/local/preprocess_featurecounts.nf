@@ -15,6 +15,6 @@ process PREPROCESS_FEATURECOUNTS{
     def prefix = task.ext.prefix ?: "${meta.id}"
     """
     sed -e '1,11d' $biotype_counts > processed.tsv
-    ( echo $prefix && cat processed.tsv ) > ${prefix}.biotype_counts.tsv
+    ( echo $prefix "blank" && cat processed.tsv ) > ${prefix}.biotype_counts.tsv
     """
 }

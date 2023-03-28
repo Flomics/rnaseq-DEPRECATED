@@ -836,7 +836,8 @@ workflow RNASEQ {
             ch_Flomics_UMI_dedup_rate_QC,
             QUANTIFY_STAR_SALMON.out.results.collect{it[1]},
             ch_spike_in_concentration,
-            QUANTIFY_STAR_SALMON.out.tpm_gene
+            QUANTIFY_STAR_SALMON.out.tpm_gene,
+            PREPROCESS_FEATURECOUNTS.out.biotype_counts_processed.collect()
         )
     }
     else{
@@ -849,7 +850,8 @@ workflow RNASEQ {
             ch_Flomics_UMI_dedup_rate_QC.collect{it[1]}.ifEmpty([]),
             QUANTIFY_STAR_SALMON.out.results.collect{it[1]},
             ch_spike_in_concentration,
-            QUANTIFY_STAR_SALMON.out.tpm_gene
+            QUANTIFY_STAR_SALMON.out.tpm_gene,
+            PREPROCESS_FEATURECOUNTS.out.biotype_counts_processed.collect()
         )
     }
 
