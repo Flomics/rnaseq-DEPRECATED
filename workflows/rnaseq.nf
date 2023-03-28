@@ -108,6 +108,7 @@ include { DESEQ2_QC as DESEQ2_QC_SALMON      } from '../modules/local/deseq2_qc'
 include { DUPRADAR                           } from '../modules/local/dupradar'
 include { MULTIQC                            } from '../modules/local/multiqc'
 include { MULTIQC_CUSTOM_BIOTYPE             } from '../modules/local/multiqc_custom_biotype'
+include { PREPROCESS_FEATURECOUNTS           } from '../modules/local/preprocess_featurecounts'
 include { MULTIQC_TSV_FROM_LIST as MULTIQC_TSV_FAIL_MAPPED  } from '../modules/local/multiqc_tsv_from_list'
 include { MULTIQC_TSV_FROM_LIST as MULTIQC_TSV_FAIL_TRIMMED } from '../modules/local/multiqc_tsv_from_list'
 include { MULTIQC_TSV_FROM_LIST as MULTIQC_TSV_STRAND_CHECK } from '../modules/local/multiqc_tsv_from_list'
@@ -623,6 +624,8 @@ workflow RNASEQ {
         )
         ch_featurecounts_multiqc = MULTIQC_CUSTOM_BIOTYPE.out.tsv
         ch_versions = ch_versions.mix(MULTIQC_CUSTOM_BIOTYPE.out.versions.first())
+
+        PREPROCESS_FEATURECOUNTS ( MULTIQC_CUSTOM_BIOTYPE.out.biotype_counts )
     }
 
     //
