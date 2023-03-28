@@ -8,7 +8,7 @@ process FLOMICS_QC_SPIKE_INS{
     input:
     path(spike_in_concentration)
     path(gene_tpm)
-    path(biotype_counts)
+    tuple val(meta), path(biotype_counts)
 
     output:
     path("correlation_coefs.tsv") , emit: correlation_coefficients_table
