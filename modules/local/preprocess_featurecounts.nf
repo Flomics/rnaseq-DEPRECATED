@@ -9,7 +9,7 @@ process PREPROCESS_FEATURECOUNTS{
     tuple val(meta), path(biotype_counts)
 
     output:
-    tuple val(meta), path("*.biotype_counts.tsv"), emit: biotype_counts_processed
+    path("*.biotype_counts.tsv"), emit: biotype_counts_processed
 
     script:
     def prefix = task.ext.prefix ?: "${meta.id}"
