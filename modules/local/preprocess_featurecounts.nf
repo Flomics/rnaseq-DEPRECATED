@@ -1,5 +1,5 @@
 process PREPROCESS_FEATURECOUNTS{
-    tag "$meta.id"
+    tag "$meta"
     label 'process_low'
 
     container "flomicsbiotech/markdown_pkgs:dev"
