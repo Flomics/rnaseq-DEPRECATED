@@ -21,5 +21,4 @@ process FLOMICS_QC_SPIKE_INS{
     paste $biotype_counts > biotype_counts.tsv
 
     """
-    //
-}
+    //spike-in_qc.r biotype_counts.tsv
