@@ -1,5 +1,5 @@
 process FLOMICS_QC_SPIKE_INS{
-    tag "$meta"
+    //tag "$correlation_coefficients_table"
     label 'process_low'
 
     container "flomicsbiotech/markdown_pkgs:dev"
