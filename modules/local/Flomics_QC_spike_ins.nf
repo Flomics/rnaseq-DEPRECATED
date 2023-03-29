@@ -13,7 +13,7 @@ process FLOMICS_QC_SPIKE_INS{
     output:
     path("correlation_coefs.tsv") , emit: correlation_coefficients_table
     path("*.png") , emit: correlation_png
-    paht("biotype_counts.tsv"), emit: biotype_counts_joined
+    path("biotype_counts.tsv"), emit: biotype_counts_joined
 
     script:
     """
