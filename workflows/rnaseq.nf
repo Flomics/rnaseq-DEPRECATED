@@ -837,7 +837,7 @@ workflow RNASEQ {
             QUANTIFY_STAR_SALMON.out.results.collect{it[1]},
             ch_spike_in_concentration,
             QUANTIFY_STAR_SALMON.out.tpm_gene,
-            PREPROCESS_FEATURECOUNTS.out.biotype_counts_processed.collect()
+            PREPROCESS_FEATURECOUNTS.out.biotype_counts_processed.join()
         )
     }
     else{
@@ -851,7 +851,7 @@ workflow RNASEQ {
             QUANTIFY_STAR_SALMON.out.results.collect{it[1]},
             ch_spike_in_concentration,
             QUANTIFY_STAR_SALMON.out.tpm_gene,
-            PREPROCESS_FEATURECOUNTS.out.biotype_counts_processed.collect()
+            PREPROCESS_FEATURECOUNTS.out.biotype_counts_processed.join()
         )
     }
 
