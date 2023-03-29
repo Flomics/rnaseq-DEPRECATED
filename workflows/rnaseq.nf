@@ -109,7 +109,7 @@ include { DUPRADAR                           } from '../modules/local/dupradar'
 include { MULTIQC                            } from '../modules/local/multiqc'
 include { MULTIQC_CUSTOM_BIOTYPE             } from '../modules/local/multiqc_custom_biotype'
 include { PREPROCESS_FEATURECOUNTS           } from '../modules/local/preprocess_featurecounts'
-include { CONCAT_FEATURECOUNTS               } from '../modules/local/concat_featurecounts'
+//include { CONCAT_FEATURECOUNTS               } from '../modules/local/concat_featurecounts'
 include { MULTIQC_TSV_FROM_LIST as MULTIQC_TSV_FAIL_MAPPED  } from '../modules/local/multiqc_tsv_from_list'
 include { MULTIQC_TSV_FROM_LIST as MULTIQC_TSV_FAIL_TRIMMED } from '../modules/local/multiqc_tsv_from_list'
 include { MULTIQC_TSV_FROM_LIST as MULTIQC_TSV_STRAND_CHECK } from '../modules/local/multiqc_tsv_from_list'
@@ -628,7 +628,7 @@ workflow RNASEQ {
 
         PREPROCESS_FEATURECOUNTS ( MULTIQC_CUSTOM_BIOTYPE.out.biotype_counts )
 
-        CONCAT_FEATURECOUNTS ( PREPROCESS_FEATURECOUNTS.out.biotype_counts_processed.map { meta, biotype_counts -> biotype_counts }.collect())
+        //CONCAT_FEATURECOUNTS ( PREPROCESS_FEATURECOUNTS.out.biotype_counts_processed.map { meta, biotype_counts -> biotype_counts }.collect())
     }
 
     //
@@ -839,8 +839,8 @@ workflow RNASEQ {
             ch_Flomics_UMI_dedup_rate_QC,
             QUANTIFY_STAR_SALMON.out.results.collect{it[1]},
             ch_spike_in_concentration,
-            QUANTIFY_STAR_SALMON.out.tpm_gene//,
-            //PREPROCESS_FEATURECOUNTS.out.biotype_counts_processed.collectFile()
+            QUANTIFY_STAR_SALMON.out.tpm_gene,
+            PREPROCESS_FEATURECOUNTS.out.biotype_counts_processed.map { meta, biotype_counts -> biotype_counts }.collect()
         )
     }
     else{
@@ -854,7 +854,7 @@ workflow RNASEQ {
             QUANTIFY_STAR_SALMON.out.results.collect{it[1]},
             ch_spike_in_concentration,
             QUANTIFY_STAR_SALMON.out.tpm_gene//,
-            //PREPROCESS_FEATURECOUNTS.out.biotype_counts_processed.collectFile()
+            PREPROCESS_FEATURECOUNTS.out.biotype_counts_processed.map { meta, biotype_counts -> biotype_counts }.collect()
         )
     }
 

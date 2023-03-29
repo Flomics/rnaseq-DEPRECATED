@@ -8,18 +8,18 @@ process FLOMICS_QC_SPIKE_INS{
     input:
     path(spike_in_concentration)
     path(gene_tpm)
-    //path(biotype_counts)
+    path(biotype_counts)
 
     output:
     path("correlation_coefs.tsv") , emit: correlation_coefficients_table
     path("*.png") , emit: correlation_png
-    //path("biotype_counts.tsv"), emit: biotype_counts_joined
+    path("biotype_counts.tsv"), emit: biotype_counts_joined
 
     script:
     """
     plot_correlation.r $spike_in_concentration $gene_tpm
+    paste $biotype_counts > biotype_counts.tsv
 
     """
-    //paste $biotype_counts > biotype_counts.tsv
-
+    //
 }
