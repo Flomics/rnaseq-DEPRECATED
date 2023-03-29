@@ -628,7 +628,7 @@ workflow RNASEQ {
 
         PREPROCESS_FEATURECOUNTS ( MULTIQC_CUSTOM_BIOTYPE.out.biotype_counts )
 
-        CONCAT_FEATURECOUNTS ( PREPROCESS_FEATURECOUNTS.out.biotype_counts_processed.map { meta, biotype -> biotype }.collect())
+        CONCAT_FEATURECOUNTS ( PREPROCESS_FEATURECOUNTS.out.biotype_counts_processed.map { meta, biotype_counts -> biotype_counts }.collect())
     }
 
     //
