@@ -22,3 +22,4 @@ process FLOMICS_QC_SPIKE_INS{
 
     """
     //spike-in_qc.r biotype_counts.tsv
+}
