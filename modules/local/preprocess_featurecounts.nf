@@ -1,5 +1,5 @@
 process PREPROCESS_FEATURECOUNTS{
-    tag "$meta"
+    tag "$meta.id"
     label 'process_low'
 
     container "flomicsbiotech/markdown_pkgs:dev"
@@ -9,7 +9,7 @@ process PREPROCESS_FEATURECOUNTS{
     tuple val(meta), path(biotype_counts)
 
     output:
-    path("*.biotype_counts.tsv"), emit: biotype_counts_processed
+    tuple val(meta), path("*.biotype_counts.tsv"), emit: biotype_counts_processed
 
     script:
     def prefix = task.ext.prefix ?: "${meta.id}"

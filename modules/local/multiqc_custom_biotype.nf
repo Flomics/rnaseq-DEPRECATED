@@ -11,7 +11,7 @@ process MULTIQC_CUSTOM_BIOTYPE {
     path  header
 
     output:
-    path("*biotype_counts_mqc.tsv"), emit: biotype_counts
+    tuple val(meta), path("*biotype_counts_mqc.tsv"), emit: biotype_counts
     path "versions.yml"           , emit: versions
     tuple val(meta), path("*.tsv"), emit: tsv
 
