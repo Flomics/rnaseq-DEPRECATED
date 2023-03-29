@@ -109,6 +109,7 @@ include { DUPRADAR                           } from '../modules/local/dupradar'
 include { MULTIQC                            } from '../modules/local/multiqc'
 include { MULTIQC_CUSTOM_BIOTYPE             } from '../modules/local/multiqc_custom_biotype'
 include { PREPROCESS_FEATURECOUNTS           } from '../modules/local/preprocess_featurecounts'
+include { CONCAT_FEATURECOUNTS               } from '../modules/local/concat_featurecounts'
 include { MULTIQC_TSV_FROM_LIST as MULTIQC_TSV_FAIL_MAPPED  } from '../modules/local/multiqc_tsv_from_list'
 include { MULTIQC_TSV_FROM_LIST as MULTIQC_TSV_FAIL_TRIMMED } from '../modules/local/multiqc_tsv_from_list'
 include { MULTIQC_TSV_FROM_LIST as MULTIQC_TSV_STRAND_CHECK } from '../modules/local/multiqc_tsv_from_list'
@@ -626,6 +627,8 @@ workflow RNASEQ {
         ch_versions = ch_versions.mix(MULTIQC_CUSTOM_BIOTYPE.out.versions.first())
 
         PREPROCESS_FEATURECOUNTS ( MULTIQC_CUSTOM_BIOTYPE.out.biotype_counts )
+
+        CONCAT_FEATURECOUNTS ( PREPROCESS_FEATURECOUNTS.out.biotype_counts_processed.map { meta, biotype -> biotype }.collect())
     }
 
     //
