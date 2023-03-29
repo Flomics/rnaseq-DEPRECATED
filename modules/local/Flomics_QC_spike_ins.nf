@@ -18,7 +18,7 @@ process FLOMICS_QC_SPIKE_INS{
     script:
     """
     plot_correlation.r $spike_in_concentration $gene_tpm
-    paste $meta > biotype_counts.tsv
+    paste $biotype_counts > biotype_counts.tsv
 
     """
 }
