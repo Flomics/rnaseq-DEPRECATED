@@ -7,10 +7,17 @@ library(ggplot2)
 
 # load concentration table and tpm matrix
 ercc_conc <- read.csv(args[1]) #change this in pipeline with the path to bin
+#ercc_conc <- read.csv("/home/ctuni/.nextflow/assets/Flomics/rnaseq/assets/ercc_concentration_table.csv") 
+ercc_len <- ercc_conc[,-2]
+ercc_conc <- ercc_conc[,-3]
 tpm_matrix <- read.delim(args[2], sep = "\t")
+#tpm_matrix <- read.delim("/home/ctuni/Downloads/salmon.merged.gene_tpm.tsv", sep = "\t")
 
 
 if (grep("ERCC", tpm_matrix$gene_name, fixed = TRUE)[1] != 0) {
+  
+  ##for tpm vs conc
+  
   #remove all first column and all rows that are not ERCC
   ercc_tpm_matrix <- tpm_matrix %>%
     filter(str_detect(gene_id, "ERCC")) %>%
@@ -80,6 +87,32 @@ if (grep("ERCC", tpm_matrix$gene_name, fixed = TRUE)[1] != 0) {
   final_df$sample_names_vector <- gsub("X", "", final_df$sample_names_vector)
   colnames(final_df) <- c("sample", "pearson_coef", "spearman_coef", "r_squared") #nolint
   write.table(final_df, file = "correlation_coefs.tsv", row.names = FALSE)
+  
+  
+  ##for tmp vs len
+  ercc_len <- ercc_len[order(ercc_len$ERCC_ID), ]
+  ercc_plot_len <- cbind(ercc_tpm_matrix, ercc_len$length)
+  
+  colnames(ercc_plot_len) <- c(colnames(ercc_tpm_matrix), "length")
+  
+  #plot in a loop and save as image
+  ## remove first column
+  ercc_plot_len <- ercc_plot_len %>%
+    select(-1)
+  
+  i <- 1
+  while (i < ncol(ercc_plot_len)) {
+    plot_title <- gsub("X", "", colnames(ercc_plot_len)[i])
+    
+    png(file = paste(gsub("X", "", colnames(ercc_plot_len)[i]), "_TPM_vs_lenght_correlation_plot.png", sep = ""), width = 700, height = 700) #nolint
+    print(ggplot(ercc_plot_len, aes(x = ercc_plot_len$length, y = ercc_plot_len[, i])) + geom_point() + #nolint
+            ylab("Spike-in TPMs") +
+            xlab("Spike-in length [nt]") +
+            labs(title = plot_title) +
+            theme_minimal())
+    dev.off()
+    i <- i + 1
+  }
 
 } else {
 
