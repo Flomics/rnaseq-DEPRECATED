@@ -94,7 +94,7 @@ process FLOMICS_QC_AGGREGATOR{
     awk '{print $2"\t"$3"\t"$4}' correlation_coefs.tsv > new_corr.tsv
 
     paste samplenames.tsv trackhub_links.tsv fastqc_QC.tsv cutadapt_QC.tsv STAR_QC.tsv UMI_dedup_grouped.tsv qualimap_QC.tsv splicedReads_grouped.stats.tsv \\
-    spliceJunctions_grouped.stats.tsv Junction_saturation.tsv gene_coverage_profile_table.tsv insert_size.tsv library_balance.tsv \\
+    spliceJunctions_grouped.stats.tsv Junction_saturation.tsv read_coverage_uniformity_score.tsv insert_size.tsv library_balance.tsv \\
     strandedness_library_prep.tsv biotype_table.tsv new_corr.tsv | cut --complement -f 16,28,35,39,44> QC_table.tsv
 
 
