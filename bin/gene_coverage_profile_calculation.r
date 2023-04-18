@@ -14,4 +14,4 @@ for (n in  1:length(rownames(gene_coverage_matrix))){
   read_coverage_uniformity_score$read_coverage_uniformity_score[n]= Percentage_AUC_total
 }
 
-write.table(read_coverage_uniformity_score, file= "gene_coverage_profile_table.tsv", sep = "\t", row.names = FALSE, quote = FALSE)
+write.table(read_coverage_uniformity_score, file= "read_coverage_uniformity_score.tsv", sep = "\t", row.names = FALSE, quote = FALSE)
