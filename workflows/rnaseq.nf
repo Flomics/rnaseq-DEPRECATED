@@ -91,6 +91,9 @@ ch_biotypes_header_multiqc   = file("$projectDir/assets/multiqc/biotypes_header.
 // Spike-in concentration file
 ch_spike_in_concentration = file("$projectDir/assets/ercc_concentration_table.csv", checkIfExists: true)
 
+//Flomics QC dashboard RMD file
+ch_qc_dashboard = file ("$projectDir/bin/qc_dashboard.Rmd", checkIfExists: true)
+
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     IMPORT LOCAL MODULES/SUBWORKFLOWS
@@ -840,7 +843,8 @@ workflow RNASEQ {
             QUANTIFY_STAR_SALMON.out.results.collect{it[1]},
             ch_spike_in_concentration,
             QUANTIFY_STAR_SALMON.out.tpm_gene,
-            PREPROCESS_FEATURECOUNTS.out.biotype_counts_processed.map { meta, biotype_counts -> biotype_counts }.collect()
+            PREPROCESS_FEATURECOUNTS.out.biotype_counts_processed.map { meta, biotype_counts -> biotype_counts }.collect(),
+            ch_qc_dashboard
         )
     }
     else{
@@ -854,7 +858,8 @@ workflow RNASEQ {
             QUANTIFY_STAR_SALMON.out.results.collect{it[1]},
             ch_spike_in_concentration,
             QUANTIFY_STAR_SALMON.out.tpm_gene,
-            PREPROCESS_FEATURECOUNTS.out.biotype_counts_processed.map { meta, biotype_counts -> biotype_counts }.collect()
+            PREPROCESS_FEATURECOUNTS.out.biotype_counts_processed.map { meta, biotype_counts -> biotype_counts }.collect(),
+            ch_qc_dashboard
         )
     }
 

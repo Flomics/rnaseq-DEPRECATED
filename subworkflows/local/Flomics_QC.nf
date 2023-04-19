@@ -25,6 +25,7 @@ workflow FLOMICS_QC{
     spike_in_concentration
     salmon_gene_tpm
     featurecounts_biotype
+    qc_dashboard
 
 
     main:
@@ -85,6 +86,6 @@ workflow FLOMICS_QC{
     ///
     /// Knit the Flomics QC into an interactive HTML dashboard
     ///
-    FLOMICS_QC_KNIT ( FLOMICS_QC_AGGREGATOR.out.flomics_report )
+    FLOMICS_QC_KNIT ( FLOMICS_QC_AGGREGATOR.out.flomics_report, qc_dashboard )
 
 }

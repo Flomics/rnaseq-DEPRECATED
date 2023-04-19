@@ -7,6 +7,7 @@ process FLOMICS_QC_KNIT{
 
     input:
     path(flomics_report)
+    path qc_dashboard
 
 
     output:
@@ -15,6 +16,7 @@ process FLOMICS_QC_KNIT{
     script:
     outdir  = params.outdir
     """
-    Rscript -e 'flomics_report="${flomics_report}"; rmarkdown::render(input = "qc_dashboard.Rmd", output_file = "QC_dashboard.html")'
+    cp $qc_dasshboard flomics_qc_dashboard.Rmd
+    Rscript -e 'flomics_report="${flomics_report}"; rmarkdown::render(input = "flomics_qc_dashboard.Rmd", output_file = "QC_dashboard.html")'
     """
 }
