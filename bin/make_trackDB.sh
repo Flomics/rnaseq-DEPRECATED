@@ -2,10 +2,11 @@
 bam=$1
 outdir=$2
 prefix=$3
+runName=$4
 folder_name=${outdir#"s3://flomics-data/"}
 project_name=${folder_name%%/*}
 
-s3_bucket_name="s3://flomics-public/RNAseq_pipeline_trackHubs/"$folder_name
+s3_bucket_name="s3://flomics-public/RNAseq_pipeline_trackHubs/"$runName"/"
 data_file_folder=${s3_bucket_name}"dataFiles/"
 for file in *.bam
         do if ! test -f ${file}.bai
