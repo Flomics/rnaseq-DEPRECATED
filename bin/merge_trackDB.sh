@@ -1,9 +1,10 @@
 #!/bin/bash
 
 outdir=$1
+runName=$2
 project_name=${outdir#"s3://flomics-data/"}
 
-s3_bucket_name="s3://flomics-public/RNAseq_pipeline_trackHubs/"$project_name
+s3_bucket_name="s3://flomics-public/RNAseq_pipeline_trackHubs/"$runName"/"
 #Aggregate track_Db.txt files and uploads them to s3
 for file in *trackDb.txt
 do cat $file >> trackDb.txt

@@ -25,6 +25,7 @@ workflow FLOMICS_QC{
     spike_in_concentration
     salmon_gene_tpm
     featurecounts_biotype
+    transcript_to_gene_id_tsv
 
 
     main:
@@ -32,10 +33,10 @@ workflow FLOMICS_QC{
     ///
     /// Makes the trackhubs and copies the bam files to the public bucket of s3
     ///
-    ch_Flomics_trackhubs            = Channel.empty()
+    ch_Flomics_trackhubs           = Channel.empty()
     ch_Flomics_trackDbs            = Channel.empty()
     FLOMICS_TRACKHUBS(bam_genome, bam_genome_indices)
-    ch_Flomics_trackhubs            = FLOMICS_TRACKHUBS.out.trackhubs_path.collect()
+    ch_Flomics_trackhubs           = FLOMICS_TRACKHUBS.out.trackhubs_path.collect()
     ch_Flomics_trackDbs            = FLOMICS_TRACKHUBS.out.trackDb_files.collect()
 
     ///
@@ -65,7 +66,7 @@ workflow FLOMICS_QC{
     /// Calculate the RCU score for each gene individually
     ///
     ch_Flomics_individual_RCU_QC       = Channel.empty()
-    FLOMICS_QC_CALCULATE_INDIVIDUAL_RCU(bam_transcriptome)
+    FLOMICS_QC_CALCULATE_INDIVIDUAL_RCU(bam_transcriptome, transcript_to_gene_id_tsv)
     ch_Flomics_individual_RCU_QC       = FLOMICS_QC_CALCULATE_INDIVIDUAL_RCU.out.individual_RCUs.collect()
 
     ///

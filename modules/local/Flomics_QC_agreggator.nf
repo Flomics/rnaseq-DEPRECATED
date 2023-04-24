@@ -22,9 +22,10 @@ process FLOMICS_QC_AGGREGATOR{
 
     shell:
     outdir  = params.outdir
+    runName = workflow.runName
 
     '''
-    merge_trackDB.sh !{outdir} #Merges the trackDb files and uploads it to s3
+    merge_trackDB.sh !{outdir} !{runName} #Merges the trackDb files and uploads it to s3
 
     echo -e "trackhub_link" > trackhub_links.tsv
     for file in *_trackhub_links.tsv
@@ -75,15 +76,15 @@ process FLOMICS_QC_AGGREGATOR{
 
     cut -f1 spliceJunctions_grouped.stats.tsv > samplenames.tsv
     echo -e "Read_number\tReads_passing_trimming\tPercentage_reads_passing_trimming"> cutadapt_QC.tsv
-    cut -f1 multiqc_data/multiqc_cutadapt.txt | sed 's/_[0-9]//g' > tmp.cutadapt.txt
+    cut -f1 multiqc_data/multiqc_cutadapt.txt | sed 's/_[0-9]$//g' > tmp.cutadapt.txt
     paste tmp.cutadapt.txt multiqc_data/multiqc_cutadapt.txt | awk '!seen[$1]++' > tmp2.cutadapt.txt
-    cut -f 4,6 tmp2.cutadapt.txt | awk '{print $1"\t"$2"\t"($2/$1*100)}' | tail -n +2>> cutadapt_QC.tsv
+    cut -f 4,6 tmp2.cutadapt.txt | tail -n +2 | awk '{print $1"\t"$2"\t"($2/$1*100)}' >> cutadapt_QC.tsv
 
-    echo -e "Sample\tExonic\tIntronic\tIntergenic\tExonic_percentage\tIntronic_percentage\tIntergenic_percentage" > qualimap_QC.tsv
-    tail -n +2 multiqc_data/mqc_qualimap_genomic_origin_1.txt | awk '{print $0"\t"$2/($2+$3+$4)*100"\t"$3/($2+$3+$4)*100"\t"$4/($2+$3+$4)*100'} >> qualimap_QC.tsv
+    echo -e "Exonic\tIntronic\tIntergenic\tExonic_percentage\tIntronic_percentage\tIntergenic_percentage" > qualimap_QC.tsv
+    tail -n +2 multiqc_data/mqc_qualimap_genomic_origin_1.txt | cut --complement -f1 | awk '{print $0"\t"$1/($1+$2+$2)*100"\t"$2/($1+$2+$2)*100"\t"$3/($1+$2+$2)*100'} >> qualimap_QC.tsv
 
-    echo -e "Sample\ttotal_reads\tavg_input_read_length\tnumber_of_uniquely_mapped_reads\tpercentage_of_uniquely_mapped_reads\tavg_mapped_read_length\tnumber_of_multimapped_reads\tpercentage_of_unmapped_too_short_reads\tmapped_percentage\taverage_mapped_length_percentage" > STAR_QC.tsv
-    tail -n +2  multiqc_data/multiqc_star.txt | cut -f1,2,3,4,5,6,18,23 | awk '{print $0"\t"($4+$7)/$2*100"\t"($6/$3)*100}' >> STAR_QC.tsv
+    echo -e "total_reads\tavg_input_read_length\tnumber_of_uniquely_mapped_reads\tpercentage_of_uniquely_mapped_reads\tavg_mapped_read_length\tnumber_of_multimapped_reads\tpercentage_of_unmapped_too_short_reads\tmapped_percentage\taverage_mapped_length_percentage" > STAR_QC.tsv
+    tail -n +2  multiqc_data/multiqc_star.txt | cut -f2,3,4,5,6,18,23 | awk '{print $0"\t"($3+$6)/$1*100"\t"($5/$2)*100}' >> STAR_QC.tsv
 
     echo "Junction_saturation_slope" > Junction_saturation.tsv
     tail -n +2 multiqc_data/mqc_rseqc_junction_saturation_plot_All_Junctions.txt | cut -f21,20  | awk '{print ($2-$1)/$2*100}' >> Junction_saturation.tsv
@@ -95,7 +96,7 @@ process FLOMICS_QC_AGGREGATOR{
 
     paste samplenames.tsv trackhub_links.tsv fastqc_QC.tsv cutadapt_QC.tsv STAR_QC.tsv UMI_dedup_grouped.tsv qualimap_QC.tsv splicedReads_grouped.stats.tsv \\
     spliceJunctions_grouped.stats.tsv Junction_saturation.tsv read_coverage_uniformity_score.tsv insert_size.tsv library_balance.tsv \\
-    strandedness_library_prep.tsv biotype_table.tsv new_corr.tsv | cut --complement -f 16,28,35,39,44> QC_table.tsv
+    strandedness_library_prep.tsv biotype_table.tsv new_corr.tsv > QC_table.tsv
 
 
 

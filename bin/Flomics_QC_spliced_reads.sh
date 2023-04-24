@@ -16,7 +16,7 @@ done
 
 cat $gtf |  perl -lane '$F[11]=~s/"|;//g; $start=$F[3]-1; $end=$F[4]+1; print $F[11]."\t".$F[0]."_".$start."_".$end' | sort -k2,2 > gtf.introns.tsv
 
-echo -e "dataset\tuniqMappedReads\tsplicedReads\t%splicedReads" > ${prefix}.splicedReads.stats.tsv
+echo -e "uniqMappedReads\tsplicedReads\t%splicedReads" > ${prefix}.splicedReads.stats.tsv
 # Convert bam to bed12:
 #  keep only uniquely mapped reads with -q 255
 #  (we want only one mapping per read, otherwise building introns won't work correctly)
@@ -31,12 +31,12 @@ cat $prefix.introns.gff |  perl -lane '$F[11]=~s/"|;//g; $start=$F[3]-1; $end=$F
 # spliced reads:
 splicedReads=$(cut -f1 $prefix.introns.tsv | sort|uniq|wc -l)
 
-echo -e "$prefix\t$totalUniqMappedReads\t$splicedReads" | awk '{print $0"\t"$3/$2*100}' >> ${prefix}.splicedReads.stats.tsv
+echo -e "$totalUniqMappedReads\t$splicedReads" | awk '{print $0"\t"$2/$1*100}' >> ${prefix}.splicedReads.stats.tsv
 
 ##################################
 ### SJ stats, annotated vs novel:
 ##################################
-echo -e "dataset\ttotalSJs\tknownSJs\t%knownSJs" > ${prefix}.spliceJunctions.stats.tsv;
+echo -e "totalSJs\tknownSJs\t%knownSJs" > ${prefix}.spliceJunctions.stats.tsv;
 for ds in `tail -n+2 ${prefix}.splicedReads.stats.tsv|cut -f1`; do
 echoerr $prefix
 # non-redundant list of detected introns:
@@ -48,5 +48,5 @@ totalSJs=$(cat tmp1|wc -l)
 comm -1 -2 tmp1 tmp2 | sed 's/_/\t/g' > $prefix.introns.known.txt
 comm -2 -3 tmp1 tmp2 | sed 's/_/\t/g' > $prefix.introns.novel.txt
 knownSJs=$(cat $prefix.introns.known.txt | wc -l)
-echo -e "$prefix\t$totalSJs\t$knownSJs" | awk '{print $0"\t"$3/$2*100}' >> ${prefix}.spliceJunctions.stats.tsv
+echo -e "$totalSJs\t$knownSJs" | awk '{print $0"\t"$2/$1*100}' >> ${prefix}.spliceJunctions.stats.tsv
 done
