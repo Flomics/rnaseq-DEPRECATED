@@ -30,7 +30,8 @@ params.salmon_index  = WorkflowMain.getGenomeAttribute(params, 'salmon')
 //
 // Change the runName to have the project and the launch date
 //
-workflow.runName = params.project + "_" + workflow.start
+run_name = params.project + "_" + workflow.start
+workflow.runName = run_name.replaceFirst(/\..*$/, "").replaceAll(/:/, "_")
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
