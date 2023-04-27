@@ -37,18 +37,18 @@ process FLOMICS_QC_AGGREGATOR{
     gene_coverage_profile_calculation.r #Calculates the gene coverage profile
 
 
-    echo -e "basic_statistics\tper_base_sequence_quality\tper_sequence_quality_scores\tper_base_sequence_content\tper_sequence_gc_content\tper_base_n_content\tsequence_length_distribution\tsequence_duplication_levels\toverrepresented_sequences\tadapter_content" > fastqc_QC.tsv
+    echo -e "per_base_sequence_quality\tper_sequence_quality_scores\tper_base_sequence_content\tper_sequence_gc_content\tper_base_n_content\tsequence_length_distribution\tsequence_duplication_levels\toverrepresented_sequences\tadapter_content" > fastqc_QC.tsv
     for file in *_fastqc_QC.tsv; do
         cat $file >> fastqc_QC.tsv
     done
 
 
-    echo -e "uniqMappedReads\tsplicedReads\t%splicedReads" > splicedReads_grouped.stats.tsv
+    echo -e "uniquely_mapped_reads\tspliced_reads\tpercentage_of_spliced_reads" > splicedReads_grouped.stats.tsv
     for file in *splicedReads.stats.tsv; do
         tail -n +2 $file >> splicedReads_grouped.stats.tsv
     done
 
-    echo -e "totalSJs\tknownSJs\t%knownSJs" > spliceJunctions_grouped.stats.tsv
+    echo -e "total_splice_junctions\tknown_splice_junctions\t%known_splice_junctions" > spliceJunctions_grouped.stats.tsv
     for file in *spliceJunctions.stats.tsv; do
         tail -n +2 $file >> spliceJunctions_grouped.stats.tsv
     done
@@ -58,7 +58,7 @@ process FLOMICS_QC_AGGREGATOR{
         tail -n +2 $file >> insert_size.tsv
     done
 
-    echo -e "genes_contributing_to_1%_of_reads\tgenes_contributing_to_5%_of_reads\tgenes_contributing_to_10%_of_reads\tgenes_contributing_to_50%_of_reads\tgenes_contributing_to_80%_of_reads" > library_balance.tsv
+    echo -e "number_of_genes_contributing_to_1%_of_reads\tnumber_of_genes_contributing_to_5%_of_reads\tnumber_of_genes_contributing_to_10%_of_reads\tnumber_of_genes_contributing_to_50%_of_reads\tnumber_of_genes_contributing_to_80%_of_reads" > library_balance.tsv
 
     for file in *_genes_contributing_to_percentage_reads.tsv; do
         tail -n +2 $file >> library_balance.tsv
