@@ -27,12 +27,6 @@ params.hisat2_index  = WorkflowMain.getGenomeAttribute(params, 'hisat2')
 params.rsem_index    = WorkflowMain.getGenomeAttribute(params, 'rsem')
 params.salmon_index  = WorkflowMain.getGenomeAttribute(params, 'salmon')
 
-//
-// Change the runName to have the project and the launch date
-//
-run_name = params.project + "_" + workflow.start
-workflow.runName = run_name.replaceFirst(/\..*$/, "").replaceAll(/:/, "_")
-
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     VALIDATE & PRINT PARAMETER SUMMARY

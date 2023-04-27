@@ -29,6 +29,7 @@ for (param in checkPathParamList) { if (param) { file(param, checkIfExists: true
 // Check mandatory parameters
 if (params.input) { ch_input = file(params.input) } else { exit 1, 'Input samplesheet not specified!' }
 
+
 // Check rRNA databases for sortmerna
 if (params.remove_ribo_rna) {
     ch_ribo_db = file(params.ribo_database_manifest, checkIfExists: true)
