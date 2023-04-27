@@ -22,10 +22,11 @@ process FLOMICS_QC_AGGREGATOR{
 
     shell:
     outdir  = params.outdir
-    runName = workflow.runName
+    timestamp = workflow.start
+    project = params.project
 
     '''
-    merge_trackDB.sh !{outdir} !{runName} #Merges the trackDb files and uploads it to s3
+    merge_trackDB.sh !{outdir} !{timestamp} !{project} #Merges the trackDb files and uploads it to s3
 
     echo -e "trackhub_link" > trackhub_links.tsv
     for file in *_trackhub_links.tsv
@@ -42,12 +43,12 @@ process FLOMICS_QC_AGGREGATOR{
     done
 
 
-    echo -e "dataset\tuniqMappedReads\tsplicedReads\t%splicedReads" > splicedReads_grouped.stats.tsv
+    echo -e "uniqMappedReads\tsplicedReads\t%splicedReads" > splicedReads_grouped.stats.tsv
     for file in *splicedReads.stats.tsv; do
         tail -n +2 $file >> splicedReads_grouped.stats.tsv
     done
 
-    echo -e "dataset\ttotalSJs\tknownSJs\t%knownSJs" > spliceJunctions_grouped.stats.tsv
+    echo -e "totalSJs\tknownSJs\t%knownSJs" > spliceJunctions_grouped.stats.tsv
     for file in *spliceJunctions.stats.tsv; do
         tail -n +2 $file >> spliceJunctions_grouped.stats.tsv
     done
@@ -74,7 +75,7 @@ process FLOMICS_QC_AGGREGATOR{
         done
     fi
 
-    cut -f1 spliceJunctions_grouped.stats.tsv > samplenames.tsv
+    cut -f1 multiqc_data/mqc_qualimap_genomic_origin_1.txt > samplenames.tsv
     echo -e "Read_number\tReads_passing_trimming\tPercentage_reads_passing_trimming"> cutadapt_QC.tsv
     cut -f1 multiqc_data/multiqc_cutadapt.txt | sed 's/_[0-9]$//g' > tmp.cutadapt.txt
     paste tmp.cutadapt.txt multiqc_data/multiqc_cutadapt.txt | awk '!seen[$1]++' > tmp2.cutadapt.txt
@@ -97,8 +98,6 @@ process FLOMICS_QC_AGGREGATOR{
     paste samplenames.tsv trackhub_links.tsv fastqc_QC.tsv cutadapt_QC.tsv STAR_QC.tsv UMI_dedup_grouped.tsv qualimap_QC.tsv splicedReads_grouped.stats.tsv \\
     spliceJunctions_grouped.stats.tsv Junction_saturation.tsv read_coverage_uniformity_score.tsv insert_size.tsv library_balance.tsv \\
     strandedness_library_prep.tsv biotype_table.tsv new_corr.tsv > QC_table.tsv
-
-
 
     '''
 
