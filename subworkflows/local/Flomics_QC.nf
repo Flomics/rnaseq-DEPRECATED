@@ -12,11 +12,13 @@ include { FLOMICS_QC_CALCULATE_INDIVIDUAL_RCU           } from '../../modules/lo
 include { FLOMICS_QC_CALCULATE_LIBRARY_BALANCE          } from '../../modules/local/Flomics_QC_calculate_library_balance.nf'
 include { FLOMICS_QC_SPIKE_INS                          } from '../../modules/local/Flomics_QC_spike_ins.nf'
 include { FLOMICS_QC_AGGREGATOR                         } from '../../modules/local/Flomics_QC_agreggator.nf'
+include { MAKE_FILES_PUBLIC                             } from '../../modules/local/make_files_public.nf'
 
 
 workflow FLOMICS_QC{
     take:
-    multiqc_data    // channel: multiqc_data/*
+    multiqc_data   // channel: multiqc_data/*
+    multiqc_report // channel: multiqc_report.html
     bam_genome     // channel: [ val(meta), [ bam ]]
     bam_genome_indices // channel: [ val(meta), [ bam ]]
     bam_transcriptome // channel: [ val(meta), [ bam ]]
@@ -94,8 +96,14 @@ workflow FLOMICS_QC{
     ///
     /// Aggregate all the QC from multiQC and extra QC into a new tsv
     ///
+    ch_Flomics_QC_report            = Channel.empty()
     FLOMICS_QC_AGGREGATOR ( multiqc_data, ch_Flomics_trackhubs, ch_Flomics_trackDbs, ch_Flomics_splicedReads_QC, ch_Flomics_spliceJunctions_QC,
     ch_Flomics_insert_size_QC, umi_dedup_rate_data, ch_Flomics_library_balance, ch_Flomics_FastQC, ch_Flomics_correlation_coefficients)
+    ch_Flomics_QC_report            = FLOMICS_QC_AGGREGATOR.out.flomics_report
 
+    ///
+    /// Publish the necessary files to the flomics-public bucket (same structure as the trackhubs runs)
+    ///
 
+    MAKE_FILES_PUBLIC (multiqc_report, ch_Flomics_QC_report)
 }

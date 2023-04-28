@@ -834,6 +834,7 @@ workflow RNASEQ {
     if (params.with_umi) {
         FLOMICS_QC (
             MULTIQC.out.data.collect(),
+            MULTIQC.out.report,
             DEDUP_UMI_UMITOOLS_GENOME.out.bam,
             DEDUP_UMI_UMITOOLS_GENOME.out.bai,
             ch_transcriptome_bam,
@@ -848,6 +849,7 @@ workflow RNASEQ {
     else{
         FLOMICS_QC (
             MULTIQC.out.data.collect(),
+            MULTIQC.out.report,
             ALIGN_STAR.out.bam,
             ALIGN_STAR.out.bai,
             ch_transcriptome_bam,
