@@ -11,6 +11,7 @@ include { FLOMICS_QC_CALCULATE_INDIVIDUAL_RCU   } from '../../modules/local/Flom
 include { FLOMICS_QC_CALCULATE_LIBRARY_BALANCE  } from '../../modules/local/Flomics_QC_calculate_library_balance.nf'
 include { FLOMICS_QC_SPIKE_INS                  } from '../../modules/local/Flomics_QC_spike_ins.nf'
 include { FLOMICS_QC_AGGREGATOR                 } from '../../modules/local/Flomics_QC_agreggator.nf'
+include { FLOMICS_QC_KNIT                       } from '../../modules/local/Flomics_QC_knit.nf'
 
 
 workflow FLOMICS_QC{
@@ -26,7 +27,7 @@ workflow FLOMICS_QC{
     salmon_gene_tpm
     featurecounts_biotype
     transcript_to_gene_id_tsv
-
+    qc_dashboard
 
     main:
 
@@ -89,5 +90,10 @@ workflow FLOMICS_QC{
     FLOMICS_QC_AGGREGATOR ( multiqc_data, ch_Flomics_trackhubs, ch_Flomics_trackDbs, ch_Flomics_splicedReads_QC, ch_Flomics_spliceJunctions_QC,
     ch_Flomics_insert_size_QC, umi_dedup_rate_data, ch_Flomics_library_balance, ch_Flomics_FastQC, ch_Flomics_correlation_coefficients)
 
+
+    ///
+    /// Knit the Flomics QC into an interactive HTML dashboard
+    ///
+    FLOMICS_QC_KNIT ( FLOMICS_QC_AGGREGATOR.out.flomics_report, qc_dashboard )
 
 }
