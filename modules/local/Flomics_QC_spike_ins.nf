@@ -18,5 +18,4 @@ process FLOMICS_QC_SPIKE_INS{
     """
     plot_correlation.r $spike_in_concentration $gene_tpm
     """
-    //spike-in_qc.r biotype_counts.tsv
 }
