@@ -17,12 +17,11 @@ process FLOMICS_TRACKHUBS{
     script:
     prefix  = task.ext.prefix ?: "${meta.id}"
     outdir  = params.outdir
+    timestamp = workflow.start
+    project= params.project
 
     """
-    make_trackDB.sh $bam $outdir $prefix
+    make_trackDB.sh $bam $outdir $prefix $timestamp $project
     cat UCSC.txt >> ${prefix}_trackhub_links.tsv
     """
-
-
-
 }

@@ -428,6 +428,11 @@
                     "type": "boolean",
                     "fa_icon": "fas fa-fast-forward",
                     "description": "Skip all of the alignment-based processes within the pipeline."
+                },
+                "publish_genome_bam": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-save",
+                    "description": "When true, final bam files will be published to outdir, otherwise they wont."
                 }
             }
         },

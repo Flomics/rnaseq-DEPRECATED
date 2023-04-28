@@ -7,6 +7,7 @@ include { FLOMICS_TRACKHUBS                     } from '../../modules/local/Flom
 include { FLOMICS_QC_SPLICED_READS              } from '../../modules/local/Flomics_QC_spliced_reads.nf'
 include { FLOMICS_QC_PARSER                     } from '../../modules/local/Flomics_FastQC_parser.nf'
 include { FLOMICS_QC_CALCULATE_INSERT_SIZE      } from '../../modules/local/Flomics_QC_calculate_insert_size.nf'
+include { FLOMICS_QC_CALCULATE_INDIVIDUAL_RCU   } from '../../modules/local/Flomics_QC_calculate_individual_RCU.nf'
 include { FLOMICS_QC_CALCULATE_LIBRARY_BALANCE  } from '../../modules/local/Flomics_QC_calculate_library_balance.nf'
 include { FLOMICS_QC_SPIKE_INS                  } from '../../modules/local/Flomics_QC_spike_ins.nf'
 include { FLOMICS_QC_AGGREGATOR                 } from '../../modules/local/Flomics_QC_agreggator.nf'
@@ -25,18 +26,18 @@ workflow FLOMICS_QC{
     spike_in_concentration
     salmon_gene_tpm
     featurecounts_biotype
+    transcript_to_gene_id_tsv
     qc_dashboard
-
 
     main:
 
     ///
     /// Makes the trackhubs and copies the bam files to the public bucket of s3
     ///
-    ch_Flomics_trackhubs            = Channel.empty()
+    ch_Flomics_trackhubs           = Channel.empty()
     ch_Flomics_trackDbs            = Channel.empty()
     FLOMICS_TRACKHUBS(bam_genome, bam_genome_indices)
-    ch_Flomics_trackhubs            = FLOMICS_TRACKHUBS.out.trackhubs_path.collect()
+    ch_Flomics_trackhubs           = FLOMICS_TRACKHUBS.out.trackhubs_path.collect()
     ch_Flomics_trackDbs            = FLOMICS_TRACKHUBS.out.trackDb_files.collect()
 
     ///
@@ -61,6 +62,13 @@ workflow FLOMICS_QC{
     ch_Flomics_insert_size_QC       = Channel.empty()
     FLOMICS_QC_CALCULATE_INSERT_SIZE(bam_transcriptome)
     ch_Flomics_insert_size_QC       = FLOMICS_QC_CALCULATE_INSERT_SIZE.out.insert_size.collect()
+
+    ///
+    /// Calculate the RCU score for each gene individually
+    ///
+    ch_Flomics_individual_RCU_QC       = Channel.empty()
+    FLOMICS_QC_CALCULATE_INDIVIDUAL_RCU(bam_transcriptome, transcript_to_gene_id_tsv)
+    ch_Flomics_individual_RCU_QC       = FLOMICS_QC_CALCULATE_INDIVIDUAL_RCU.out.individual_RCUs.collect()
 
     ///
     /// Calculate the library balance (number of genes contributing to a percentage of the library)

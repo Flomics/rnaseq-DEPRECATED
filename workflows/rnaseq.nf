@@ -21,12 +21,14 @@ checkPathParamList = [
     params.fasta, params.transcript_fasta, params.additional_fasta,
     params.gtf, params.gff, params.gene_bed,
     params.ribo_database_manifest, params.splicesites,
-    params.star_index, params.hisat2_index, params.rsem_index, params.salmon_index
+    params.star_index, params.hisat2_index, params.rsem_index, params.salmon_index,
+    params.transcript_to_gene_id_tsv
 ]
 for (param in checkPathParamList) { if (param) { file(param, checkIfExists: true) } }
 
 // Check mandatory parameters
 if (params.input) { ch_input = file(params.input) } else { exit 1, 'Input samplesheet not specified!' }
+
 
 // Check rRNA databases for sortmerna
 if (params.remove_ribo_rna) {
@@ -838,6 +840,7 @@ workflow RNASEQ {
             QUANTIFY_STAR_SALMON.out.results.collect{it[1]},
             ch_spike_in_concentration,
             QUANTIFY_STAR_SALMON.out.tpm_gene,
+            file(params.transcript_to_gene_id_tsv),
             ch_qc_dashboard
         )
     }
@@ -852,6 +855,7 @@ workflow RNASEQ {
             QUANTIFY_STAR_SALMON.out.results.collect{it[1]},
             ch_spike_in_concentration,
             QUANTIFY_STAR_SALMON.out.tpm_gene,
+            file(params.transcript_to_gene_id_tsv),
             ch_qc_dashboard
         )
     }
