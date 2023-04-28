@@ -80,7 +80,7 @@ workflow FLOMICS_QC{
     /// Plot Spike-in concentration vs spike-in TPM and obtain correlation coefficients
     ///
     ch_Flomics_correlation_coefficients       = Channel.empty()
-    FLOMICS_QC_SPIKE_INS ( spike_in_concentration, salmon_gene_tpm , featurecounts_biotype )
+    FLOMICS_QC_SPIKE_INS ( spike_in_concentration, salmon_gene_tpm )
     ch_Flomics_correlation_coefficients        = FLOMICS_QC_SPIKE_INS.out.correlation_coefficients_table.collect()
 
     ///
