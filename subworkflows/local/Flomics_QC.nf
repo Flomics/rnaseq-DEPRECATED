@@ -3,14 +3,15 @@
 //
 
 
-include { FLOMICS_TRACKHUBS                     } from '../../modules/local/Flomics_trackhubs.nf'
-include { FLOMICS_QC_SPLICED_READS              } from '../../modules/local/Flomics_QC_spliced_reads.nf'
-include { FLOMICS_QC_PARSER                     } from '../../modules/local/Flomics_FastQC_parser.nf'
-include { FLOMICS_QC_CALCULATE_INSERT_SIZE      } from '../../modules/local/Flomics_QC_calculate_insert_size.nf'
-include { FLOMICS_QC_CALCULATE_INDIVIDUAL_RCU   } from '../../modules/local/Flomics_QC_calculate_individual_RCU.nf'
-include { FLOMICS_QC_CALCULATE_LIBRARY_BALANCE  } from '../../modules/local/Flomics_QC_calculate_library_balance.nf'
-include { FLOMICS_QC_SPIKE_INS                  } from '../../modules/local/Flomics_QC_spike_ins.nf'
-include { FLOMICS_QC_AGGREGATOR                 } from '../../modules/local/Flomics_QC_agreggator.nf'
+include { FLOMICS_TRACKHUBS                             } from '../../modules/local/Flomics_trackhubs.nf'
+include { FLOMICS_QC_SPLICED_READS                      } from '../../modules/local/Flomics_QC_spliced_reads.nf'
+include { FLOMICS_QC_PARSER                             } from '../../modules/local/Flomics_FastQC_parser.nf'
+include { FLOMICS_QC_CALCULATE_INSERT_SIZE              } from '../../modules/local/Flomics_QC_calculate_insert_size.nf'
+include { FLOMICS_QC_CREATE_GENE_TO_TRANSCRIPT_TABLE    } from '../../modules/local/create_gene_to_transcript_table.nf'
+include { FLOMICS_QC_CALCULATE_INDIVIDUAL_RCU           } from '../../modules/local/Flomics_QC_calculate_individual_RCU.nf'
+include { FLOMICS_QC_CALCULATE_LIBRARY_BALANCE          } from '../../modules/local/Flomics_QC_calculate_library_balance.nf'
+include { FLOMICS_QC_SPIKE_INS                          } from '../../modules/local/Flomics_QC_spike_ins.nf'
+include { FLOMICS_QC_AGGREGATOR                         } from '../../modules/local/Flomics_QC_agreggator.nf'
 
 
 workflow FLOMICS_QC{
@@ -25,7 +26,7 @@ workflow FLOMICS_QC{
     spike_in_concentration
     salmon_gene_tpm
     featurecounts_biotype
-    transcript_to_gene_id_tsv
+    
 
 
     main:
@@ -63,10 +64,17 @@ workflow FLOMICS_QC{
     ch_Flomics_insert_size_QC       = FLOMICS_QC_CALCULATE_INSERT_SIZE.out.insert_size.collect()
 
     ///
+    /// Create the gene_id to transcript tsv from the gtf file.
+    ///
+    ch_Flomics_gene_to_transcript       = Channel.empty()
+    FLOMICS_QC_CREATE_GENE_TO_TRANSCRIPT_TABLE(gtf)
+    ch_Flomics_gene_to_transcript       = FLOMICS_QC_CREATE_GENE_TO_TRANSCRIPT_TABLE.out.transcript_to_gene_id_tsv
+
+    ///
     /// Calculate the RCU score for each gene individually
     ///
     ch_Flomics_individual_RCU_QC       = Channel.empty()
-    FLOMICS_QC_CALCULATE_INDIVIDUAL_RCU(bam_transcriptome, transcript_to_gene_id_tsv)
+    FLOMICS_QC_CALCULATE_INDIVIDUAL_RCU(bam_transcriptome, ch_Flomics_gene_to_transcript)
     ch_Flomics_individual_RCU_QC       = FLOMICS_QC_CALCULATE_INDIVIDUAL_RCU.out.individual_RCUs.collect()
 
     ///

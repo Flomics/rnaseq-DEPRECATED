@@ -842,8 +842,7 @@ workflow RNASEQ {
             QUANTIFY_STAR_SALMON.out.results.collect{it[1]},
             ch_spike_in_concentration,
             QUANTIFY_STAR_SALMON.out.tpm_gene,
-            PREPROCESS_FEATURECOUNTS.out.biotype_counts_processed.map { meta, biotype_counts -> biotype_counts }.collect(),
-            file(params.transcript_to_gene_id_tsv)
+            PREPROCESS_FEATURECOUNTS.out.biotype_counts_processed.map { meta, biotype_counts -> biotype_counts }.collect()
         )
     }
     else{
@@ -857,8 +856,7 @@ workflow RNASEQ {
             QUANTIFY_STAR_SALMON.out.results.collect{it[1]},
             ch_spike_in_concentration,
             QUANTIFY_STAR_SALMON.out.tpm_gene,
-            PREPROCESS_FEATURECOUNTS.out.biotype_counts_processed.map { meta, biotype_counts -> biotype_counts }.collect(),
-            file(params.transcript_to_gene_id_tsv)
+            PREPROCESS_FEATURECOUNTS.out.biotype_counts_processed.map { meta, biotype_counts -> biotype_counts }.collect()
         )
     }
 
