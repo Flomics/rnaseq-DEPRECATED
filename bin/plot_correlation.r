@@ -13,8 +13,8 @@ ercc_conc <- ercc_conc[,-3]
 tpm_matrix <- read.delim(args[2], sep = "\t")
 #tpm_matrix <- read.delim("/home/ctuni/Downloads/salmon.merged.gene_tpm.tsv", sep = "\t")
 
-if (grep("ERCC", tpm_matrix$gene_name, fixed = TRUE)[1] == TRUE) {
-  if (grep("ERCC", tpm_matrix$gene_name, fixed = TRUE)[1] != 0) {
+if (any(grep("ERCC-", tpm_matrix$gene_name, fixed = TRUE))) {
+  if (grep("ERCC-", tpm_matrix$gene_name, fixed = TRUE)[1] != 0) {
     
     ##for tpm vs conc
     
