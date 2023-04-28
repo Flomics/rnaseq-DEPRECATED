@@ -25,7 +25,6 @@ workflow FLOMICS_QC{
     salmon_results
     spike_in_concentration
     salmon_gene_tpm
-    featurecounts_biotype
     transcript_to_gene_id_tsv
     qc_dashboard
 
