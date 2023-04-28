@@ -21,8 +21,7 @@ checkPathParamList = [
     params.fasta, params.transcript_fasta, params.additional_fasta,
     params.gtf, params.gff, params.gene_bed,
     params.ribo_database_manifest, params.splicesites,
-    params.star_index, params.hisat2_index, params.rsem_index, params.salmon_index,
-    params.transcript_to_gene_id_tsv
+    params.star_index, params.hisat2_index, params.rsem_index, params.salmon_index
 ]
 for (param in checkPathParamList) { if (param) { file(param, checkIfExists: true) } }
 
