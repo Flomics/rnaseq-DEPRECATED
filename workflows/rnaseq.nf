@@ -21,8 +21,7 @@ checkPathParamList = [
     params.fasta, params.transcript_fasta, params.additional_fasta,
     params.gtf, params.gff, params.gene_bed,
     params.ribo_database_manifest, params.splicesites,
-    params.star_index, params.hisat2_index, params.rsem_index, params.salmon_index,
-    params.transcript_to_gene_id_tsv
+    params.star_index, params.hisat2_index, params.rsem_index, params.salmon_index
 ]
 for (param in checkPathParamList) { if (param) { file(param, checkIfExists: true) } }
 
@@ -832,6 +831,7 @@ workflow RNASEQ {
     if (params.with_umi) {
         FLOMICS_QC (
             MULTIQC.out.data.collect(),
+            MULTIQC.out.report,
             DEDUP_UMI_UMITOOLS_GENOME.out.bam,
             DEDUP_UMI_UMITOOLS_GENOME.out.bai,
             ch_transcriptome_bam,
@@ -840,13 +840,13 @@ workflow RNASEQ {
             QUANTIFY_STAR_SALMON.out.results.collect{it[1]},
             ch_spike_in_concentration,
             QUANTIFY_STAR_SALMON.out.tpm_gene,
-            file(params.transcript_to_gene_id_tsv),
             ch_qc_dashboard
         )
     }
     else{
         FLOMICS_QC (
             MULTIQC.out.data.collect(),
+            MULTIQC.out.report,
             ALIGN_STAR.out.bam,
             ALIGN_STAR.out.bai,
             ch_transcriptome_bam,
@@ -855,7 +855,6 @@ workflow RNASEQ {
             QUANTIFY_STAR_SALMON.out.results.collect{it[1]},
             ch_spike_in_concentration,
             QUANTIFY_STAR_SALMON.out.tpm_gene,
-            file(params.transcript_to_gene_id_tsv),
             ch_qc_dashboard
         )
     }
