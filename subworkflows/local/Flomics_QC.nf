@@ -13,6 +13,7 @@ include { FLOMICS_QC_CALCULATE_LIBRARY_BALANCE          } from '../../modules/lo
 include { FLOMICS_QC_SPIKE_INS                          } from '../../modules/local/Flomics_QC_spike_ins.nf'
 include { FLOMICS_QC_AGGREGATOR                         } from '../../modules/local/Flomics_QC_agreggator.nf'
 include { MAKE_FILES_PUBLIC                             } from '../../modules/local/make_files_public.nf'
+include { FLOMICS_QC_KNIT                               } from '../../modules/local/Flomics_QC_knit.nf'
 
 
 workflow FLOMICS_QC{
@@ -27,9 +28,7 @@ workflow FLOMICS_QC{
     salmon_results
     spike_in_concentration
     salmon_gene_tpm
-    featurecounts_biotype
-    
-
+    qc_dashboard
 
     main:
 
@@ -90,7 +89,7 @@ workflow FLOMICS_QC{
     /// Plot Spike-in concentration vs spike-in TPM and obtain correlation coefficients
     ///
     ch_Flomics_correlation_coefficients       = Channel.empty()
-    FLOMICS_QC_SPIKE_INS ( spike_in_concentration, salmon_gene_tpm , featurecounts_biotype )
+    FLOMICS_QC_SPIKE_INS ( spike_in_concentration, salmon_gene_tpm )
     ch_Flomics_correlation_coefficients        = FLOMICS_QC_SPIKE_INS.out.correlation_coefficients_table.collect()
 
     ///
@@ -104,6 +103,11 @@ workflow FLOMICS_QC{
     ///
     /// Publish the necessary files to the flomics-public bucket (same structure as the trackhubs runs)
     ///
-
     MAKE_FILES_PUBLIC (multiqc_report, ch_Flomics_QC_report)
+
+    ///
+    /// Knit the Flomics QC into an interactive HTML dashboard
+    ///
+    FLOMICS_QC_KNIT ( FLOMICS_QC_AGGREGATOR.out.flomics_report, qc_dashboard )
+
 }

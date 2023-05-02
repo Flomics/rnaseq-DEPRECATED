@@ -92,6 +92,9 @@ ch_biotypes_header_multiqc   = file("$projectDir/assets/multiqc/biotypes_header.
 // Spike-in concentration file
 ch_spike_in_concentration = file("$projectDir/assets/ercc_concentration_table.csv", checkIfExists: true)
 
+//Flomics QC dashboard RMD file
+ch_qc_dashboard = file ("$projectDir/bin/qc_dashboard.Rmd", checkIfExists: true)
+
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     IMPORT LOCAL MODULES/SUBWORKFLOWS
@@ -109,8 +112,6 @@ include { DESEQ2_QC as DESEQ2_QC_SALMON      } from '../modules/local/deseq2_qc'
 include { DUPRADAR                           } from '../modules/local/dupradar'
 include { MULTIQC                            } from '../modules/local/multiqc'
 include { MULTIQC_CUSTOM_BIOTYPE             } from '../modules/local/multiqc_custom_biotype'
-include { PREPROCESS_FEATURECOUNTS           } from '../modules/local/preprocess_featurecounts'
-//include { CONCAT_FEATURECOUNTS               } from '../modules/local/concat_featurecounts'
 include { MULTIQC_TSV_FROM_LIST as MULTIQC_TSV_FAIL_MAPPED  } from '../modules/local/multiqc_tsv_from_list'
 include { MULTIQC_TSV_FROM_LIST as MULTIQC_TSV_FAIL_TRIMMED } from '../modules/local/multiqc_tsv_from_list'
 include { MULTIQC_TSV_FROM_LIST as MULTIQC_TSV_STRAND_CHECK } from '../modules/local/multiqc_tsv_from_list'
@@ -627,9 +628,6 @@ workflow RNASEQ {
         ch_featurecounts_multiqc = MULTIQC_CUSTOM_BIOTYPE.out.tsv
         ch_versions = ch_versions.mix(MULTIQC_CUSTOM_BIOTYPE.out.versions.first())
 
-        PREPROCESS_FEATURECOUNTS ( MULTIQC_CUSTOM_BIOTYPE.out.biotype_counts )
-
-        //CONCAT_FEATURECOUNTS ( PREPROCESS_FEATURECOUNTS.out.biotype_counts_processed.map { meta, biotype_counts -> biotype_counts }.collect())
     }
 
     //
@@ -842,7 +840,7 @@ workflow RNASEQ {
             QUANTIFY_STAR_SALMON.out.results.collect{it[1]},
             ch_spike_in_concentration,
             QUANTIFY_STAR_SALMON.out.tpm_gene,
-            PREPROCESS_FEATURECOUNTS.out.biotype_counts_processed.map { meta, biotype_counts -> biotype_counts }.collect()
+            ch_qc_dashboard
         )
     }
     else{
@@ -857,7 +855,7 @@ workflow RNASEQ {
             QUANTIFY_STAR_SALMON.out.results.collect{it[1]},
             ch_spike_in_concentration,
             QUANTIFY_STAR_SALMON.out.tpm_gene,
-            PREPROCESS_FEATURECOUNTS.out.biotype_counts_processed.map { meta, biotype_counts -> biotype_counts }.collect()
+            ch_qc_dashboard
         )
     }
 
