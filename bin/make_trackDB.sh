@@ -1,13 +1,10 @@
 #!/bin/bash
 bam=$1
-outdir=$2
-prefix=$3
-timestamp=$4
-project=$5
-timestamp_simple=`echo "$timestamp" | sed 's/\..*$//' | sed 's/:/_/g'`
-s3_bucket_adress="RNAseq_pipeline_trackHubs/${project}_$timestamp_simple/"
-s3_bucket_name="s3://flomics-public/$s3_bucket_adress"
-http_folder="https://flomics-public.s3.eu-west-1.amazonaws.com/$s3_bucket_adress"
+prefix=$2
+project=$3
+uuid=$4
+s3_bucket_name="s3://flomics-public/RNAseq_pipeline/$project/$uuid/"
+http_folder="https://flomics-public.s3.eu-west-1.amazonaws.com/Flomics_RNAseq_pipeline/$project/$uuid/"
 
 #Create the index files if they don't exist
 for file in *.bam

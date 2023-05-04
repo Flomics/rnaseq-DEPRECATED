@@ -21,12 +21,13 @@ process FLOMICS_QC_AGGREGATOR{
 
 
     shell:
-    outdir  = params.outdir
-    timestamp = workflow.start
+
     project = params.project
+    uuid = params.uuid
+
 
     '''
-    merge_trackDB.sh !{outdir} !{timestamp} !{project} #Merges the trackDb files and uploads it to s3
+    merge_trackDB.sh !{project} !{uuid} #Merges the trackDb files and uploads it to s3
 
     echo -e "trackhub_link" > trackhub_links.tsv
     for file in *_trackhub_links.tsv
