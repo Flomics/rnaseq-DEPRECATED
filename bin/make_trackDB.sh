@@ -4,7 +4,7 @@ prefix=$2
 project=$3
 uuid=$4
 s3_bucket_name="s3://flomics-public/RNAseq_pipeline/$project/$uuid/"
-http_folder="https://flomics-public.s3.eu-west-1.amazonaws.com/Flomics_RNAseq_pipeline/$project/$uuid/"
+http_folder="https://flomics-public.s3.eu-west-1.amazonaws.com/RNAseq_pipeline/$project/$uuid/"
 
 #Create the index files if they don't exist
 for file in *.bam
