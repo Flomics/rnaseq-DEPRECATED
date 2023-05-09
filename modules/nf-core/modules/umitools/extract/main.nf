@@ -21,8 +21,10 @@ process UMITOOLS_EXTRACT {
     def prefix = task.ext.prefix ?: "${meta.id}"
     if (meta.single_end) {
         """
+        export PYTHONHASHSEED=0
         umi_tools \\
             extract \\
+            --random-seed=123456789\\
             -I $reads \\
             -S ${prefix}.umi_extract.fastq.gz \\
             $args \\
@@ -35,8 +37,10 @@ process UMITOOLS_EXTRACT {
         """
     }  else {
         """
+        export PYTHONHASHSEED=0
         umi_tools \\
             extract \\
+            --random-seed=123456789\\
             -I ${reads[0]} \\
             --read2-in=${reads[1]} \\
             -S ${prefix}.umi_extract_1.fastq.gz \\
