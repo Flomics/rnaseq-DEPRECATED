@@ -28,6 +28,30 @@ jobs:
           # (eg. adding multiple test runs with different parameters)
           nextflow run ${GITHUB_WORKSPACE} -profile test,docker
 
+  flomics_test:
+    env:
+      NXF_VER: ${{ matrix.nxf_ver }}
+      NXF_ANSI_LOG: false
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: "eu-west-1"
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        # Nextflow versions: check pipeline current latest
+        nxf_ver: ["22.10.0"]
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Nextflow
+        run: |
+          wget -qO- get.nextflow.io | bash
+          sudo mv nextflow /usr/local/bin/
+      - name: Run pipeline with test data
+        run: |
+          # TODO nf-core: You can customize CI pipeline run tests as required
+          # (eg. adding multiple test runs with different parameters)
+          nextflow run ${GITHUB_WORKSPACE} -profile flomics_test,docker
+
   # star_salmon:
   #   name: Test STAR Salmon with workflow parameters
   #   if: ${{ github.event_name != 'push' || (github.event_name == 'push' && github.repository == 'Flomics/rnaseq') }}
