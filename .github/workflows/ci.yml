@@ -26,7 +26,7 @@ jobs:
         run: |
           # TODO nf-core: You can customize CI pipeline run tests as required
           # (eg. adding multiple test runs with different parameters)
-          nextflow run ${GITHUB_WORKSPACE} -profile test,docker
+          nextflow run ${GITHUB_WORKSPACE} -profile test_flomics,docker
 
   # star_salmon:
   #   name: Test STAR Salmon with workflow parameters
