@@ -3,7 +3,7 @@
 library(pROC)
 
 gene_coverage_matrix= read.csv("multiqc_data/mqc_qualimap_gene_coverage_profile_Normalised.txt", sep = "\t", row.names = 1)
-read_coverage_uniformity_score= data.frame("read_coverage_uniformity_score"= 1:length(rownames(gene_coverage_matrix)))
+read_coverage_uniformity_score= data.frame("Sample"= rownames(gene_coverage_matrix), "read_coverage_uniformity_score"= 1:length(rownames(gene_coverage_matrix)))
 
 for (n in  1:length(rownames(gene_coverage_matrix))){
   gene_coverage_sample= gene_coverage_matrix[n,]

@@ -1,11 +1,13 @@
 #!/usr/bin/env Rscript
+library(data.table)
 
 args = commandArgs(trailingOnly=TRUE)
 
-coverage_table= read.table(args[1], as.is = T)
-transcript_to_gene_table= read.table(args[2], as.is = T, header = T)
+coverage_table= fread(args[1])
+transcript_to_gene_table= read.table(args[2])
 
 names(coverage_table)= c("transcript", "base", "coverage")
+names(transcript_to_gene_table) = c("Transcript_id", "Gene_id")
 
 AUC_table_all_transcripts= data.frame("Transcript_id"= unique(coverage_table$transcript), "Read_coverage_uniformity_score"= "NA", "Gene_id"= "NA")
 
@@ -35,3 +37,4 @@ print(run_time)
 
 AUC_table_all_transcripts= AUC_table_all_transcripts[order(as.numeric(AUC_table_all_transcripts$Read_coverage_uniformity_score), decreasing = T),]
 write.table(AUC_table_all_transcripts, file= paste(args[3],"_gene_coverage_profile_table.tsv", sep = ""), sep = "\t", row.names = FALSE, quote = FALSE)
+

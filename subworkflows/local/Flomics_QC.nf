@@ -103,8 +103,10 @@ workflow FLOMICS_QC{
     ///
     /// Publish the necessary files to the flomics-public bucket (same structure as the trackhubs runs)
     ///
-    MAKE_FILES_PUBLIC (multiqc_report, ch_Flomics_QC_report)
-
+    
+    if (!workflow.profile.contains('test')){
+        MAKE_FILES_PUBLIC (multiqc_report, ch_Flomics_QC_report)
+    }
     ///
     /// Knit the Flomics QC into an interactive HTML dashboard
     ///

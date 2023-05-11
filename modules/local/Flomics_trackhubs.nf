@@ -18,9 +18,10 @@ process FLOMICS_TRACKHUBS{
     prefix  = task.ext.prefix ?: "${meta.id}"
     uuid = params.uuid
     project= params.project
+    profile= workflow.profile
 
     """
-    make_trackDB.sh $bam $prefix $project $uuid
+    make_trackDB.sh $bam $prefix $project $uuid $profile
     cat UCSC.txt >> ${prefix}_trackhub_links.tsv
     """
 }

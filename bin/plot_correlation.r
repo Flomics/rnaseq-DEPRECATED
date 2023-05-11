@@ -85,8 +85,8 @@ if (any(grep("ERCC-", tpm_matrix$gene_name, fixed = TRUE))) {
     sample_names_vector <- colnames(ercc_plot)[-length(colnames(ercc_plot))]
     final_df <- data.frame(sample_names_vector, pearson_vector, spearman_vector, r_squared_vector) #nolint
     final_df$sample_names_vector <- gsub("X", "", final_df$sample_names_vector)
-    colnames(final_df) <- c("sample", "pearson_coef", "spearman_coef", "r_squared") #nolint
-    write.table(final_df, file = "correlation_coefs.tsv", row.names = FALSE)
+    colnames(final_df) <- c("Sample", "pearson_coef", "spearman_coef", "r_squared") #nolint
+    write.table(final_df, file = "correlation_coefs.tsv", row.names = FALSE, quote = FALSE)
     
     
     ##for tmp vs len
