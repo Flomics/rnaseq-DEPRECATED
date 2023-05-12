@@ -66,7 +66,7 @@ jobs:
         run: |
           # TODO nf-core: You can customize CI pipeline run tests as required
           # (eg. adding multiple test runs with different parameters)
-          nextflow run ${GITHUB_WORKSPACE} -profile corall_PE,awsbatch --input "s3://flomics-data/test_data_RNAseq_pipeline/Flomics_rnaseq_test_PE_CORALL_samplesheet.csv" --outdir "s3://flomics-scratch/nextflow-workdir/test/" --skip_deseq2_qc --min_trimmed_reads 1000
+          nextflow run ${GITHUB_WORKSPACE} -profile corall_PE,awsbatch --input "s3://flomics-data/test_data_RNAseq_pipeline/Flomics_rnaseq_test_PE_CORALL_samplesheet.csv" --outdir "s3://flomics-scratch/nextflow-workdir/test/" --fasta "s3://flomics-no-backup/references/Genomes/Homo_sapiens/GENCODE/GRCh38/release-105/Homo_sapiens.GRCh38.dna_sm_v105_SIRV-set3.fa" --gtf "s3://flomics-no-backup/references/Genomes/Homo_sapiens/GENCODE/GRCh38/release-105/gencode.v39.annotation_tRNA_SIRV-set3.sorted.gtf" --star_index "s3://flomics-no-backup/references/Genomes/Homo_sapiens/GENCODE/GRCh38/release-105/STARindex_v2.7.10a/" --skip_deseq2_qc --min_trimmed_reads 1000
 
   flomics_test_corall_SE:
     env:
@@ -86,7 +86,7 @@ jobs:
         run: |
           # TODO nf-core: You can customize CI pipeline run tests as required
           # (eg. adding multiple test runs with different parameters)
-          nextflow run ${GITHUB_WORKSPACE} -profile corall_SE,awsbatch --input "s3://flomics-data/test_data_RNAseq_pipeline/Flomics_rnaseq_test_SE_CORALL_samplesheet.csv" --outdir "s3://flomics-scratch/nextflow-workdir/test/" --skip_deseq2_qc --min_trimmed_reads 1000
+          nextflow run ${GITHUB_WORKSPACE} -profile corall_SE,awsbatch --input "s3://flomics-data/test_data_RNAseq_pipeline/Flomics_rnaseq_test_SE_CORALL_samplesheet.csv" --outdir "s3://flomics-scratch/nextflow-workdir/test/" --fasta "s3://flomics-no-backup/references/Genomes/Homo_sapiens/GENCODE/GRCh38/release-105/Homo_sapiens.GRCh38.dna_sm_v105_SIRV-set3.fa" --gtf "s3://flomics-no-backup/references/Genomes/Homo_sapiens/GENCODE/GRCh38/release-105/gencode.v39.annotation_tRNA_SIRV-set3.sorted.gtf" --star_index "s3://flomics-no-backup/references/Genomes/Homo_sapiens/GENCODE/GRCh38/release-105/STARindex_v2.7.10a/" --skip_deseq2_qc --min_trimmed_reads 1000
 
   flomics_test_smarter_PE:
     env:
@@ -106,7 +106,7 @@ jobs:
         run: |
           # TODO nf-core: You can customize CI pipeline run tests as required
           # (eg. adding multiple test runs with different parameters)
-          nextflow run ${GITHUB_WORKSPACE} -profile smarter_PE,awsbatch --input "s3://flomics-data/test_data_RNAseq_pipeline/Flomics_rnaseq_test_PE_SMARTER_samplesheet.csv" --outdir "s3://flomics-scratch/nextflow-workdir/test/" --skip_deseq2_qc --min_trimmed_reads 1000
+          nextflow run ${GITHUB_WORKSPACE} -profile smarter_PE,awsbatch --input "s3://flomics-data/test_data_RNAseq_pipeline/Flomics_rnaseq_test_PE_SMARTER_samplesheet.csv" --outdir "s3://flomics-scratch/nextflow-workdir/test/"  --fasta "s3://flomics-no-backup/references/Genomes/Homo_sapiens/GENCODE/GRCh38/release-105/Homo_sapiens.GRCh38.dna_sm_v105_SIRV-set3.fa" --gtf "s3://flomics-no-backup/references/Genomes/Homo_sapiens/GENCODE/GRCh38/release-105/gencode.v39.annotation_tRNA_SIRV-set3.sorted.gtf" --star_index "s3://flomics-no-backup/references/Genomes/Homo_sapiens/GENCODE/GRCh38/release-105/STARindex_v2.7.10a/" --skip_deseq2_qc --min_trimmed_reads 1000
 
   flomics_test_smarter_SE:
     env:
@@ -126,7 +126,7 @@ jobs:
         run: |
           # TODO nf-core: You can customize CI pipeline run tests as required
           # (eg. adding multiple test runs with different parameters)
-          nextflow run ${GITHUB_WORKSPACE} -profile smarter_SE,awsbatch --input "s3://flomics-data/test_data_RNAseq_pipeline/Flomics_rnaseq_test_SE_SMARTER_samplesheet.csv" --outdir "s3://flomics-scratch/nextflow-workdir/test/" --skip_deseq2_qc --min_trimmed_reads 1000
+          nextflow run ${GITHUB_WORKSPACE} -profile smarter_SE,awsbatch --input "s3://flomics-data/test_data_RNAseq_pipeline/Flomics_rnaseq_test_SE_SMARTER_samplesheet.csv" --outdir "s3://flomics-scratch/nextflow-workdir/test/" --fasta "s3://flomics-no-backup/references/Genomes/Homo_sapiens/GENCODE/GRCh38/release-105/Homo_sapiens.GRCh38.dna_sm_v105_SIRV-set3.fa" --gtf "s3://flomics-no-backup/references/Genomes/Homo_sapiens/GENCODE/GRCh38/release-105/gencode.v39.annotation_tRNA_SIRV-set3.sorted.gtf" --star_index "s3://flomics-no-backup/references/Genomes/Homo_sapiens/GENCODE/GRCh38/release-105/STARindex_v2.7.10a/" --skip_deseq2_qc --min_trimmed_reads 1000
 
 
   # star_salmon:
