@@ -69,7 +69,7 @@ jobs:
           nextflow run ${GITHUB_WORKSPACE} -profile corall_PE,awsbatch --input "s3://flomics-data/test_data_RNAseq_pipeline/Flomics_rnaseq_test_PE_CORALL_samplesheet.csv" \\
           --outdir "s3://flomics-scratch/nextflow-workdir/test/" --skip_deseq2_qc --min_trimmed_reads 1000
 
-      flomics_test_corall_SE:
+  flomics_test_corall_SE:
     env:
       NXF_VER: "22.10.0"
       NXF_ANSI_LOG: false
