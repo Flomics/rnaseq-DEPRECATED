@@ -66,8 +66,7 @@ jobs:
         run: |
           # TODO nf-core: You can customize CI pipeline run tests as required
           # (eg. adding multiple test runs with different parameters)
-          nextflow run ${GITHUB_WORKSPACE} -profile corall_PE,awsbatch --input "s3://flomics-data/test_data_RNAseq_pipeline/Flomics_rnaseq_test_PE_CORALL_samplesheet.csv" \\
-          --outdir "s3://flomics-scratch/nextflow-workdir/test/" --skip_deseq2_qc --min_trimmed_reads 1000
+          nextflow run ${GITHUB_WORKSPACE} -profile corall_PE,awsbatch --input "s3://flomics-data/test_data_RNAseq_pipeline/Flomics_rnaseq_test_PE_CORALL_samplesheet.csv" --outdir "s3://flomics-scratch/nextflow-workdir/test/" --skip_deseq2_qc --min_trimmed_reads 1000
 
   flomics_test_corall_SE:
     env:
@@ -87,8 +86,7 @@ jobs:
         run: |
           # TODO nf-core: You can customize CI pipeline run tests as required
           # (eg. adding multiple test runs with different parameters)
-          nextflow run ${GITHUB_WORKSPACE} -profile corall_SE,awsbatch --input "s3://flomics-data/test_data_RNAseq_pipeline/Flomics_rnaseq_test_SE_CORALL_samplesheet.csv" \\
-          --outdir "s3://flomics-scratch/nextflow-workdir/test/" --skip_deseq2_qc --min_trimmed_reads 1000
+          nextflow run ${GITHUB_WORKSPACE} -profile corall_SE,awsbatch --input "s3://flomics-data/test_data_RNAseq_pipeline/Flomics_rnaseq_test_SE_CORALL_samplesheet.csv" --outdir "s3://flomics-scratch/nextflow-workdir/test/" --skip_deseq2_qc --min_trimmed_reads 1000
 
   flomics_test_smarter_PE:
     env:
@@ -108,8 +106,7 @@ jobs:
         run: |
           # TODO nf-core: You can customize CI pipeline run tests as required
           # (eg. adding multiple test runs with different parameters)
-          nextflow run ${GITHUB_WORKSPACE} -profile smarter_PE,awsbatch --input "s3://flomics-data/test_data_RNAseq_pipeline/Flomics_rnaseq_test_PE_SMARTER_samplesheet.csv" \\
-          --outdir "s3://flomics-scratch/nextflow-workdir/test/" --skip_deseq2_qc --min_trimmed_reads 1000
+          nextflow run ${GITHUB_WORKSPACE} -profile smarter_PE,awsbatch --input "s3://flomics-data/test_data_RNAseq_pipeline/Flomics_rnaseq_test_PE_SMARTER_samplesheet.csv" --outdir "s3://flomics-scratch/nextflow-workdir/test/" --skip_deseq2_qc --min_trimmed_reads 1000
 
   flomics_test_smarter_SE:
     env:
@@ -129,8 +126,7 @@ jobs:
         run: |
           # TODO nf-core: You can customize CI pipeline run tests as required
           # (eg. adding multiple test runs with different parameters)
-          nextflow run ${GITHUB_WORKSPACE} -profile smarter_SE,awsbatch --input "s3://flomics-data/test_data_RNAseq_pipeline/Flomics_rnaseq_test_SE_SMARTER_samplesheet.csv" \\
-          --outdir "s3://flomics-scratch/nextflow-workdir/test/" --skip_deseq2_qc --min_trimmed_reads 1000
+          nextflow run ${GITHUB_WORKSPACE} -profile smarter_SE,awsbatch --input "s3://flomics-data/test_data_RNAseq_pipeline/Flomics_rnaseq_test_SE_SMARTER_samplesheet.csv" --outdir "s3://flomics-scratch/nextflow-workdir/test/" --skip_deseq2_qc --min_trimmed_reads 1000
 
 
   # star_salmon:
