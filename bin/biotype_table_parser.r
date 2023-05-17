@@ -1,6 +1,7 @@
 #!/usr/bin/env Rscript
 
 library(dplyr)
+library(data.table)
 table1= data.frame(matrix(ncol = 66, nrow = 0))
 names(table1)= c("Ala_tRNA", "Arg_tRNA", "Asn_tRNA", "Asp_tRNA", "Cys_tRNA", "Gln_tRNA", "Glu_tRNA", "Gly_tRNA", "His_tRNA", "IG_C_gene", "IG_C_pseudogene",
                      "IG_D_gene", "IG_J_gene", "IG_J_pseudogene", "IG_V_gene", "IG_V_pseudogene", "IG_pseudogene", "Ile_tRNA", "Leu_tRNA", "Lys_tRNA", "Met_tRNA",
@@ -13,5 +14,5 @@ table2= read.csv("multiqc_data/mqc_featurecounts_biotype_plot_1.txt", header = T
 
 table_final= bind_rows(table1,table2)
 table_final[is.na(table_final)] <- 0
-
+table_final= setDT(table_final, keep.rownames = "Sample")[]
 write.table(table_final, "biotype_table.tsv", sep = "\t", row.names = F, col.names = T, quote = F)

@@ -821,7 +821,7 @@ workflow RNASEQ {
     ch_Flomics_UMI_dedup_rate_QC = Channel.empty()
 
     if (params.with_umi) {
-        ch_bams_umi_dedup= ch_transcriptome_bam.join(ch_transcriptome_sorted_bam)
+        ch_bams_umi_dedup= DEDUP_UMI_UMITOOLS_TRANSCRIPTOME.out.bam.join(ALIGN_STAR.out.bam_transcript)
 
         FLOMICS_UMI_DEDUP_QC (
             ch_bams_umi_dedup

@@ -2,7 +2,7 @@ process FLOMICS_QC_CALCULATE_INDIVIDUAL_RCU{
     tag "$meta.id"
     label 'process_low'
 
-    container "flomicsbiotech/flomics_qc_rnaseq:latest"
+    container "flomicsbiotech/flomics_qc_rnaseq:dev"
 
 
     input:

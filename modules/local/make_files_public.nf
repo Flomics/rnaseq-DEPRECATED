@@ -12,12 +12,12 @@ process MAKE_FILES_PUBLIC{
     output:
 
     script:
-    timestamp = workflow.start
-    project= params.project
+    project = params.project
+    uuid = params.uuid
 
 
     """
-    make_files_public.sh $multiqc_report $flomics_QC_report_table $timestamp $project
-
+    make_files_public.sh $multiqc_report $flomics_QC_report_table $project $uuid
+    
     """
 }
