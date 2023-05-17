@@ -66,7 +66,7 @@ jobs:
         run: |
           # TODO nf-core: You can customize CI pipeline run tests as required
           # (eg. adding multiple test runs with different parameters)
-          nextflow run ${GITHUB_WORKSPACE} -profile corall_PE,awsbatch
+          nextflow run ${GITHUB_WORKSPACE} -profile test_corall_PE,awsbatch
 
   flomics_test_corall_SE:
     env:
@@ -86,7 +86,7 @@ jobs:
         run: |
           # TODO nf-core: You can customize CI pipeline run tests as required
           # (eg. adding multiple test runs with different parameters)
-          nextflow run ${GITHUB_WORKSPACE} -profile corall_SE,awsbatch
+          nextflow run ${GITHUB_WORKSPACE} -profile test_corall_SE,awsbatch
 
   flomics_test_smarter_PE:
     env:
@@ -106,7 +106,7 @@ jobs:
         run: |
           # TODO nf-core: You can customize CI pipeline run tests as required
           # (eg. adding multiple test runs with different parameters)
-          nextflow run ${GITHUB_WORKSPACE} -profile smarter_PE,awsbatch
+          nextflow run ${GITHUB_WORKSPACE} -profile test_smarter_PE,awsbatch
 
   flomics_test_smarter_SE:
     env:
@@ -126,7 +126,7 @@ jobs:
         run: |
           # TODO nf-core: You can customize CI pipeline run tests as required
           # (eg. adding multiple test runs with different parameters)
-          nextflow run ${GITHUB_WORKSPACE} -profile smarter_SE,awsbatch
+          nextflow run ${GITHUB_WORKSPACE} -profile test_smarter_SE,awsbatch
 
 
   # star_salmon:
