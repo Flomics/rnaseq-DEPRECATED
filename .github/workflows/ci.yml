@@ -1,53 +1,17 @@
 name: Flomics CI
 # This workflow is triggered on pushes and PRs to the repository.
 # It runs the pipeline with the minimal test dataset to check that it completes without any syntax errors
-on: [push, pull_request]
+on:
+  pull_request:
+    branches:
+      - master
+      - dev
+  push:
+    branches:
+      - master
+      - dev
 
 jobs:
-  # test:
-  #   env:
-  #     NXF_VER: ${{ matrix.nxf_ver }}
-  #     NXF_ANSI_LOG: false
-  #     AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-  #     AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-  #     AWS_DEFAULT_REGION: "eu-west-1"
-  #   runs-on: ubuntu-latest
-  #   strategy:
-  #     matrix:
-  #       # Nextflow versions: check pipeline current latest
-  #       nxf_ver: ["22.10.0"]
-  #   steps:
-  #     - uses: actions/checkout@v3
-  #     - name: Install Nextflow
-  #       run: |
-  #         wget -qO- get.nextflow.io | bash
-  #         sudo mv nextflow /usr/local/bin/
-  #     - name: Run pipeline with test data
-  #       run: |
-  #         # TODO nf-core: You can customize CI pipeline run tests as required
-  #         # (eg. adding multiple test runs with different parameters)
-  #         nextflow run ${GITHUB_WORKSPACE} -profile test,awsbatch
-
-  # flomics_test_default:
-  #   env:
-  #     NXF_VER: "22.10.0"
-  #     NXF_ANSI_LOG: false
-  #     AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-  #     AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-  #     AWS_DEFAULT_REGION: "eu-west-1"
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - uses: actions/checkout@v3
-  #     - name: Install Nextflow
-  #       run: |
-  #         wget -qO- get.nextflow.io | bash
-  #         sudo mv nextflow /usr/local/bin/
-  #     - name: Run pipeline with test data
-  #       run: |
-  #         # TODO nf-core: You can customize CI pipeline run tests as required
-  #         # (eg. adding multiple test runs with different parameters)
-  #         nextflow run ${GITHUB_WORKSPACE} -profile flomics_test,awsbatch
-
   flomics_test_corall_PE:
     env:
       NXF_VER: "22.10.0"
@@ -127,102 +91,3 @@ jobs:
           # TODO nf-core: You can customize CI pipeline run tests as required
           # (eg. adding multiple test runs with different parameters)
           nextflow run ${GITHUB_WORKSPACE} -profile test_smarter_SE,awsbatch
-
-
-  # star_salmon:
-  #   name: Test STAR Salmon with workflow parameters
-  #   if: ${{ github.event_name != 'push' || (github.event_name == 'push' && github.repository == 'Flomics/rnaseq') }}
-  #   runs-on: ubuntu-latest
-  #   strategy:
-  #     matrix:
-  #       parameters:
-  #         - "--skip_qc"
-  #         - "--skip_trimming"
-  #         - "--gtf false"
-  #         - "--star_index false"
-  #         - "--transcript_fasta false"
-  #         - "--min_mapped_reads 90"
-  #         - "--with_umi"
-  #         - "--with_umi --skip_trimming"
-  #         - "--remove_ribo_rna --skip_qualimap"
-  #         - "--bam_csi_index"
-  #         - "--save_align_intermeds --save_reference"
-  #         - "--featurecounts_group_type false"
-  #   steps:
-  #     - name: Check out pipeline code
-  #       uses: actions/checkout@v2
-
-  #     - name: Install Nextflow
-  #       run: |
-  #         wget -qO- get.nextflow.io | bash
-  #         sudo mv nextflow /usr/local/bin/
-
-  #     - name: Run pipeline with STAR and various parameters
-  #       run: |
-  #         nextflow run ${GITHUB_WORKSPACE} -profile test,docker --aligner star_salmon ${{ matrix.parameters }} --outdir ./results
-
-  # star_rsem:
-  #   name: Test STAR RSEM with workflow parameters
-  #   if: ${{ github.event_name != 'push' || (github.event_name == 'push' && github.repository == 'nf-core/rnaseq') }}
-  #   runs-on: ubuntu-latest
-  #   strategy:
-  #     matrix:
-  #       parameters:
-  #         - "--skip_qc"
-  #         - "--rsem_index false"
-  #   steps:
-  #     - name: Check out pipeline code
-  #       uses: actions/checkout@v2
-
-  #     - name: Install Nextflow
-  #       run: |
-  #         wget -qO- get.nextflow.io | bash
-  #         sudo mv nextflow /usr/local/bin/
-
-  #     - name: Run pipeline with RSEM STAR and various parameters
-  #       run: |
-  #         nextflow run ${GITHUB_WORKSPACE} -profile test,docker --aligner star_rsem ${{ matrix.parameters }} --outdir ./results
-
-  # hisat2:
-  #   name: Test HISAT2 with workflow parameters
-  #   if: ${{ github.event_name != 'push' || (github.event_name == 'push' && github.repository == 'nf-core/rnaseq') }}
-  #   runs-on: ubuntu-latest
-  #   strategy:
-  #     matrix:
-  #       parameters:
-  #         - "--skip_qc"
-  #         - "--hisat2_index false"
-  #   steps:
-  #     - name: Check out pipeline code
-  #       uses: actions/checkout@v2
-
-  #     - name: Install Nextflow
-  #       run: |
-  #         wget -qO- get.nextflow.io | bash
-  #         sudo mv nextflow /usr/local/bin/
-
-  #     - name: Run pipeline with HISAT2 and various parameters
-  #       run: |
-  #         nextflow run ${GITHUB_WORKSPACE} -profile test,docker --aligner hisat2 ${{ matrix.parameters }} --outdir ./results
-
-  # salmon:
-  #   name: Test Salmon with workflow parameters
-  #   if: ${{ github.event_name != 'push' || (github.event_name == 'push' && github.repository == 'nf-core/rnaseq') }}
-  #   runs-on: ubuntu-latest
-  #   strategy:
-  #     matrix:
-  #       parameters:
-  #         - "--skip_qc --skip_alignment"
-  #         - "--salmon_index false --transcript_fasta false"
-  #   steps:
-  #     - name: Check out pipeline code
-  #       uses: actions/checkout@v2
-
-  #     - name: Install Nextflow
-  #       run: |
-  #         wget -qO- get.nextflow.io | bash
-  #         sudo mv nextflow /usr/local/bin/
-
-  #     - name: Run pipeline with Salmon and various parameters
-  #       run: |
-  #         nextflow run ${GITHUB_WORKSPACE} -profile test,docker --pseudo_aligner salmon ${{ matrix.parameters }} --outdir ./results
