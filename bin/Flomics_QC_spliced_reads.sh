@@ -13,8 +13,9 @@ done
 : ${gtf?"No gtf file provided through -g"}
 : ${prefix?"No prefix provided through -p"}
 
+cat $gtf | makeIntrons.pl - > introns.gtf
 
-cat $gtf |  perl -lane '$F[11]=~s/"|;//g; $start=$F[3]-1; $end=$F[4]+1; print $F[11]."\t".$F[0]."_".$start."_".$end' | sort -k2,2 > gtf.introns.tsv
+cat introns.gtf |  perl -lane '$F[11]=~s/"|;//g; $start=$F[3]-1; $end=$F[4]+1; print $F[11]."\t".$F[0]."_".$start."_".$end' | sort -k2,2 > gtf.introns.tsv
 
 echo -e "uniqMappedReads\tsplicedReads\t%splicedReads" > ${prefix}.splicedReads.stats.tsv
 # Convert bam to bed12:
