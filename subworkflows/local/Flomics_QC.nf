@@ -18,6 +18,7 @@ include { FLOMICS_QC_KNIT                               } from '../../modules/lo
 
 workflow FLOMICS_QC{
     take:
+    samplesheet 
     multiqc_data   // channel: multiqc_data/*
     multiqc_report // channel: multiqc_report.html
     bam_genome     // channel: [ val(meta), [ bam ]]
@@ -96,7 +97,7 @@ workflow FLOMICS_QC{
     /// Aggregate all the QC from multiQC and extra QC into a new tsv
     ///
     ch_Flomics_QC_report            = Channel.empty()
-    FLOMICS_QC_AGGREGATOR ( multiqc_data, ch_Flomics_trackhubs, ch_Flomics_trackDbs, ch_Flomics_splicedReads_QC, ch_Flomics_spliceJunctions_QC,
+    FLOMICS_QC_AGGREGATOR ( samplesheet, multiqc_data, ch_Flomics_trackhubs, ch_Flomics_trackDbs, ch_Flomics_splicedReads_QC, ch_Flomics_spliceJunctions_QC,
     ch_Flomics_insert_size_QC, umi_dedup_rate_data, ch_Flomics_library_balance, ch_Flomics_FastQC, ch_Flomics_correlation_coefficients)
     ch_Flomics_QC_report            = FLOMICS_QC_AGGREGATOR.out.flomics_report
 

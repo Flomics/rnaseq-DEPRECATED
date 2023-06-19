@@ -5,6 +5,7 @@ process FLOMICS_QC_AGGREGATOR{
 
 
     input:
+    path samplesheet
     path multiqc_data
     path trackhub_links
     path trackDbs
@@ -28,7 +29,7 @@ process FLOMICS_QC_AGGREGATOR{
 
     '''
 
-    cut -f1 multiqc_data/multiqc_fastqc_1.txt | sed "s/_[1-2]//" | uniq > samplenames.tsv
+    cut -f1 -d "," samplesheet.csv | sed -e "s/sample/Sample/" > samplenames.tsv
     tail -n +2 samplenames.tsv > samples.tsv
     merge_trackDB.sh !{project} !{uuid} !{profile} #Merges the trackDb files and uploads it to s3
 
