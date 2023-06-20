@@ -1,6 +1,6 @@
 process FLOMICS_QC_KNIT{
     tag "$meta"
-    label 'process_low'
+    label 'process_high'
 
     container "flomicsbiotech/markdown_pkgs:dev"
 
