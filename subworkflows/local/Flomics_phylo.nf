@@ -5,7 +5,7 @@
 include { SEQKIT } from '../../modules/local/seqkit.nf'
 include { KRAKEN2 } from '../../modules/local/kraken2.nf'
 include { KRONA } from '../../modules/local/krona.nf'
-include { UNTAR as UNTAR_KRAKEN2_DB } from '../../modules/nf-core/untar/main.nf'
+include { UNTAR as UNTAR_KRAKEN2_DB } from '../../modules/nf-core/modules/untar/main.nf'
 
 
 workflow FLOMICS_PHYLO{
