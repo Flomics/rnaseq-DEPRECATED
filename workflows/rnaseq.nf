@@ -284,6 +284,13 @@ workflow RNASEQ {
     }
 
     //
+    // MODULE: Optional phylogenetic classification step
+    //
+    if (params.phylo) {
+        FLOMICS_PHYLO (ch_filtered_reads)
+    }
+
+    //
     // MODULE: Remove genome contaminant reads
     //
     if (!params.skip_bbsplit) {
