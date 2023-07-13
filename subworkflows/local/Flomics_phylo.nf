@@ -2,10 +2,10 @@
 // Flomics Phylogenetic classification
 //
 
-include { SEQKIT } from '../../modules/local/seqkit'
-include { KRAKEN2 } from '../../modules/local/kraken2'
-include { KRONA } from '../../modules/local/krona'
-include { UNTAR as UNTAR_KRAKEN2_DB } from '../../modules/nf-core/untar/main'
+include { SEQKIT } from '../../modules/local/seqkit.nf'
+include { KRAKEN2 } from '../../modules/local/kraken2.nf'
+include { KRONA } from '../../modules/local/krona.nf'
+include { UNTAR as UNTAR_KRAKEN2_DB } from '../../modules/nf-core/untar/main.nf'
 
 
 workflow FLOMICS_PHYLO{
