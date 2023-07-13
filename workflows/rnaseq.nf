@@ -122,6 +122,7 @@ include { MULTIQC_TEST                            } from '../modules/local/test'
 //
 include { INPUT_CHECK    } from '../subworkflows/local/input_check'
 include { PREPARE_GENOME } from '../subworkflows/local/prepare_genome'
+include { FLOMICS_PHYLO  } from '../subworkflows/local/Flomics_phylo'
 include { ALIGN_STAR     } from '../subworkflows/local/align_star'
 include { QUANTIFY_RSEM  } from '../subworkflows/local/quantify_rsem'
 include { QUANTIFY_SALMON as QUANTIFY_STAR_SALMON } from '../subworkflows/local/quantify_salmon'
