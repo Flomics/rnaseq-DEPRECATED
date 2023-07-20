@@ -49,7 +49,7 @@ process FLOMICS_QC_AGGREGATOR{
     echo -e "Sample\tper_base_sequence_quality\tper_sequence_quality_scores\tper_base_sequence_content\tper_sequence_gc_content\tper_base_n_content\tsequence_length_distribution\tsequence_duplication_levels\toverrepresented_sequences\tadapter_content" > fastqc_QC.tsv
     while IFS= read -r sample; do
         if test -f "${sample}_fastqc_QC.tsv"; then
-           cat ${sample}_fastqc_QC.tsv | sed "s/^/$sample\t/" >> fastqc_QC.tsv
+            (printf "%s\t" "$sample"; cat "${sample}_fastqc_QC.tsv"; echo) >> fastqc_QC.tsv
         else
             echo -e "$sample\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA" >> fastqc_QC.tsv
         fi
@@ -134,7 +134,7 @@ process FLOMICS_QC_AGGREGATOR{
     join -t $'\t' -j 1 - <(awk 'NR == 1; NR > 1 {print $0 | "sort -n"}' strandedness_library_prep.tsv)  | \\
     join -t $'\t' -j 1 - <(awk 'NR == 1; NR > 1 {print $0 | "sort -n"}' biotype_table.tsv)  | \\
     join -t $'\t' -j 1 - <(awk 'NR == 1; NR > 1 {print $0 | "sort -n"}' new_corr.tsv) > QC_table.tsv
-    
+
     '''
 
 }
