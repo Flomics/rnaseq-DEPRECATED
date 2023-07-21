@@ -49,7 +49,7 @@ process FLOMICS_QC_AGGREGATOR{
     echo -e "Sample\tper_base_sequence_quality\tper_sequence_quality_scores\tper_base_sequence_content\tper_sequence_gc_content\tper_base_n_content\tsequence_length_distribution\tsequence_duplication_levels\toverrepresented_sequences\tadapter_content" > fastqc_QC.tsv
     while IFS= read -r sample; do
         if test -f "${sample}_fastqc_QC.tsv"; then
-            (printf "%s\t" "$sample"; cat "${sample}_fastqc_QC.tsv"; echo) >> fastqc_QC.tsv
+            cat "${sample}_fastqc_QC.tsv" | sed "s/^/$sample\t/" >> fastqc_QC.tsv
         else
             echo -e "$sample\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA" >> fastqc_QC.tsv
         fi

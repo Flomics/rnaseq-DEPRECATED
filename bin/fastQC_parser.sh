@@ -17,7 +17,7 @@ then
            	fi
     done
 else
-    cat tmp_fastQC.tsv >> ${prefix}_fastqc_QC.tsv 
+    cat tmp_fastQC.tsv >> ${prefix}_fastqc_QC.tsv
 fi
 sed -i 's/[ \t]*$//' ${prefix}_fastqc_QC.tsv
-sed -i -e '$a\' ${prefix}_fastqc_QC.tsv 
+printf '\n' >> ${prefix}_fastqc_QC.tsv
