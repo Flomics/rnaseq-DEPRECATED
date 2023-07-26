@@ -631,7 +631,7 @@
                     "description": "Flomics project to which the run belongs. Used to create and organize trackhubs files and links."
                 },
                 "timestamp": {
-                    "type": "string",
+                    "type": "integer",
                     "description": "Timestamp of the first execution for each run, created by turret."
                 },
                 "email_on_fail": {
