@@ -400,17 +400,19 @@ workflow RNASEQ {
                 }
                 .set { ch_umitools_dedup_bam }
 
-            // Fix paired-end reads in name sorted BAM file
-            // See: https://github.com/nf-core/rnaseq/issues/828
-            UMITOOLS_PREPAREFORRSEM (
-                ch_umitools_dedup_bam.paired_end
-            )
-            ch_versions = ch_versions.mix(UMITOOLS_PREPAREFORRSEM.out.versions.first())
+            if (params.aligner == 'star_rsem') {
+                // Fix paired-end reads in name sorted BAM file
+                // See: https://github.com/nf-core/rnaseq/issues/828
+                UMITOOLS_PREPAREFORRSEM (
+                    ch_umitools_dedup_bam.paired_end
+                )
+                ch_versions = ch_versions.mix(UMITOOLS_PREPAREFORRSEM.out.versions.first())
 
-            ch_umitools_dedup_bam
-                .single_end
-                .mix(UMITOOLS_PREPAREFORRSEM.out.bam)
-                .set { ch_transcriptome_bam }
+                ch_umitools_dedup_bam
+                    .single_end
+                    .mix(UMITOOLS_PREPAREFORRSEM.out.bam)
+                    .set { ch_transcriptome_bam }
+            }
         }
 
         //
