@@ -42,9 +42,9 @@ if (any(grep('ERCC-', tpm_matrix$gene_name, fixed = TRUE))) {
       ml <- lm(ercc_plot$conc ~ ercc_plot[, i])
       # Extracting R-squared parameter from summary
       r_squared <- summary(ml)$r.squared
-      plot_title <- gsub('X', '', colnames(ercc_plot)[i])
+      plot_title <- gsub('^X', '', colnames(ercc_plot)[i])
 
-      png(file = paste(gsub('X', '', colnames(ercc_plot)[i]), '_TPM_correlation_plot.png', sep = ''), width = 700, height = 700) #nolint
+      png(file = paste(gsub('^X', '', colnames(ercc_plot)[i]), '_TPM_correlation_plot.png', sep = ''), width = 700, height = 700) #nolint
       print(ggplot(ercc_plot, aes(x = log10(ercc_plot$conc), y = log10(ercc_plot[, i] + 0.01))) + geom_point() + #nolint
               ylab('Spike-in TPMs (log10+0.01)') +
               xlab('Spike-in concentration [attomoles/microL] (log10)') +
@@ -84,7 +84,7 @@ if (any(grep('ERCC-', tpm_matrix$gene_name, fixed = TRUE))) {
     #create small table with those three coefficients
     sample_names_vector <- colnames(ercc_plot)[-length(colnames(ercc_plot))]
     final_df <- data.frame(sample_names_vector, pearson_vector, spearman_vector, r_squared_vector) #nolint
-    final_df$sample_names_vector <- gsub('X', '', final_df$sample_names_vector)
+    final_df$sample_names_vector <- gsub('^X', '', final_df$sample_names_vector)
     colnames(final_df) <- c('Sample', 'pearson_coef', 'spearman_coef', 'r_squared') #nolint
     write.table(final_df, file = 'correlation_coefs.tsv', row.names = FALSE, quote = FALSE)
 
@@ -102,9 +102,9 @@ if (any(grep('ERCC-', tpm_matrix$gene_name, fixed = TRUE))) {
 
     i <- 1
     while (i < ncol(ercc_plot_len)) {
-      plot_title <- gsub('X', '', colnames(ercc_plot_len)[i])
+      plot_title <- gsub('^X', '', colnames(ercc_plot_len)[i])
 
-      png(file = paste(gsub('X', '', colnames(ercc_plot_len)[i]), '_TPM_vs_length_correlation_plot.png', sep = ''), width = 700, height = 700) #nolint
+      png(file = paste(gsub('^X', '', colnames(ercc_plot_len)[i]), '_TPM_vs_length_correlation_plot.png', sep = ''), width = 700, height = 700) #nolint
       print(ggplot(ercc_plot_len, aes(x = ercc_plot_len$length, y = ercc_plot_len[, i])) + geom_point() + #nolint
               ylab('Spike-in TPMs') +
               xlab('Spike-in length [nt]') +
@@ -123,7 +123,7 @@ if (any(grep('ERCC-', tpm_matrix$gene_name, fixed = TRUE))) {
     final_matrix <- matrix(data = 'no_spike_ins', nrow = n_samples, ncol = 3)
     sample_names_vector <- colnames(ercc_tpm_matrix)
     final_df <- data.frame(sample_names_vector, final_matrix)
-    final_df$sample_names_vector <- gsub('X', '', final_df$sample_names_vector)
+    final_df$sample_names_vector <- gsub('^X', '', final_df$sample_names_vector)
     colnames(final_df) <- c('sample', 'pearson_coef', 'spearman_coef', 'r_squared') #nolint
     write.table(final_df, file = 'correlation_coefs.tsv', row.names = FALSE)
 
@@ -136,7 +136,7 @@ if (any(grep('ERCC-', tpm_matrix$gene_name, fixed = TRUE))) {
   final_matrix <- matrix(data = 'no_spike_ins', nrow = n_samples, ncol = 3)
   sample_names_vector <- colnames(ercc_tpm_matrix)
   final_df <- data.frame(sample_names_vector, final_matrix)
-  final_df$sample_names_vector <- gsub('X', '', final_df$sample_names_vector)
+  final_df$sample_names_vector <- gsub('^X', '', final_df$sample_names_vector)
   colnames(final_df) <- c('sample', 'pearson_coef', 'spearman_coef', 'r_squared') #nolint
   write.table(final_df, file = 'correlation_coefs.tsv', row.names = FALSE)
 }
