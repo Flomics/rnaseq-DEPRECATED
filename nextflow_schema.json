@@ -442,6 +442,34 @@
                 }
             }
         },
+        "phylogenetic_classification_options": {
+            "title": "Phylogenetic classification options",
+            "type": "object",
+            "fa_icon": "fas fa-dna",
+            "description": "Options to fine tune the parameters for the optional phylogenetic classification with kraken2.",
+            "properties": {
+                "kraken2_db": {
+                    "type": "string",
+                    "default": "s3://flomics-no-backup/references/Genomes/KrakenDB/k2_pluspf_20230314.tar.gz",
+                    "description": "Path to the kraken2 database to use for classification"
+                },
+                "phylo_proportion": {
+                    "type": "number",
+                    "default": "0.1",
+                    "description": "Proportion for the subsampling of the original FASTQ files."
+                },
+                "phylo_skip_subsampling": {
+                    "type": "boolean",
+                    "default": "false",
+                    "description": "Skip the subsampling step and do the phylogenetic classification with the full FASTQ file."
+                },
+                "phylo": {
+                    "type": "boolean",
+                    "default": "true",
+                    "description": "Set as false if you want to skip the whole phylogenetic classification step."
+                }
+            }
+        },
         "process_skipping_options": {
             "title": "Process skipping options",
             "type": "object",
