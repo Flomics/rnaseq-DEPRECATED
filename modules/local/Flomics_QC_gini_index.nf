@@ -18,6 +18,5 @@ process FLOMICS_QC_GINI_INDEX{
     script:
     """
     gini_index.r $gene_counts
-
     """
 }
