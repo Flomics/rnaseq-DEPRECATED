@@ -10,5 +10,6 @@ g <- as.data.frame(gini(countdata))
 
 g <- data.frame(rownames(g), g)
 colnames(g) <- c("samplename", "gini_index")
+g$samplename <- gsub('^X', '', g$samplename)
 
 write.table(g, file = "gini_index.tsv", row.names = FALSE, col.names = TRUE)
