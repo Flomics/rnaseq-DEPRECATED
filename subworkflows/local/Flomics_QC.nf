@@ -36,11 +36,15 @@ workflow FLOMICS_QC{
     ///
     /// Makes the trackhubs and copies the bam files to the public bucket of s3
     ///
-    ch_Flomics_trackhubs           = Channel.empty()
-    ch_Flomics_trackDbs            = Channel.empty()
+    ch_Flomics_trackhubs              = Channel.empty()
+    ch_Flomics_trackDbs               = Channel.empty()
+    ch_Flomics_assembly_hub_links     = Channel.empty()
+    ch_Flomics_assembly_hub_trackDbs  = Channel.empty()
     FLOMICS_TRACKHUBS(bam_genome, bam_genome_indices)
-    ch_Flomics_trackhubs           = FLOMICS_TRACKHUBS.out.trackhubs_path.collect()
-    ch_Flomics_trackDbs            = FLOMICS_TRACKHUBS.out.trackDb_files.collect()
+    ch_Flomics_trackhubs              = FLOMICS_TRACKHUBS.out.trackhubs_path.collect()
+    ch_Flomics_trackDbs               = FLOMICS_TRACKHUBS.out.trackDb_files.collect()
+    ch_Flomics_assembly_hub_links     = FLOMICS_TRACKHUBS.out.assembly_hub_links.collect()
+    ch_Flomics_assembly_hub_trackDbs  = FLOMICS_TRACKHUBS.out.assembly_hub_trackDb_files.collect()
 
     ///
     /// Calculate the percentage of spliced reads and the percentage of splice junctions
@@ -97,7 +101,7 @@ workflow FLOMICS_QC{
     /// Aggregate all the QC from multiQC and extra QC into a new tsv
     ///
     ch_Flomics_QC_report            = Channel.empty()
-    FLOMICS_QC_AGGREGATOR ( samplesheet, multiqc_data, ch_Flomics_trackhubs, ch_Flomics_trackDbs, ch_Flomics_splicedReads_QC, ch_Flomics_spliceJunctions_QC,
+    FLOMICS_QC_AGGREGATOR ( samplesheet, multiqc_data, ch_Flomics_trackhubs, ch_Flomics_trackDbs, ch_Flomics_assembly_hub_links, ch_Flomics_assembly_hub_trackDbs, ch_Flomics_splicedReads_QC, ch_Flomics_spliceJunctions_QC,
     ch_Flomics_insert_size_QC, umi_dedup_rate_data, ch_Flomics_library_balance, ch_Flomics_FastQC, ch_Flomics_correlation_coefficients)
     ch_Flomics_QC_report            = FLOMICS_QC_AGGREGATOR.out.flomics_report
 

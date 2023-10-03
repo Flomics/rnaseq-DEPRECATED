@@ -7,8 +7,10 @@ process FLOMICS_QC_AGGREGATOR{
     input:
     path samplesheet
     path multiqc_data
-    path trackhub_links
-    path trackDbs
+    path "trackhub/*_trackhub_links.tsv"
+    path "trackhub/*_trackDb.txt"
+    path "assembly_hub/*_trackhub_links.tsv"
+    path "assembly_hub/*_trackDb.txt"
     path splicedReads_QC
     path spliceJunctions_QC
     path insert_size
@@ -35,10 +37,19 @@ process FLOMICS_QC_AGGREGATOR{
 
     echo -e "Sample\ttrackhub_link" > trackhub_links.tsv
     while IFS= read -r sample; do
-        if test -f "${sample}_trackhub_links.tsv"; then
-            cat ${sample}_trackhub_links.tsv | sed "s/^/$sample\t/" >> trackhub_links.tsv
+        if test -f "trackhub/${sample}_trackhub_links.tsv"; then
+            cat trackhub/${sample}_trackhub_links.tsv | sed "s/^/$sample\t/" >> trackhub/trackhub_links.tsv
         else
-            echo -e "$sample\tNA" >> trackhub_links.tsv
+            echo -e "$sample\tNA" >> trackhub/trackhub_links.tsv
+        fi
+    done < samples.tsv
+
+    echo -e "Sample\ttrackhub_link" > assembly_hub/trackhub_links.tsv
+    while IFS= read -r sample; do
+        if test -f "assembly_hub/${sample}_trackhub_links.tsv"; then
+            cat assembly_hub/${sample}_trackhub_links.tsv | sed "s/^/$sample\t/" >> assembly_hub/trackhub_links.tsv
+        else
+            echo -e "$sample\tNA" >> assembly_hub/trackhub_links.tsv
         fi
     done < samples.tsv
 
