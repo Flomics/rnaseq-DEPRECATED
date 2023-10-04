@@ -26,7 +26,7 @@ mkdir -p assembly_hub
 echo -e "hub $project\nshortLabel $project project\nlongLabel samples from the $project project\ngenomesFile genomes.txt\nemail marc.weber@flomics.com" > assembly_hub/hub.txt
 echo -e "track $prefix\nbigDataUrl ${http_folder}dataFiles/$bam\nshortLabel $prefix\nlongLabel $prefix sample of the project $project\ntype bam\nvisibility full\ndoWiggle on\nmaxHeightPixels 100:32:10\n" > assembly_hub/${prefix}_trackDb.txt
 echo "http://genome-euro.ucsc.edu/cgi-bin/hgTracks?hubUrl=${http_folder}assembly_hub.hub.txt" >> assembly_hub/UCSC.txt
-echo -e "genome hg38_ERCC_spikeins\ntrackDb hg38_ERCC_spikeins/trackDb.txt\ntwoBitPath hg38_ERCC_spikeins/hg38_ERCC_spikeins.2bit\norganism H. sapiens\ndefaultPos ERCC-00130:1-1051" > assembly_hub/genomes.txt
+echo -e "genome hg38_ERCC_spikeins\ntrackDb hg38_ERCC_spikeins/trackDb.txt\ntwoBitPath https://flomics-public.s3.eu-west-1.amazonaws.com/references/Genomes/Homo_sapiens/hg38_ERCC_spikeins/hg38_ERCC_spikeins.2bit\norganism H. sapiens\ndefaultPos ERCC-00130:1-1051" > assembly_hub/genomes.txt
 
 #Upload files to s3
 if [[ $profile != *"test"* ]]; then

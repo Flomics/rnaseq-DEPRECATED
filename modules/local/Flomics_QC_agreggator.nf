@@ -7,10 +7,10 @@ process FLOMICS_QC_AGGREGATOR{
     input:
     path samplesheet
     path multiqc_data
-    path "trackhub/*_trackhub_links.tsv"
-    path "trackhub/*_trackDb.txt"
-    path "assembly_hub/*_trackhub_links.tsv"
-    path "assembly_hub/*_trackDb.txt"
+    path "trackhub/*"
+    path "trackhub/*"
+    path "assembly_hub/*"
+    path "assembly_hub/*"
     path splicedReads_QC
     path spliceJunctions_QC
     path insert_size
