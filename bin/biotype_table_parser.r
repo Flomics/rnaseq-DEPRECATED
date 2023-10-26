@@ -12,8 +12,8 @@ names(table1)= c("Ala_tRNA", "Arg_tRNA", "Asn_tRNA", "Asp_tRNA", "Cys_tRNA", "Gl
                      "translated_processed_pseudogene", "translated_unprocessed_pseudogene", "unitary_pseudogene", "unprocessed_pseudogene", "vault_RNA")
 
 # Check if mqc_featurecounts_biotype_plot_1.txt exists, if not, read mqc_featurecounts_biotype_plot.txt
-file_path1 <- "multiqc_data/mqc_featurecounts_biotype_plot_1.txt"
-file_path2 <- "multiqc_data/mqc_featurecounts_biotype_plot.txt"
+file_path1 <- "multiqc_data/multiqc_featurecounts_biotype_plot_1.txt"
+file_path2 <- "multiqc_data/multiqc_featurecounts_biotype_plot.txt"
 
 if (file.exists(file_path1)) {
     table2 <- read.csv(file_path1, header = TRUE, row.names = 1, sep = "\t")
