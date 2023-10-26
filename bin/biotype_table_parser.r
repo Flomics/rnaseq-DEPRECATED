@@ -10,7 +10,18 @@ names(table1)= c("Ala_tRNA", "Arg_tRNA", "Asn_tRNA", "Asp_tRNA", "Cys_tRNA", "Gl
                      "misc_RNA", "polymorphic_pseudogene", "processed_pseudogene", "protein_coding", "pseudogene", "rRNA", "rRNA_pseudogene", "ribozyme", "sRNA", "scRNA",
                      "scaRNA", "snRNA", "snoRNA", "spike_in", "transcribed_processed_pseudogene", "transcribed_unitary_pseudogene", "transcribed_unprocessed_pseudogene",
                      "translated_processed_pseudogene", "translated_unprocessed_pseudogene", "unitary_pseudogene", "unprocessed_pseudogene", "vault_RNA")
-table2= read.csv("multiqc_data/mqc_featurecounts_biotype_plot_1.txt", header = T, row.names=1, sep= "\t")
+
+# Check if mqc_featurecounts_biotype_plot_1.txt exists, if not, read mqc_featurecounts_biotype_plot.txt
+file_path1 <- "multiqc_data/mqc_featurecounts_biotype_plot_1.txt"
+file_path2 <- "multiqc_data/mqc_featurecounts_biotype_plot.txt"
+
+if (file.exists(file_path1)) {
+    table2 <- read.csv(file_path1, header = TRUE, row.names = 1, sep = "\t")
+} else if (file.exists(file_path2)) {
+    table2 <- read.csv(file_path2, header = TRUE, row.names = 1, sep = "\t")
+}
+
+#table2= read.csv("multiqc_data/mqc_featurecounts_biotype_plot_1.txt", header = T, row.names=1, sep= "\t")
 
 table_final= bind_rows(table1,table2)
 table_final[is.na(table_final)] <- 0
