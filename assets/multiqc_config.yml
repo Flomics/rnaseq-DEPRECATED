@@ -25,6 +25,7 @@ run_modules:
   - preseq
   - rseqc
   - qualimap
+  - kraken
 
 # Order of modules
 top_modules:
