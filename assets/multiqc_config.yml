@@ -42,6 +42,8 @@ top_modules:
   - "dupradar"
 
 module_order:
+  - star
+  - kraken
   - fastqc:
       name: "FastQC (raw)"
       info: "This section of the report shows FastQC results before adapter trimming."
