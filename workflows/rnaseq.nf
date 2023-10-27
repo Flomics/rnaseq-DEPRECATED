@@ -821,7 +821,7 @@ workflow RNASEQ {
             ch_readdistribution_multiqc.collect{it[1]}.ifEmpty([]),
             ch_readduplication_multiqc.collect{it[1]}.ifEmpty([]),
             ch_tin_multiqc.collect{it[1]}.ifEmpty([]),
-            ch_kraken2_multiqc.collect{it[1]}.ifEmpty([])
+            ch_kraken2_multiqc.ifEmpty([])
         )
 
     }
