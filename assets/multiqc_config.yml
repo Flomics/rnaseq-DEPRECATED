@@ -43,7 +43,8 @@ top_modules:
 
 module_order:
   - star
-  - kraken
+  - kraken:
+      top_n: 10
   - fastqc:
       name: "FastQC (raw)"
       info: "This section of the report shows FastQC results before adapter trimming."
