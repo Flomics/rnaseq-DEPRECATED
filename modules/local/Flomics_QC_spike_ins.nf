@@ -16,6 +16,5 @@ process FLOMICS_QC_SPIKE_INS{
     script:
     """
     plot_correlation.r $spike_in_concentration $gene_tpm
-    
     """
 }
