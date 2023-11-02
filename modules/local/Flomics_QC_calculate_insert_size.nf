@@ -10,7 +10,7 @@ process FLOMICS_QC_CALCULATE_INSERT_SIZE{
     
     output:
     path("*.insert_size_median.tsv")   , emit: insert_size
-
+    path("*.insert_size_histogram.pdf"), optional:true, emit: histogram_pdf
 
 
     script:

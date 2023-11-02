@@ -23,12 +23,13 @@ process SALMON_TXIMPORT {
     task.ext.when == null || task.ext.when
 
     script: // This script is bundled with the pipeline, in nf-core/rnaseq/bin/
+
     """
     salmon_tximport.r \\
         NULL \\
         salmon \\
         salmon.merged
-
+        
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
         r-base: \$(echo \$(R --version 2>&1) | sed 's/^.*R version //; s/ .*\$//')

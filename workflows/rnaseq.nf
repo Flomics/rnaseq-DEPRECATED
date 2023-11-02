@@ -28,6 +28,7 @@ for (param in checkPathParamList) { if (param) { file(param, checkIfExists: true
 // Check mandatory parameters
 if (params.input) { ch_input = file(params.input) } else { exit 1, 'Input samplesheet not specified!' }
 
+
 // Check rRNA databases for sortmerna
 if (params.remove_ribo_rna) {
     ch_ribo_db = file(params.ribo_database_manifest, checkIfExists: true)
@@ -71,7 +72,7 @@ def is_aws_igenome = false
 if (params.fasta && params.gtf) {
     if ((file(params.fasta).getName() - '.gz' == 'genome.fa') && (file(params.gtf).getName() - '.gz' == 'genes.gtf')) {
         is_aws_igenome = true
-    }    
+    }
 }
 
 /*
@@ -87,6 +88,12 @@ ch_multiqc_custom_config = params.multiqc_config ? Channel.fromPath(params.multi
 ch_pca_header_multiqc        = file("$projectDir/assets/multiqc/deseq2_pca_header.txt", checkIfExists: true)
 ch_clustering_header_multiqc = file("$projectDir/assets/multiqc/deseq2_clustering_header.txt", checkIfExists: true)
 ch_biotypes_header_multiqc   = file("$projectDir/assets/multiqc/biotypes_header.txt", checkIfExists: true)
+
+// Spike-in concentration file
+ch_spike_in_concentration = file("$projectDir/assets/ercc_concentration_table.csv", checkIfExists: true)
+
+//Flomics QC dashboard RMD file
+ch_qc_dashboard = file ("$projectDir/bin/qc_dashboard.Rmd", checkIfExists: true)
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -115,6 +122,7 @@ include { MULTIQC_TEST                            } from '../modules/local/test'
 //
 include { INPUT_CHECK    } from '../subworkflows/local/input_check'
 include { PREPARE_GENOME } from '../subworkflows/local/prepare_genome'
+include { FLOMICS_PHYLO  } from '../subworkflows/local/Flomics_phylo'
 include { ALIGN_STAR     } from '../subworkflows/local/align_star'
 include { QUANTIFY_RSEM  } from '../subworkflows/local/quantify_rsem'
 include { QUANTIFY_SALMON as QUANTIFY_STAR_SALMON } from '../subworkflows/local/quantify_salmon'
@@ -200,7 +208,7 @@ workflow RNASEQ {
         meta, fastq ->
             def meta_clone = meta.clone()
             meta_clone.id = meta_clone.id.split('_')[0..-2].join('_')
-            [ meta_clone, fastq ] 
+            [ meta_clone, fastq ]
     }
     .groupTuple(by: [0])
     .branch {
@@ -267,13 +275,20 @@ workflow RNASEQ {
                 }
             }
             .set { ch_num_trimmed_reads }
-        
+
         MULTIQC_TSV_FAIL_TRIMMED (
             ch_num_trimmed_reads.collect(),
             ["Sample", "Reads after trimming"],
             'fail_trimmed_samples'
         )
         .set { ch_fail_trimming_multiqc }
+    }
+
+    //
+    // MODULE: Optional phylogenetic classification step
+    //
+    if (params.phylo) {
+        FLOMICS_PHYLO (ch_filtered_reads)
     }
 
     //
@@ -393,17 +408,19 @@ workflow RNASEQ {
                 }
                 .set { ch_umitools_dedup_bam }
 
-            // Fix paired-end reads in name sorted BAM file
-            // See: https://github.com/nf-core/rnaseq/issues/828
-            UMITOOLS_PREPAREFORRSEM (
-                ch_umitools_dedup_bam.paired_end
-            )
-            ch_versions = ch_versions.mix(UMITOOLS_PREPAREFORRSEM.out.versions.first())
+            if (params.aligner == 'star_rsem') {
+                // Fix paired-end reads in name sorted BAM file
+                // See: https://github.com/nf-core/rnaseq/issues/828
+                UMITOOLS_PREPAREFORRSEM (
+                    ch_umitools_dedup_bam.paired_end
+                )
+                ch_versions = ch_versions.mix(UMITOOLS_PREPAREFORRSEM.out.versions.first())
 
-            ch_umitools_dedup_bam
-                .single_end
-                .mix(UMITOOLS_PREPAREFORRSEM.out.bam)
-                .set { ch_transcriptome_bam }
+                ch_umitools_dedup_bam
+                    .single_end
+                    .mix(UMITOOLS_PREPAREFORRSEM.out.bam)
+                    .set { ch_transcriptome_bam }
+            }
         }
 
         //
@@ -620,6 +637,7 @@ workflow RNASEQ {
         )
         ch_featurecounts_multiqc = MULTIQC_CUSTOM_BIOTYPE.out.tsv
         ch_versions = ch_versions.mix(MULTIQC_CUSTOM_BIOTYPE.out.versions.first())
+
     }
 
     //
@@ -811,9 +829,9 @@ workflow RNASEQ {
     //
 
     ch_Flomics_UMI_dedup_rate_QC = Channel.empty()
-    
+
     if (params.with_umi) {
-        ch_bams_umi_dedup= ch_transcriptome_bam.join(ch_transcriptome_sorted_bam)
+        ch_bams_umi_dedup= DEDUP_UMI_UMITOOLS_TRANSCRIPTOME.out.bam.join(ALIGN_STAR.out.bam_transcript)
 
         FLOMICS_UMI_DEDUP_QC (
             ch_bams_umi_dedup
@@ -822,24 +840,34 @@ workflow RNASEQ {
     }
     if (params.with_umi) {
         FLOMICS_QC (
+            ch_input,
             MULTIQC.out.data.collect(),
+            MULTIQC.out.report,
             DEDUP_UMI_UMITOOLS_GENOME.out.bam,
             DEDUP_UMI_UMITOOLS_GENOME.out.bai,
             ch_transcriptome_bam,
             PREPARE_GENOME.out.gtf,
             ch_Flomics_UMI_dedup_rate_QC,
-            QUANTIFY_STAR_SALMON.out.results.collect{it[1]}
+            QUANTIFY_STAR_SALMON.out.results.collect{it[1]},
+            ch_spike_in_concentration,
+            QUANTIFY_STAR_SALMON.out.tpm_gene,
+            ch_qc_dashboard
         )
     }
     else{
         FLOMICS_QC (
+            ch_input,
             MULTIQC.out.data.collect(),
+            MULTIQC.out.report,
             ALIGN_STAR.out.bam,
             ALIGN_STAR.out.bai,
             ch_transcriptome_bam,
             PREPARE_GENOME.out.gtf,
             ch_Flomics_UMI_dedup_rate_QC.collect{it[1]}.ifEmpty([]),
-            QUANTIFY_STAR_SALMON.out.results.collect{it[1]}
+            QUANTIFY_STAR_SALMON.out.results.collect{it[1]},
+            ch_spike_in_concentration,
+            QUANTIFY_STAR_SALMON.out.tpm_gene,
+            ch_qc_dashboard
         )
     }
 

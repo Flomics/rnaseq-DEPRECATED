@@ -76,6 +76,12 @@
                     "help_text": "More details can be found in the [UMI-tools documentation](https://umi-tools.readthedocs.io/en/latest/reference/extract.html#extract-method).",
                     "description": "The UMI barcode pattern to use e.g. 'NNNNNN' indicates that the first 6 nucleotides of the read are from the UMI."
                 },
+                "umitools_bc_pattern2": {
+                    "type": "string",
+                    "fa_icon": "fas fa-barcode",
+                    "help_text": "More details can be found in the [UMI-tools documentation](https://umi-tools.readthedocs.io/en/latest/reference/extract.html#extract-method).",
+                    "description": "The UMI barcode pattern to use e.g. 'NNNNNN' indicates that the first 6 nucleotides of the read are from the UMI."
+                },
                 "umitools_dedup_stats": {
                     "type": "boolean",
                     "fa_icon": "fas fa-barcode",
@@ -428,6 +434,39 @@
                     "type": "boolean",
                     "fa_icon": "fas fa-fast-forward",
                     "description": "Skip all of the alignment-based processes within the pipeline."
+                },
+                "publish_genome_bam": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-save",
+                    "description": "When true, final bam files will be published to outdir, otherwise they wont."
+                }
+            }
+        },
+        "phylogenetic_classification_options": {
+            "title": "Phylogenetic classification options",
+            "type": "object",
+            "fa_icon": "fas fa-dna",
+            "description": "Options to fine tune the parameters for the optional phylogenetic classification with kraken2.",
+            "properties": {
+                "kraken2_db": {
+                    "type": "string",
+                    "default": "s3://flomics-no-backup/references/Genomes/KrakenDB/k2_pluspf_20230314.tar.gz",
+                    "description": "Path to the kraken2 database to use for classification"
+                },
+                "phylo_proportion": {
+                    "type": "number",
+                    "default": "0.1",
+                    "description": "Proportion for the subsampling of the original FASTQ files."
+                },
+                "phylo_skip_subsampling": {
+                    "type": "boolean",
+                    "default": "false",
+                    "description": "Skip the subsampling step and do the phylogenetic classification with the full FASTQ file."
+                },
+                "phylo": {
+                    "type": "boolean",
+                    "default": "true",
+                    "description": "Set as false if you want to skip the whole phylogenetic classification step."
                 }
             }
         },
@@ -610,6 +649,18 @@
                     "fa_icon": "fas fa-copy",
                     "enum": ["symlink", "rellink", "link", "copy", "copyNoFollow", "move"],
                     "hidden": true
+                },
+                "uuid": {
+                    "type": "string",
+                    "description": "Randomly generated UUID created by turret for each run of the pipeline. Used to create the outdir S3 bucket."
+                },
+                "project": {
+                    "type": "string",
+                    "description": "Flomics project to which the run belongs. Used to create and organize trackhubs files and links."
+                },
+                "timestamp": {
+                    "type": "integer",
+                    "description": "Timestamp of the first execution for each run, created by turret."
                 },
                 "email_on_fail": {
                     "type": "string",

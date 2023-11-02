@@ -24,13 +24,15 @@ process UMITOOLS_DEDUP {
     def paired = meta.single_end ? "" : "--paired"
     def stats = get_output_stats ? "--output-stats $prefix" : ""
     """
+    export PYTHONHASHSEED=0
     umi_tools \\
         dedup \\
+        --random-seed=123456789\\
         -I $bam \\
         -S ${prefix}.bam \\
         $stats \\
         $paired \\
-        $args
+        $args 
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
