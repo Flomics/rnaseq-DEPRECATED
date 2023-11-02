@@ -23,8 +23,17 @@ echo -e "genome hg38\ntrackDb hg38/trackDb.txt" > trackhub/genomes.txt
 
 #Create assembly hub
 mkdir -p assembly_hub
-echo -e "hub $project\nshortLabel $project project\nlongLabel samples from the $project project\ngenomesFile genomes.txt\nemail marc.weber@flomics.com" > assembly_hub/hub.txt
-echo -e "track $prefix\nbigDataUrl ${http_folder}dataFiles/$bam\nshortLabel $prefix\nlongLabel $prefix sample of the project $project\ntype bam\nvisibility full\ndoWiggle on\nmaxHeightPixels 100:32:10\n" > assembly_hub/${prefix}_trackDb.txt
+echo -e "hub $project\nshortLabel $project project\nlongLabel $project\ngenomesFile genomes.txt\nemail marc.weber@flomics.com" > assembly_hub/hub.txt
+# echo -e "track $prefix\nbigDataUrl ${http_folder}dataFiles/$bam\nshortLabel $prefix\nlongLabel $prefix sample of the project $project\ntype bam\nvisibility full\ndoWiggle on\nmaxHeightPixels 100:32:10\n" > assembly_hub/${prefix}_trackDb.txt
+# Writing the $prefix_trackDB.txt file using multiline string entry (bash heredoc)
+cat << EOF > assembly_hub/${prefix}_trackDb.txt
+track $prefix
+parent all_samples on
+bigDataUrl ${http_folder}dataFiles/$bam
+shortLabel $prefix
+longLabel $prefix sample of the project $project
+EOF
+
 echo "http://genome-euro.ucsc.edu/cgi-bin/hgTracks?hubUrl=${http_folder}assembly_hub.hub.txt" >> assembly_hub/UCSC.txt
 echo -e "genome hg38_ERCC_spikeins\ntrackDb hg38_ERCC_spikeins/trackDb.txt\ntwoBitPath https://flomics-public.s3.eu-west-1.amazonaws.com/references/Genomes/Homo_sapiens/hg38_ERCC_spikeins/hg38_ERCC_spikeins.2bit\norganism H. sapiens\ndefaultPos ERCC-00130:1-1051" > assembly_hub/genomes.txt
 
