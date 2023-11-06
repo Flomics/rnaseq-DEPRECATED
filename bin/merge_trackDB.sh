@@ -6,7 +6,8 @@ s3_bucket_name="s3://flomics-public/RNAseq_pipeline/$project/$uuid/"
 
 #Aggregate track_Db.txt files and uploads them to s3
 for file in trackhub/*_trackDB.txt
-do cat $file >> trackhub/trackDb.txt
+do
+    cat $file >> trackhub/trackDb.txt
 done
 
 if [[ $profile != *"test"* ]]; then
@@ -32,7 +33,8 @@ doWiggle on
 
 
 EOF
-for file in assembly_hub/*_trackDb.txt do
+for file in assembly_hub/*_trackDb.txt
+do
     cat $file >> assembly_hub/trackDb.txt
 done
 
