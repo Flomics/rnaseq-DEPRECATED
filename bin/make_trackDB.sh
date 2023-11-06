@@ -31,7 +31,8 @@ track $prefix
 parent all_samples on
 bigDataUrl ${http_folder}dataFiles/$bam
 shortLabel $prefix
-longLabel $prefix sample of the project $project
+longLabel $prefix - project $project
+
 EOF
 
 echo "http://genome-euro.ucsc.edu/cgi-bin/hgTracks?hubUrl=${http_folder}assembly_hub.hub.txt" >> assembly_hub/UCSC.txt
