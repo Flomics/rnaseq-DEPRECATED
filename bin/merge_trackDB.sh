@@ -5,7 +5,7 @@ profile=$3
 s3_bucket_name="s3://flomics-public/RNAseq_pipeline/$project/$uuid/"
 
 #Aggregate track_Db.txt files and uploads them to s3
-for file in trackhub/*_trackDB.txt
+for file in trackhub/*_trackDb.txt
 do
     cat $file >> trackhub/trackDb.txt
 done
