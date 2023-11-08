@@ -10,6 +10,7 @@ include { FLOMICS_QC_CALCULATE_INSERT_SIZE              } from '../../modules/lo
 include { FLOMICS_QC_CREATE_GENE_TO_TRANSCRIPT_TABLE    } from '../../modules/local/create_gene_to_transcript_table.nf'
 include { FLOMICS_QC_CALCULATE_INDIVIDUAL_RCU           } from '../../modules/local/Flomics_QC_calculate_individual_RCU.nf'
 include { FLOMICS_QC_CALCULATE_LIBRARY_BALANCE          } from '../../modules/local/Flomics_QC_calculate_library_balance.nf'
+include { FLOMICS_QC_GINI_INDEX                         } from '../../modules/local/Flomics_QC_gini_index.nf'
 include { FLOMICS_QC_SPIKE_INS                          } from '../../modules/local/Flomics_QC_spike_ins.nf'
 include { FLOMICS_QC_AGGREGATOR                         } from '../../modules/local/Flomics_QC_agreggator.nf'
 include { MAKE_FILES_PUBLIC                             } from '../../modules/local/make_files_public.nf'
@@ -18,7 +19,7 @@ include { FLOMICS_QC_KNIT                               } from '../../modules/lo
 
 workflow FLOMICS_QC{
     take:
-    samplesheet 
+    samplesheet
     multiqc_data   // channel: multiqc_data/*
     multiqc_report // channel: multiqc_report.html
     bam_genome     // channel: [ val(meta), [ bam ]]
@@ -30,6 +31,7 @@ workflow FLOMICS_QC{
     spike_in_concentration
     salmon_gene_tpm
     qc_dashboard
+    salmon_gene_counts
 
     main:
 
@@ -91,6 +93,13 @@ workflow FLOMICS_QC{
     ch_Flomics_library_balance       = FLOMICS_QC_CALCULATE_LIBRARY_BALANCE.out.library_balance_table.collect()
 
     ///
+    /// Calculate gini index for the gene counts table
+    ///
+    ch_Flomics_gini_index       = Channel.empty()
+    FLOMICS_QC_GINI_INDEX ( salmon_gene_counts )
+    ch_Flomics_gini_index        = FLOMICS_QC_GINI_INDEX.out.gini_index_table.collect()
+
+    ///
     /// Plot Spike-in concentration vs spike-in TPM and obtain correlation coefficients
     ///
     ch_Flomics_correlation_coefficients       = Channel.empty()
@@ -108,7 +117,7 @@ workflow FLOMICS_QC{
     ///
     /// Publish the necessary files to the flomics-public bucket (same structure as the trackhubs runs)
     ///
-    
+
     if (!workflow.profile.contains('test')){
         MAKE_FILES_PUBLIC (multiqc_report, ch_Flomics_QC_report)
     }
