@@ -10,9 +10,10 @@ process FLOMICS_TRACKHUBS{
     tuple val(meta), path(bai)
 
     output:
-    path "*_trackhub_links.tsv", emit: trackhubs_path
-    path "*_trackDb.txt", emit: trackDb_files
-
+    path "trackhub/*_trackhub_links.tsv",     emit: trackhub_links
+    path "trackhub/*_trackDb.txt",            emit: trackhub_trackDb_files
+    path "assembly_hub/*_trackhub_links.tsv", emit: assembly_hub_links
+    path "assembly_hub/*_trackDb.txt",        emit: assembly_hub_trackDb_files
 
     script:
     prefix  = task.ext.prefix ?: "${meta.id}"
@@ -22,6 +23,7 @@ process FLOMICS_TRACKHUBS{
 
     """
     make_trackDB.sh $bam $prefix $project $uuid $profile
-    cat UCSC.txt >> ${prefix}_trackhub_links.tsv
+    cat trackhub/UCSC.txt >> trackhub/${prefix}_trackhub_links.tsv
+    cat assembly_hub/UCSC.txt >> assembly_hub/${prefix}_trackhub_links.tsv
     """
 }
