@@ -25,6 +25,7 @@ run_modules:
   - preseq
   - rseqc
   - qualimap
+  - kraken
 
 # Order of modules
 top_modules:
@@ -41,6 +42,9 @@ top_modules:
   - "dupradar"
 
 module_order:
+  - star
+  - kraken:
+      top_n: 10
   - fastqc:
       name: "FastQC (raw)"
       info: "This section of the report shows FastQC results before adapter trimming."

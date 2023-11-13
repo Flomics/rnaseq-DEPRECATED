@@ -48,4 +48,6 @@ workflow FLOMICS_PHYLO{
         KRAKEN2.out.report.map { meta, report -> [ report ] }.collect()
     )
 
+    emit:
+    kraken2_report = KRAKEN2.out.report.map { meta, report -> [ report ] }.collect()
 }

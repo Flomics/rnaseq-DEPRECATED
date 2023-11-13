@@ -289,6 +289,7 @@ workflow RNASEQ {
     //
     if (params.phylo) {
         FLOMICS_PHYLO (ch_filtered_reads)
+        ch_kraken2_multiqc = FLOMICS_PHYLO.out.kraken2_report
     }
 
     //
@@ -819,7 +820,8 @@ workflow RNASEQ {
             ch_junctionsaturation_multiqc.collect{it[1]}.ifEmpty([]),
             ch_readdistribution_multiqc.collect{it[1]}.ifEmpty([]),
             ch_readduplication_multiqc.collect{it[1]}.ifEmpty([]),
-            ch_tin_multiqc.collect{it[1]}.ifEmpty([])
+            ch_tin_multiqc.collect{it[1]}.ifEmpty([]),
+            ch_kraken2_multiqc.ifEmpty([])
         )
 
     }
