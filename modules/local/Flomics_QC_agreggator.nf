@@ -31,11 +31,13 @@ process FLOMICS_QC_AGGREGATOR{
 
     '''
 
-    cut -f1 -d "," !{samplesheet} | uniq | sed -e "s/sample/Sample/" > samplenames.tsv
+    cut -f1 -d "," !{samplesheet} | sed -e "s/sample/Sample/" | head -n 1 > samplenames.tsv
+    cut -f1 -d "," !{samplesheet.csv} | tail -n+2 | sort | uniq >> samplenames.tsv
+
     tail -n +2 samplenames.tsv > samples.tsv
     merge_trackDB.sh !{project} !{uuid} !{profile} #Merges the trackDb files and uploads it to s3
 
-    echo -e "Sample\ttrackhub_link" > trackhub_links.tsv
+    echo -e "Sample\ttrackhub_link" > trackhub/trackhub_links.tsv
     while IFS= read -r sample; do
         if test -f "trackhub/${sample}_trackhub_links.tsv"; then
             cat trackhub/${sample}_trackhub_links.tsv | sed "s/^/$sample\t/" >> trackhub/trackhub_links.tsv
@@ -53,8 +55,15 @@ process FLOMICS_QC_AGGREGATOR{
         fi
     done < samples.tsv
 
+    rm -f tmp.biotype_table.tsv
     biotype_table_parser.r  #Sorts the columns of the biotypes according to last table
+    cat tmp.biotype_table.tsv | head -n 1 > biotype_table.tsv
+    cat tmp.biotype_table.tsv | tail -n+2 | sort -k1,1 >> biotype_table.tsv
+
+    rm -f tmp.read_coverage_uniformity_score.tsv
     gene_coverage_profile_calculation.r #Calculates the gene coverage profile
+    cat tmp.read_coverage_uniformity_score.tsv | head -n 1 > read_coverage_uniformity_score.tsv
+    cat tmp.read_coverage_uniformity_score.tsv | tail -n+2 | sort -k1,1 >> read_coverage_uniformity_score.tsv
 
 
     echo -e "Sample\tper_base_sequence_quality\tper_sequence_quality_scores\tper_base_sequence_content\tper_sequence_gc_content\tper_base_n_content\tsequence_length_distribution\tsequence_duplication_levels\toverrepresented_sequences\tadapter_content" > fastqc_QC.tsv
@@ -114,37 +123,39 @@ process FLOMICS_QC_AGGREGATOR{
     echo -e "Sample\tRead_number\tReads_passing_trimming\tPercentage_reads_passing_trimming"> cutadapt_QC.tsv
     cut -f1 multiqc_data/multiqc_cutadapt.txt | sed 's/_[0-9]$//g' > tmp.cutadapt.txt
     paste tmp.cutadapt.txt multiqc_data/multiqc_cutadapt.txt | awk '!seen[$1]++' > tmp2.cutadapt.txt
-    cut -f 1,4,6 tmp2.cutadapt.txt | tail -n +2 | awk '{print $1"\t"$2"\t"$3"\t"($3/$2*100)}' >> cutadapt_QC.tsv
+    cut -f 1,4,6 tmp2.cutadapt.txt | tail -n +2 | awk '{print $1"\t"$2"\t"$3"\t"($3/$2*100)}' >> tmp.cutadapt_QC.tsv
+    cat tmp.cutadapt_QC.tsv | sort -k1,1 >> cutadapt_QC.tsv
 
     echo -e "Sample\tExonic\tIntronic\tIntergenic\tExonic_percentage\tIntronic_percentage\tIntergenic_percentage" > qualimap_QC.tsv
-    tail -n +2 multiqc_data/mqc_qualimap_genomic_origin_1.txt | awk '{print $0"\t"$2/($2+$3+$4)*100"\t"$3/($2+$3+$4)*100"\t"$4/($2+$3+$4)*100'} >> qualimap_QC.tsv
+    tail -n +2 multiqc_data/mqc_qualimap_genomic_origin_1.txt | awk '{print $0"\t"$2/($2+$3+$4)*100"\t"$3/($2+$3+$4)*100"\t"$4/($2+$3+$4)*100'} | sort -k1,1 >> qualimap_QC.tsv
 
     echo -e "Sample\ttotal_reads\tavg_input_read_length\tnumber_of_uniquely_mapped_reads\tpercentage_of_uniquely_mapped_reads\tavg_mapped_read_length\tnumber_of_multimapped_reads\tpercentage_of_unmapped_too_short_reads\tmapped_percentage\taverage_mapped_length_percentage" > STAR_QC.tsv
-    tail -n +2  multiqc_data/multiqc_star.txt | cut -f1,2,3,4,5,6,18,23 | awk '{print $0"\t"($4+$7)/$2*100"\t"($6/$3)*100}' >> STAR_QC.tsv
+    tail -n +2  multiqc_data/multiqc_star.txt | cut -f1,2,3,4,5,6,18,23 | awk '{print $0"\t"($4+$7)/$2*100"\t"($6/$3)*100}' | sort -k1,1 >> STAR_QC.tsv
 
     echo -e "Sample\tJunction_saturation_slope" > Junction_saturation.tsv
-    tail -n +2 multiqc_data/mqc_rseqc_junction_saturation_plot_All_Junctions.txt | cut -f1,21,20  | awk '{print $1"\t"($3-$2)/$3*100}' >> Junction_saturation.tsv
+    tail -n +2 multiqc_data/mqc_rseqc_junction_saturation_plot_All_Junctions.txt | cut -f1,21,20  | awk '{print $1"\t"($3-$2)/$3*100}' | sort -k1,1 >> Junction_saturation.tsv
 
     echo -e "Sample\tReads_mapping_sense_percentage\tReads_mapping_antisense_percentage\tReads_undetermined_strandedness_percentage" > strandedness_library_prep.tsv
-    tail -n +2 multiqc_data/mqc_rseqc_infer_experiment_plot_1.txt | cut -f 1,2,3,4 >> strandedness_library_prep.tsv
+    tail -n +2 multiqc_data/mqc_rseqc_infer_experiment_plot_1.txt | cut -f 1,2,3,4 | sort -k1,1 >> strandedness_library_prep.tsv
 
-    awk '{print $1"\t"$2"\t"$3"\t"$4}' correlation_coefs.tsv > new_corr.tsv
+    #awk '{print $1"\t"$2"\t"$3"\t"$4}' correlation_coefs.tsv | head -n 1 > new_corr.tsv
+    #awk '{print $1"\t"$2"\t"$3"\t"$4}' correlation_coefs.tsv | tail -n+2 | sort -k1,1 >> new_corr.tsv
 
-    join -t $'\t' -j 1 <(awk 'NR == 1; NR > 1 {print $0 | "sort -n"}' samplenames.tsv) <(awk 'NR == 1; NR > 1 {print $0 | "sort -n"}' trackhub_links.tsv) | \\
-    join -t $'\t' -j 1 - <(awk 'NR == 1; NR > 1 {print $0 | "sort -n"}' fastqc_QC.tsv) | \\
-    join -t $'\t' -j 1 - <(awk 'NR == 1; NR > 1 {print $0 | "sort -n"}' cutadapt_QC.tsv)  | \\
-    join -t $'\t' -j 1 - <(awk 'NR == 1; NR > 1 {print $0 | "sort -n"}' STAR_QC.tsv)  | \\
-    join -t $'\t' -j 1 - <(awk 'NR == 1; NR > 1 {print $0 | "sort -n"}' UMI_dedup_grouped.tsv)  | \\
-    join -t $'\t' -j 1 - <(awk 'NR == 1; NR > 1 {print $0 | "sort -n"}' qualimap_QC.tsv)  | \\
-    join -t $'\t' -j 1 - <(awk 'NR == 1; NR > 1 {print $0 | "sort -n"}' splicedReads_grouped.stats.tsv) | \\
-    join -t $'\t' -j 1 - <(awk 'NR == 1; NR > 1 {print $0 | "sort -n"}' spliceJunctions_grouped.stats.tsv) | \\
-    join -t $'\t' -j 1 - <(awk 'NR == 1; NR > 1 {print $0 | "sort -n"}' Junction_saturation.tsv) | \\
-    join -t $'\t' -j 1 - <(awk 'NR == 1; NR > 1 {print $0 | "sort -n"}' read_coverage_uniformity_score.tsv) | \\
-    join -t $'\t' -j 1 - <(awk 'NR == 1; NR > 1 {print $0 | "sort -n"}' insert_size.tsv) | \\
-    join -t $'\t' -j 1 - <(awk 'NR == 1; NR > 1 {print $0 | "sort -n"}' library_balance.tsv) | \\
-    join -t $'\t' -j 1 - <(awk 'NR == 1; NR > 1 {print $0 | "sort -n"}' strandedness_library_prep.tsv)  | \\
-    join -t $'\t' -j 1 - <(awk 'NR == 1; NR > 1 {print $0 | "sort -n"}' biotype_table.tsv)  | \\
-    join -t $'\t' -j 1 - <(awk 'NR == 1; NR > 1 {print $0 | "sort -n"}' new_corr.tsv) > QC_table.tsv
+    join -t $'\t' -j 1  samplenames.tsv  trackhub/trackhub_links.tsv) | \\
+    join -t $'\t' -j 1 -  fastqc_QC.ts | \\
+    join -t $'\t' -j 1 -  cutadapt_QC.tsv  | \\
+    join -t $'\t' -j 1 -  STAR_QC.tsv  | \\
+    join -t $'\t' -j 1 -  UMI_dedup_grouped.tsv  | \\
+    join -t $'\t' -j 1 -  qualimap_QC.tsv  | \\
+    join -t $'\t' -j 1 -  splicedReads_grouped.stats.tsv | \\
+    join -t $'\t' -j 1 -  spliceJunctions_grouped.stats.tsv | \\
+    join -t $'\t' -j 1 -  Junction_saturation.tsv | \\
+    join -t $'\t' -j 1 -  read_coverage_uniformity_score.tsv | \\
+    join -t $'\t' -j 1 -  insert_size.tsv | \\
+    join -t $'\t' -j 1 -  library_balance.tsv | \\
+    join -t $'\t' -j 1 -  strandedness_library_prep.tsv  | \\
+    join -t $'\t' -j 1 -  biotype_table.tsv  > QC_table.tsv
+    #join -t $'\t' -j 1 -  new_corr.tsv) > QC_table.tsv
 
     '''
 
