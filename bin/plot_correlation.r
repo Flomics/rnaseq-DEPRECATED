@@ -42,7 +42,7 @@ if (any(grep('ERCC-', tpm_matrix$gene_name, fixed = TRUE))) {
       ml <- lm(ercc_plot$conc ~ ercc_plot[, i])
       # Extracting R-squared parameter from summary
       r_squared <- summary(ml)$r.squared
-
+      plot_title <- colnames(ercc_plot)[i]
       png(file = paste(colnames(ercc_plot)[i], '_TPM_correlation_plot.png', sep = ''), width = 700, height = 700) #nolint
       print(ggplot(ercc_plot, aes(x = log10(ercc_plot$conc), y = log10(ercc_plot[, i] + 0.01))) + geom_point() + #nolint
               ylab('Spike-in TPMs (log10+0.01)') +
@@ -100,7 +100,7 @@ if (any(grep('ERCC-', tpm_matrix$gene_name, fixed = TRUE))) {
 
     i <- 1
     while (i < ncol(ercc_plot_len)) {
-
+    plot_title <- colnames(ercc_plot_len)[i]
       png(file = paste(colnames(ercc_plot_len)[i], '_TPM_vs_length_correlation_plot.png', sep = ''), width = 700, height = 700) #nolint
       print(ggplot(ercc_plot_len, aes(x = ercc_plot_len$length, y = ercc_plot_len[, i])) + geom_point() + #nolint
               ylab('Spike-in TPMs') +
