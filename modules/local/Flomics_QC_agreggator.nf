@@ -137,7 +137,7 @@ process FLOMICS_QC_AGGREGATOR{
 
     echo -e "Sample\tReads_mapping_sense_percentage\tReads_mapping_antisense_percentage\tReads_undetermined_strandedness_percentage" > strandedness_library_prep.tsv
     tail -n +2 multiqc_data/mqc_rseqc_infer_experiment_plot_1.txt | cut -f 1,2,3,4 | sort -k1,1 >> strandedness_library_prep.tsv
-
+    
     awk '{print $1"\t"$2"\t"$3"\t"$4}' correlation_coefs.tsv | head -n 1 > new_corr.tsv
     awk '{print $1"\t"$2"\t"$3"\t"$4}' correlation_coefs.tsv | tail -n+2 | sort -k1,1 >> new_corr.tsv
 

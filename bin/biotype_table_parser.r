@@ -17,4 +17,4 @@ table2= read.csv("multiqc_data/multiqc_featurecounts_biotype_plot.txt", header =
 table_final= bind_rows(table1,table2)
 table_final[is.na(table_final)] <- 0
 table_final= setDT(table_final, keep.rownames = "Sample")[]
-write.table(table_final, "biotype_table.tsv", sep = "\t", row.names = F, col.names = T, quote = F)
+write.table(table_final, "tmp.biotype_table.tsv", sep = "\t", row.names = F, col.names = T, quote = F)
