@@ -137,9 +137,9 @@ process FLOMICS_QC_AGGREGATOR{
 
     echo -e "Sample\tReads_mapping_sense_percentage\tReads_mapping_antisense_percentage\tReads_undetermined_strandedness_percentage" > strandedness_library_prep.tsv
     tail -n +2 multiqc_data/mqc_rseqc_infer_experiment_plot_1.txt | cut -f 1,2,3,4 | sort -k1,1 >> strandedness_library_prep.tsv
-
-    #awk '{print $1"\t"$2"\t"$3"\t"$4}' correlation_coefs.tsv | head -n 1 > new_corr.tsv
-    #awk '{print $1"\t"$2"\t"$3"\t"$4}' correlation_coefs.tsv | tail -n+2 | sort -k1,1 >> new_corr.tsv
+    
+    awk '{print $1"\t"$2"\t"$3"\t"$4}' correlation_coefs.tsv | head -n 1 > new_corr.tsv
+    awk '{print $1"\t"$2"\t"$3"\t"$4}' correlation_coefs.tsv | tail -n+2 | sort -k1,1 >> new_corr.tsv
 
     join -t $'\t' -j 1  samplenames.tsv  trackhub/trackhub_links.tsv | \\
     join -t $'\t' -j 1 -  fastqc_QC.tsv | \\
@@ -154,8 +154,8 @@ process FLOMICS_QC_AGGREGATOR{
     join -t $'\t' -j 1 -  insert_size.tsv | \\
     join -t $'\t' -j 1 -  library_balance.tsv | \\
     join -t $'\t' -j 1 -  strandedness_library_prep.tsv  | \\
-    join -t $'\t' -j 1 -  biotype_table.tsv  > QC_table.tsv
-    #join -t $'\t' -j 1 -  new_corr.tsv) > QC_table.tsv
+    join -t $'\t' -j 1 -  biotype_table.tsv  | \\
+    join -t $'\t' -j 1 -  new_corr.tsv > QC_table.tsv
 
     '''
 
