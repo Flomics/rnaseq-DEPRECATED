@@ -133,6 +133,6 @@ if (any(grep('ERCC-', tpm_matrix$gene_name, fixed = TRUE))) {
   sample_names_vector <- colnames(ercc_tpm_matrix)
   final_df <- data.frame(sample_names_vector, final_matrix)
   colnames(final_df) <- c('sample', 'pearson_coef', 'spearman_coef', 'r_squared') #nolint
-  write.table(final_df, file = 'correlation_coefs.tsv', row.names = FALSE)
+  write.table(final_df, file = 'correlation_coefs.tsv', sep = "\t", row.names = FALSE)
 }
 
