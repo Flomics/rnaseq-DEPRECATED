@@ -409,7 +409,7 @@ workflow RNASEQ {
                 }
                 .set { ch_umitools_dedup_bam }
 
-            if (params.aligner == 'star_rsem') {
+            //if (params.aligner == 'star_rsem') {
                 // Fix paired-end reads in name sorted BAM file
                 // See: https://github.com/nf-core/rnaseq/issues/828
                 UMITOOLS_PREPAREFORRSEM (
@@ -421,7 +421,7 @@ workflow RNASEQ {
                     .single_end
                     .mix(UMITOOLS_PREPAREFORRSEM.out.bam)
                     .set { ch_transcriptome_bam }
-            }
+            //}
         }
 
         //
