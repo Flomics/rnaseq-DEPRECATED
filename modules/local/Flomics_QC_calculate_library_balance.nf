@@ -1,5 +1,5 @@
 process FLOMICS_QC_CALCULATE_LIBRARY_BALANCE{
-    tag "$meta.id"
+    tag "$meta"
     label 'process_low'
 
     container "flomicsbiotech/flomics_qc_rnaseq:latest"
