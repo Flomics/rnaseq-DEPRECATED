@@ -8,7 +8,7 @@ column_names <- colnames(count_matrix)
 column_indices <- 3:ncol(count_matrix)
 
 # empty data frame to store the results
-result_table <- data.frame(sample = character(),
+result_table <- data.frame(Sample = character(),
                            'number_of_genes_contributing_to_1%_of_reads' = numeric(),
                            'number_of_genes_contributing_to_5%_of_reads' = numeric(),
                            'number_of_genes_contributing_to_10%_of_reads' = numeric(),
@@ -32,5 +32,5 @@ for (col_index in column_indices) {
   result_table[nrow(result_table) + 1, ] <- c(col_name, genes_count)
 }
 
-write.table(result_table, file = 'genes_contributing_to_percentage_reads.tsv', sep = '\t', row.names = FALSE)
+write.table(result_table, file = 'genes_contributing_to_percentage_reads.tsv', sep = '\t', row.names = FALSE, quote = FALSE)
 
