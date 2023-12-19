@@ -287,6 +287,7 @@ workflow RNASEQ {
     //
     // MODULE: Optional phylogenetic classification step
     //
+    ch_kraken2_multiqc = Channel.empty()
     if (params.phylo) {
         FLOMICS_PHYLO (ch_filtered_reads)
         ch_kraken2_multiqc = FLOMICS_PHYLO.out.kraken2_report
