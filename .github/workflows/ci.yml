@@ -14,7 +14,7 @@ on:
 jobs:
   flomics_test_corall_PE:
     env:
-      NXF_VER: "22.10.0"
+      NXF_VER: "23.10.1"
       NXF_ANSI_LOG: false
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -42,7 +42,7 @@ jobs:
 
   flomics_test_corall_SE:
     env:
-      NXF_VER: "22.10.0"
+      NXF_VER: "23.10.1"
       NXF_ANSI_LOG: false
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -70,7 +70,7 @@ jobs:
 
   flomics_test_smarter_PE:
     env:
-      NXF_VER: "22.10.0"
+      NXF_VER: "23.10.1"
       NXF_ANSI_LOG: false
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -98,7 +98,7 @@ jobs:
 
   flomics_test_smarter_SE:
     env:
-      NXF_VER: "22.10.0"
+      NXF_VER: "23.10.1"
       NXF_ANSI_LOG: false
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
