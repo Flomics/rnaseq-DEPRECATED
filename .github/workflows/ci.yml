@@ -26,11 +26,19 @@ jobs:
         run: |
           wget -qO- get.nextflow.io | bash
           sudo mv nextflow /usr/local/bin/
+      - name : Clone nextflow-configs repo dev branch
+        run: |
+          mkdir -p ~/actions_workspace/src
+          cd ~/actions_workspace/src
+          ssh-agent sh -c 'echo "${{ secrets.PRIVATE_DEPENDENCY }}" | ssh-add - && git clone git@github.com:Flomics/nextflow-configs.git'
+          cd nextflow-configs/
+          git checkout dev
+          cd rnaseq/
+          awk 'NF' Flomics_master_params.yml library_prep_kit/corall_PE_params.yml references/hg38_gencodev39_params.yml > params.yml
+          cd
       - name: Run pipeline with test data
         run: |
-          # TODO nf-core: You can customize CI pipeline run tests as required
-          # (eg. adding multiple test runs with different parameters)
-          nextflow run ${GITHUB_WORKSPACE} -profile test_master,test_corall_PE,awsbatch
+          nextflow run ${GITHUB_WORKSPACE} -profile test_master,test_corall_PE,awsbatch -c ~/actions_workspace/src/nextflow-configs/rnaseq/Flomics_master.config -c ~/actions_workspace/src/nextflow-configs/rnaseq/library_prep_kit/corall_PE.config -params-file ~/actions_workspace/src/nextflow-configs/rnaseq/params.yml
 
   flomics_test_corall_SE:
     env:
@@ -46,11 +54,19 @@ jobs:
         run: |
           wget -qO- get.nextflow.io | bash
           sudo mv nextflow /usr/local/bin/
+      - name : Clone nextflow-configs repo dev branch
+        run: |
+          mkdir -p ~/actions_workspace/src
+          cd ~/actions_workspace/src
+          ssh-agent sh -c 'echo "${{ secrets.PRIVATE_DEPENDENCY }}" | ssh-add - && git clone git@github.com:Flomics/nextflow-configs.git'
+          cd nextflow-configs/
+          git checkout dev
+          cd rnaseq/
+          awk 'NF' Flomics_master_params.yml library_prep_kit/corall_SE_params.yml references/hg38_gencodev39_params.yml > params.yml
+          cd
       - name: Run pipeline with test data
         run: |
-          # TODO nf-core: You can customize CI pipeline run tests as required
-          # (eg. adding multiple test runs with different parameters)
-          nextflow run ${GITHUB_WORKSPACE} -profile test_master,test_corall_SE,awsbatch
+          nextflow run ${GITHUB_WORKSPACE} -profile test_master,test_corall_SE,awsbatch -c ~/actions_workspace/src/nextflow-configs/rnaseq/Flomics_master.config -c ~/actions_workspace/src/nextflow-configs/rnaseq/library_prep_kit/corall_SE.config -params-file ~/actions_workspace/src/nextflow-configs/rnaseq/params.yml
 
   flomics_test_smarter_PE:
     env:
@@ -66,11 +82,19 @@ jobs:
         run: |
           wget -qO- get.nextflow.io | bash
           sudo mv nextflow /usr/local/bin/
+      - name : Clone nextflow-configs repo dev branch
+        run: |
+          mkdir -p ~/actions_workspace/src
+          cd ~/actions_workspace/src
+          ssh-agent sh -c 'echo "${{ secrets.PRIVATE_DEPENDENCY }}" | ssh-add - && git clone git@github.com:Flomics/nextflow-configs.git'
+          cd nextflow-configs/
+          git checkout dev
+          cd rnaseq/
+          awk 'NF' Flomics_master_params.yml library_prep_kit/smarter_PE_params.yml references/hg38_gencodev39_params.yml > params.yml
+          cd
       - name: Run pipeline with test data
         run: |
-          # TODO nf-core: You can customize CI pipeline run tests as required
-          # (eg. adding multiple test runs with different parameters)
-          nextflow run ${GITHUB_WORKSPACE} -profile test_master,test_smarter_PE,awsbatch
+          nextflow run ${GITHUB_WORKSPACE} -profile test_master,test_smarter_PE,awsbatch -c ~/actions_workspace/src/nextflow-configs/rnaseq/Flomics_master.config -c ~/actions_workspace/src/nextflow-configs/rnaseq/library_prep_kit/smarter_PE.config -params-file ~/actions_workspace/src/nextflow-configs/rnaseq/params.yml
 
   flomics_test_smarter_SE:
     env:
