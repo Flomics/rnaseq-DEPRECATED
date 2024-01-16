@@ -97,4 +97,4 @@ jobs:
           cd
       - name: Run pipeline with test data
         run: |
-          nextflow run ${GITHUB_WORKSPACE} -profile test_master,test_smarter_SE,awsbatch -c ~/nextflow-configs/rnaseq/Flomics_master.configs -c ~/nextflow-configs/rnaseq/Flomics_master.configs -params file ~/nextflow-configs/rnaseq/params.yml
+          nextflow run ${GITHUB_WORKSPACE} -profile test_master,test_smarter_SE,awsbatch -c ~/nextflow-configs/rnaseq/Flomics_master.configs -c ~/nextflow-configs/rnaseq/Flomics_master.configs -params-file ~/nextflow-configs/rnaseq/params.yml
