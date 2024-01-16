@@ -92,6 +92,9 @@ jobs:
           ssh-agent sh -c 'echo "${{ secrets.PRIVATE_DEPENDENCY }}" | ssh-add - && git clone git@github.com:Flomics/nextflow-configs.git'
           cd nextflow-configs/
           git checkout dev
+          cd rnaseq/
+          awk 'NF' Flomics_master_params.yml library_prep_kit/smarter_SE_params.yml references/hg38_gencodev39_params.yml > params.yml
+          cd
       - name: Run pipeline with test data
         run: |
-          nextflow run ${GITHUB_WORKSPACE} -profile test_master,test_smarter_SE,awsbatch
+          nextflow run ${GITHUB_WORKSPACE} -profile test_master,test_smarter_SE,awsbatch -c ~/nextflow-configs/rnaseq/Flomics_master.configs -c ~/nextflow-configs/rnaseq/Flomics_master.configs -params file ~/nextflow-configs/rnaseq/params.yml
