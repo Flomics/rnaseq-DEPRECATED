@@ -25,7 +25,7 @@ for (col_index in column_indices) {
 
   # calculate
   genes_count <- sapply(percentages, function(percent) {
-    threshold <- percent / 100 * sum(col_values)
+    threshold <- (percent / 100) * sum(col_values)
     length(which(cumsum(col_values) <= threshold)) + 1
   })
 
