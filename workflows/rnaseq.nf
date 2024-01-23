@@ -842,7 +842,7 @@ workflow RNASEQ {
 
     ch_Flomics_UMI_dedup_rate_QC = Channel.empty()
 
-    if (params.with_umi) {
+    if (!params.skip_alignment && params.with_umi) {
         ch_bams_umi_dedup= DEDUP_UMI_UMITOOLS_TRANSCRIPTOME.out.bam.join(ALIGN_STAR.out.bam_transcript)
 
         FLOMICS_UMI_DEDUP_QC (
@@ -850,7 +850,7 @@ workflow RNASEQ {
         )
         ch_Flomics_UMI_dedup_rate_QC = FLOMICS_UMI_DEDUP_QC.out.umi_dedup_rate.collect()
     }
-    if (params.with_umi) {
+    if (!params.skip_alignment && params.with_umi) {
         FLOMICS_QC (
             ch_input,
             MULTIQC.out.data.collect(),
@@ -867,7 +867,7 @@ workflow RNASEQ {
             QUANTIFY_STAR_SALMON.out.counts_gene
         )
     }
-    else{
+    if (!params.skip_alignment && !params.with_umi) {
         FLOMICS_QC (
             ch_input,
             MULTIQC.out.data.collect(),
