@@ -45,7 +45,7 @@ if (!params.skip_bbsplit && !params.bbsplit_index && params.bbsplit_fasta_list) 
 def prepareToolIndices  = []
 if (!params.skip_bbsplit)   { prepareToolIndices << 'bbsplit'             }
 if (!params.skip_alignment) { prepareToolIndices << params.aligner        }
-if (params.pseudo_aligner)  { prepareToolIndices << params.pseudo_aligner }
+if (!params.skip_pseudo_alignment && params.pseudo_aligner) { prepareToolIndices << params.pseudo_aligner }
 
 // Get RSeqC modules to run
 def rseqc_modules = params.rseqc_modules ? params.rseqc_modules.split(',').collect{ it.trim().toLowerCase() } : []
@@ -748,27 +748,36 @@ workflow RNASEQ {
     ch_salmon_multiqc                   = Channel.empty()
     ch_pseudoaligner_pca_multiqc        = Channel.empty()
     ch_pseudoaligner_clustering_multiqc = Channel.empty()
-    if (params.pseudo_aligner == 'salmon') {
-        QUANTIFY_SALMON (
-            ch_filtered_reads,
-            PREPARE_GENOME.out.salmon_index,
-            ch_dummy_file,
-            PREPARE_GENOME.out.gtf,
-            false,
-            params.salmon_quant_libtype ?: ''
-        )
-        ch_salmon_multiqc = QUANTIFY_SALMON.out.results
-        ch_versions = ch_versions.mix(QUANTIFY_SALMON.out.versions)
+    if (!params.skip_pseudo_alignment && params.pseudo_aligner) {
 
-        if (!params.skip_qc & !params.skip_deseq2_qc) {
-            DESEQ2_QC_SALMON (
-                QUANTIFY_SALMON.out.counts_gene_length_scaled,
-                ch_pca_header_multiqc,
-                ch_clustering_header_multiqc
+        if (params.pseudo_aligner == 'salmon') {
+            ch_pseudo_index = PREPARE_GENOME.out.salmon_index
+        } else {
+            ch_pseudo_index = PREPARE_GENOME.out.kallisto_index
+        }
+
+        if (params.pseudo_aligner == 'salmon') {
+            QUANTIFY_SALMON (
+                ch_filtered_reads,
+                PREPARE_GENOME.out.salmon_index,
+                ch_dummy_file,
+                PREPARE_GENOME.out.gtf,
+                false,
+                params.salmon_quant_libtype ?: ''
             )
-            ch_pseudoaligner_pca_multiqc        = DESEQ2_QC_SALMON.out.pca_multiqc
-            ch_pseudoaligner_clustering_multiqc = DESEQ2_QC_SALMON.out.dists_multiqc
-            ch_versions = ch_versions.mix(DESEQ2_QC_SALMON.out.versions)
+            ch_salmon_multiqc = QUANTIFY_SALMON.out.results
+            ch_versions = ch_versions.mix(QUANTIFY_SALMON.out.versions)
+
+            if (!params.skip_qc & !params.skip_deseq2_qc) {
+                DESEQ2_QC_SALMON (
+                    QUANTIFY_SALMON.out.counts_gene_length_scaled,
+                    ch_pca_header_multiqc,
+                    ch_clustering_header_multiqc
+                )
+                ch_pseudoaligner_pca_multiqc        = DESEQ2_QC_SALMON.out.pca_multiqc
+                ch_pseudoaligner_clustering_multiqc = DESEQ2_QC_SALMON.out.dists_multiqc
+                ch_versions = ch_versions.mix(DESEQ2_QC_SALMON.out.versions)
+            }
         }
     }
 

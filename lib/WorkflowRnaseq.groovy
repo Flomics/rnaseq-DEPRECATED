@@ -36,6 +36,12 @@ class WorkflowRnaseq {
             transcriptsFastaWarn(log)
         }
 
+        if (!params.skip_pseudo_alignment && params.pseudo_aligner) {
+            if (!(params.salmon_index || params.transcript_fasta || (params.fasta && (params.gtf || params.gff)))) {
+                Nextflow.error("To use `--pseudo_aligner 'salmon'`, you must provide either --salmon_index or --transcript_fasta or both --fasta and --gtf / --gff.")
+            }
+        }
+
         if (!params.skip_bbsplit && !params.bbsplit_index && !params.bbsplit_fasta_list) {
             log.error "Please provide either --bbsplit_fasta_list / --bbsplit_index to run BBSplit."
             System.exit(1)
