@@ -46,16 +46,7 @@ class WorkflowRnaseq {
             System.exit(1)
         }
 
-        if (!params.skip_alignment) {
-            if (!valid_params['aligners'].contains(params.aligner)) {
-                log.error "Invalid option: '${params.aligner}'. Valid options for '--aligner': ${valid_params['aligners'].join(', ')}."
-                System.exit(1)
-            }
-        } else {
-            if (!params.pseudo_aligner) {
-                log.error "--skip_alignment specified without --pseudo_aligner...please specify e.g. --pseudo_aligner ${valid_params['pseudoaligners'][0]}."
-                System.exit(1)
-            }
+        if (params.skip_alignment) {
             skipAlignmentWarn(log)
         }
 
