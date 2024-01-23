@@ -38,7 +38,8 @@ class WorkflowRnaseq {
 
         if (!params.skip_pseudo_alignment && params.pseudo_aligner) {
             if (!(params.salmon_index || params.transcript_fasta || (params.fasta && (params.gtf || params.gff)))) {
-                Nextflow.error("To use `--pseudo_aligner 'salmon'`, you must provide either --salmon_index or --transcript_fasta or both --fasta and --gtf / --gff.")
+                log.error "To use `--pseudo_aligner 'salmon'`, you must provide either --salmon_index or --transcript_fasta or both --fasta and --gtf / --gff."
+                System.exit(1)
             }
         }
 
