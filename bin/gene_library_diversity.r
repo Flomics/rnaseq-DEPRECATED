@@ -22,6 +22,8 @@ percentages <- c(1, 5, 10, 50, 80)
 for (col_index in column_indices) {
   col_name <- column_names[col_index]
   col_values <- count_matrix[, col_index]
+  col_values <- col_values[!is.na(col_values)]
+  col_values <- col_values[order(col_values, decreasing=TRUE)]
 
   # calculate
   genes_count <- sapply(percentages, function(percent) {
