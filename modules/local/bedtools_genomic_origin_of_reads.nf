@@ -31,8 +31,10 @@ process BEDTOOLS_GENOMIC_ORIGIN_OF_READS {
     //     strandedness = 'strand-specific-reverse'
     // }
     '''
+    awk '$3 == "exon"' !{gtf} > filtered_annotation_exon.gtf
+
     #bedtools and samtools to extract reads mapping to exons
-    bedtools intersect -abam !{bam} -b "!{gtf} -wa -u | samtools view -F 4 - | cut -f 1 | sort | uniq -c > reads_in_exons.txt
+    bedtools intersect -abam !{bam} -b filtered_annotaion_exon.gtf -wa -u | samtools view -F 0x04 - | cut -f 1 | sort | uniq -c > reads_in_exons.txt
     '''
     //unset DISPLAY
     // mkdir tmp
