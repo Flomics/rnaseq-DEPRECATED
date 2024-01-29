@@ -36,7 +36,7 @@ process BEDTOOLS_GENOMIC_ORIGIN_OF_READS {
     #bedtools and samtools to extract reads mapping to exons
     bedtools intersect -abam !{bam} -b filtered_annotaion_exon.gtf -wa -u | samtools view -F 0x04 - | cut -f 1 | sort | uniq -c > reads_in_exons.txt
 
-
+    samtools view -L <(awk '$3 == "exon" {print $1 "\t" $4 "\t" $5}' filtered_annotation.gtf) -b sub_SRR8492578.markdup.sorted.bam > filtered_reads_no_exon.bam
     '''
     //unset DISPLAY
     // mkdir tmp
