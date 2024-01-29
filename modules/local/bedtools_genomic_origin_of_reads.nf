@@ -31,15 +31,8 @@ process BEDTOOLS_GENOMIC_ORIGIN_OF_READS {
     //     strandedness = 'strand-specific-reverse'
     // }
     '''
-    #input files
-    bam_file=!{bam}
-    gtf_file=!{gtf}
-
-    #output file
-    output_file="reads_in_exons.txt"
-
     #bedtools and samtools to extract reads mapping to exons
-    bedtools intersect -abam "$bam_file" -b "$gtf_file" -wa -u | samtools view -F 4 - | cut -f 1 | sort | uniq -c > "$output_file"
+    bedtools intersect -abam !{bam} -b "!{gtf} -wa -u | samtools view -F 4 - | cut -f 1 | sort | uniq -c > reads_in_exons.txt
     '''
     //unset DISPLAY
     // mkdir tmp
