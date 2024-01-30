@@ -31,12 +31,25 @@ process BEDTOOLS_GENOMIC_ORIGIN_OF_READS {
     //     strandedness = 'strand-specific-reverse'
     // }
     '''
+    #take only exon records
     awk '$3 == "exon"' !{gtf} > filtered_annotation_exon.gtf
 
-    #bedtools and samtools to extract reads mapping to exons
-    bedtools intersect -abam !{bam} -b filtered_annotaion_exon.gtf -wa -u | samtools view -F 0x04 - | cut -f 1 | sort | uniq -c > reads_in_exons.txt
+    #name sort input bam
+    samtools sort -n !{bam} -o name_sorted.bam
 
-    samtools view -L <(awk '$3 == "exon" {print $1 "\t" $4 "\t" $5}' filtered_annotation.gtf) -b sub_SRR8492578.markdup.sorted.bam > filtered_reads_no_exon.bam
+    #bedtools and samtools to extract reads mapping to exons
+    bedtools intersect -abam name_sorted.bam -b filtered_annotaion_exon.gtf -wa -u | samtools view -F 0x04 - | cut -f 1 | sort | uniq -c > reads_in_exons.txt
+
+    #take those records that DO NOT map to exons
+    bedtools subtract -a name_sorted.bam -b <(awk '$3 == "exon" {print $1 "\t" $4 "\t" $5}' filtered_annotation.gtf) > filtered_reads_no_exon.bam
+
+    #extract gene locus coordinates
+    cat !{gtf} | extract_locus_coords.pl - > gencode.genes.bed
+
+    #bedtools and samtools to extract reads mapping to introns
+    bedtools intersect -abam filtered_reads_no_exon.bam -b gencode.genes.bed -wa -u | samtools view -F 0x04 - | cut -f 1 | sort | uniq -c > reads_in_introns.txt
+
+
     '''
     //unset DISPLAY
     // mkdir tmp
