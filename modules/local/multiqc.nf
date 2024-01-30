@@ -55,7 +55,7 @@ process MULTIQC {
 
     script:
     def args = task.ext.args ?: ''
-    def custom_config = params.multiqc_config ? "--config $multiqc_custom_config" : ''
+    def custom_config = params.multiqc_config ? "--config $multiqc_custom_config $multiqc_config" : "--config $multiqc_config"
     """
     multiqc \\
         -f \\
