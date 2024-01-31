@@ -12,13 +12,13 @@ gtf=$2
 sample=$3
 
 #take only exon records
-awk '$3 == "exon"' !{gtf} > filtered_annotation_exon.gtf
+awk '$3 == "exon"' "$gtf" > filtered_annotation_exon.gtf
 
 #name sort input bam
-samtools sort -n !{bam} -o name_sorted.bam
+samtools sort -n "$bam" -o name_sorted.bam
 
 #extract gene locus coordinates
-cat !{gtf} | extract_locus_coords.pl - > gencode.genes.bed
+cat "$gtf" | extract_locus_coords.pl - > gencode.genes.bed
 
 #mapped fragments
 samtools view -F4 name_sorted.bam | cut -f1 | sort | uniq > "${sample}_mapped_fragments.list.txt"
