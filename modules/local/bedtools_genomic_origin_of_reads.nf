@@ -10,6 +10,7 @@ process BEDTOOLS_GENOMIC_ORIGIN_OF_READS {
 
     output:
     tuple val(meta), path("*.txt"), emit: results
+    tuple val(meta), path("*.csv"), emit: table
     //path  "versions.yml"          , emit: versions
 
     when:
@@ -44,6 +45,18 @@ process BEDTOOLS_GENOMIC_ORIGIN_OF_READS {
     #intronic fragments (genic fragments that do not overlap exons)
     comm -3 !{meta.id}_genic_fragments.list.txt !{meta.id}_exonic_fragments.list.txt  > !{meta.id}_intronic_fragments.list.txt
 
+    #create the header for the csv file
+    echo "sample,Exonic,Intronic,Intergenic" > !{meta.id}_genomic_origin_of_reads.csv
+
+    #loop through the files and populate the output file
+    for file in !{meta.id}_{exonic,intronic,intergenic}_fragments.list.txt; do
+        sample_name=$(echo "$file" | cut -d'_' -f1)
+        lines=$(wc -l < "$file")
+        type=$(echo "$file" | cut -d'_' -f2 | cut -d'.' -f1)
+
+        #append to output file
+        echo "$sample_name,$(if [ "$type" == "exonic" ]; then echo $lines; else echo 0; fi),$(if [ "$type" == "intronic" ]; then echo $lines; else echo 0; fi),$(if [ "$type" == "intergenic" ]; then echo $lines; else echo 0; fi)" >> !{meta.id}_genomic_origin_of_reads.csv
+    done
     '''
 
     // """
