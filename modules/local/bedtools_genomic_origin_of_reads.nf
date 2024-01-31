@@ -49,14 +49,31 @@ process BEDTOOLS_GENOMIC_ORIGIN_OF_READS {
     echo "sample,Exonic,Intronic,Intergenic" > !{meta.id}_genomic_origin_of_reads.csv
 
     #loop through the files and populate the output file
-    for file in !{meta.id}_{exonic,intronic,intergenic}_fragments.list.txt; do
-        sample_name=$(echo "$file" | cut -d'_' -f1)
-        lines=$(wc -l < "$file")
-        type=$(echo "$file" | cut -d'_' -f2 | cut -d'.' -f1)
+    for sample_file in !{meta.id}_{exonic,intronic,intergenic}_fragments.list.txt; do
+        sample_name=$(echo "$sample_file" | cut -d'_' -f1)
 
-        #append to output file
-        echo "$sample_name,$(if [ "$type" == "exonic" ]; then echo $lines; else echo 0; fi),$(if [ "$type" == "intronic" ]; then echo $lines; else echo 0; fi),$(if [ "$type" == "intergenic" ]; then echo $lines; else echo 0; fi)" >> !{meta.id}_genomic_origin_of_reads.csv
+        # Initialize counts for each type
+        exonic_count=0
+        intronic_count=0
+        intergenic_count=0
+
+        # Loop through the files related to the current sample
+        for file in "${sample_name}"_{exonic,intronic,intergenic}_fragments.list.txt; do
+            lines=$(wc -l < "$file")
+            type=$(echo "$file" | cut -d'_' -f2 | cut -d'.' -f1)
+
+            # Aggregate counts for each type
+            case $type in
+                exonic) exonic_count="$lines" ;;
+                intronic) intronic_count="$lines" ;;
+                intergenic) intergenic_count="$lines" ;;
+            esac
+        done
+
+        # Append the data to the CSV file
+        echo "$sample_name,$exonic_count,$intronic_count,$intergenic_count" >> !{meta.id}_genomic_origin_of_reads.csv
     done
+
     '''
 
     // """
