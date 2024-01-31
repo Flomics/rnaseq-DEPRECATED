@@ -2,10 +2,7 @@ process BEDTOOLS_GENOMIC_ORIGIN_OF_READS {
     tag "$meta.id"
     label 'process_medium'
 
-    conda (params.enable_conda ? "bioconda::bedtools=2.30.0" : null)
-    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-        'https://depot.galaxyproject.org/singularity/bedtools:2.30.0--hc088bd4_0' :
-        'quay.io/biocontainers/bedtools:2.30.0--hc088bd4_0' }"
+    container "flomicsbiotech/flomics_qc_rnaseq:dev"
 
     input:
     tuple val(meta), path(bam)
@@ -13,7 +10,7 @@ process BEDTOOLS_GENOMIC_ORIGIN_OF_READS {
 
     output:
     tuple val(meta), path("*.txt"), emit: results
-    path  "versions.yml"          , emit: versions
+    //path  "versions.yml"          , emit: versions
 
     when:
     task.ext.when == null || task.ext.when
