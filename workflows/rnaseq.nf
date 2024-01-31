@@ -697,7 +697,7 @@ workflow RNASEQ {
             PREPARE_GENOME.out.gtf
         )
         ch_bedtools_origin_reads_multiqc = BEDTOOLS_GENOMIC_ORIGIN_OF_READS.out.results
-        ch_versions = ch_versions.mix(BEDTOOLS_GENOMIC_ORIGIN_OF_READS.out.versions.first())
+        //ch_versions = ch_versions.mix(BEDTOOLS_GENOMIC_ORIGIN_OF_READS.out.versions.first())
 
         if (!params.skip_dupradar) {
             DUPRADAR (
