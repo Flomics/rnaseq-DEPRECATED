@@ -55,17 +55,33 @@ process MULTIQC {
 
     script:
     def args = task.ext.args ?: ''
-    def custom_config = params.multiqc_config ? "--config $multiqc_custom_config --config $multiqc_config" : "--config $multiqc_config"
-    """
-    multiqc \\
-        -f \\
-        $args \\
-        $custom_config \\
-        .
+    //def custom_config = params.multiqc_config ? "--config $multiqc_custom_config --config $multiqc_config" : "--config $multiqc_config"
+    if (params.multiqc_config) {
+        """
+        #Append user token to multiqc_config
+        cat $multiqc_custom_config >> $multiqc_config
+        multiqc \\
+            -f \\
+            $args \\
+            .
 
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        multiqc: \$( multiqc --version | sed -e "s/multiqc, version //g" )
-    END_VERSIONS
-    """
+        cat <<-END_VERSIONS > versions.yml
+        "${task.process}":
+            multiqc: \$( multiqc --version | sed -e "s/multiqc, version //g" )
+        END_VERSIONS
+        """
+    } else {
+        """
+        multiqc \\
+            -f \\
+            $args \\
+            .
+
+        cat <<-END_VERSIONS > versions.yml
+        "${task.process}":
+            multiqc: \$( multiqc --version | sed -e "s/multiqc, version //g" )
+        END_VERSIONS
+        """
+    }
+
 }
