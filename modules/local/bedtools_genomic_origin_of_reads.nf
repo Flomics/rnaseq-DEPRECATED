@@ -45,7 +45,7 @@ process BEDTOOLS_GENOMIC_ORIGIN_OF_READS {
     #intronic fragments (genic fragments that do not overlap exons)
     comm -3 !{meta.id}_genic_fragments.list.txt !{meta.id}_exonic_fragments.list.txt  > !{meta.id}_intronic_fragments.list.txt
 
-    #create the header for the csv file
+    #create the header for the csv output file
     echo "sample,Exonic,Intronic,Intergenic" > !{meta.id}_genomic_origin_of_reads.csv
 
     #variables for each field
