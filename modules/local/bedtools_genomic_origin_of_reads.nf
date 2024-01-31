@@ -20,7 +20,7 @@ process BEDTOOLS_GENOMIC_ORIGIN_OF_READS {
 
     script:
     """
-    bedtools_genomic_origin_of_reads.sh $bam $gtf $meta
+    bedtools_genomic_origin_of_reads.sh $bam $gtf $meta.id
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
