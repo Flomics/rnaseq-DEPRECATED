@@ -48,32 +48,14 @@ process BEDTOOLS_GENOMIC_ORIGIN_OF_READS {
     #create the header for the csv file
     echo "sample,Exonic,Intronic,Intergenic" > !{meta.id}_genomic_origin_of_reads.csv
 
-    #loop through the files and populate the output file
-    for sample_file in !{meta.id}_{exonic,intronic,intergenic}_fragments.list.txt; do
-        sample_name=$(echo "$sample_file" | cut -d'_' -f1)
+    #variables for each field
+    sample_name=!{meta.id}
+    exonic_count=$(wc -l < !{meta.id}_exonic_fragments.list.txt)
+    intronic_count=$(wc -l < !{meta.id}_intronic_fragments.list.txt)
+    intergenic_count=$(wc -l < !{meta.id}_intergenic_fragments.list.txt)
 
-        # Initialize counts for each type
-        exonic_count=0
-        intronic_count=0
-        intergenic_count=0
-
-        # Loop through the files related to the current sample
-        for file in "${sample_name}"_{exonic,intronic,intergenic}_fragments.list.txt; do
-            lines=$(wc -l < "$file")
-            type=$(echo "$file" | cut -d'_' -f2 | cut -d'.' -f1)
-
-            # Aggregate counts for each type
-            case $type in
-                exonic) exonic_count="$lines" ;;
-                intronic) intronic_count="$lines" ;;
-                intergenic) intergenic_count="$lines" ;;
-            esac
-        done
-
-        # Append the data to the CSV file
-        echo "$sample_name,$exonic_count,$intronic_count,$intergenic_count" >> !{meta.id}_genomic_origin_of_reads.csv
-    done
-
+    #populate csv
+    echo "$sample_name,$exonic_count,$intronic_count,$intergenic_count" >> !{meta.id}_genomic_origin_of_reads.csv
     '''
 
     // """
