@@ -21,9 +21,6 @@ process BEDTOOLS_GENOMIC_ORIGIN_OF_READS {
     #take only exon records
     awk '$3 == "exon"' !{gtf} > filtered_annotation_exon.gtf
 
-    #name sort input bam
-    #samtools sort -n !{bam} -o name_sorted.bam
-
     #extract gene locus coordinates
     cat !{gtf} | extract_locus_coords.pl - > gencode.genes.bed
 
