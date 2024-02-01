@@ -68,13 +68,4 @@ process BEDTOOLS_GENOMIC_ORIGIN_OF_READS {
     END_VERSIONS
 
     '''
-
-    // """
-    // bedtools_genomic_origin_of_reads.sh $bam $gtf $meta.id
-
-    // cat <<-END_VERSIONS > versions.yml
-    // "${task.process}":
-    //     bedtools: \$(bedtools --version | sed -e "s/bedtools v//g")
-    // END_VERSIONS
-    // """
 }
