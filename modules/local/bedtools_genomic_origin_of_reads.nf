@@ -66,6 +66,5 @@ process BEDTOOLS_GENOMIC_ORIGIN_OF_READS {
         bedtools: $(bedtools --version | sed -e "s/bedtools v//g")
         samtools: $(echo $(samtools --version 2>&1) | sed 's/^.*samtools //; s/Using.*$//')
     END_VERSIONS
-
     '''
 }
