@@ -11,7 +11,7 @@ process BEDTOOLS_GENOMIC_ORIGIN_OF_READS {
     output:
     tuple val(meta), path("*.txt"), emit: results
     tuple val(meta), path("*.csv"), emit: table
-    //path  "versions.yml"          , emit: versions
+    path  "versions.yml"          , emit: versions
 
     when:
     task.ext.when == null || task.ext.when
@@ -60,6 +60,13 @@ process BEDTOOLS_GENOMIC_ORIGIN_OF_READS {
 
     #populate csv
     echo "$sample_name,$exonic_count,$intronic_count,$intergenic_count,$exonic_percentage,$intronic_percentage,$intergenic_percentage" >> !{meta.id}_genomic_origin_of_reads.csv
+
+    cat <<-END_VERSIONS > versions.yml
+    !{task.process}:
+        bedtools: $(bedtools --version | sed -e "s/bedtools v//g")
+        samtools: $(echo $(samtools --version 2>&1) | sed 's/^.*samtools //; s/Using.*$//')
+    END_VERSIONS
+
     '''
 
     // """
