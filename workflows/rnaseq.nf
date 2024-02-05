@@ -882,7 +882,8 @@ workflow RNASEQ {
             ch_spike_in_concentration,
             QUANTIFY_STAR_SALMON.out.tpm_gene,
             ch_qc_dashboard,
-            QUANTIFY_STAR_SALMON.out.counts_gene
+            QUANTIFY_STAR_SALMON.out.counts_gene,
+            ch_bedtools_origin_reads.collect()
 
         )
     }
