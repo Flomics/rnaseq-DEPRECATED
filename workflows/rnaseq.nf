@@ -864,7 +864,7 @@ workflow RNASEQ {
             QUANTIFY_STAR_SALMON.out.tpm_gene,
             ch_qc_dashboard,
             QUANTIFY_STAR_SALMON.out.counts_gene,
-            ch_bedtools_origin_reads.collect()
+            BEDTOOLS_GENOMIC_ORIGIN_OF_READS.out.table.collect{it[1]}
 
         )
     }
@@ -883,7 +883,7 @@ workflow RNASEQ {
             QUANTIFY_STAR_SALMON.out.tpm_gene,
             ch_qc_dashboard,
             QUANTIFY_STAR_SALMON.out.counts_gene,
-            ch_bedtools_origin_reads.collect()
+            BEDTOOLS_GENOMIC_ORIGIN_OF_READS.out.table.collect{it[1]}
 
         )
     }
