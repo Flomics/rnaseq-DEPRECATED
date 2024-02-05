@@ -18,6 +18,7 @@ process FLOMICS_QC_AGGREGATOR{
     path library_balance_data
     path fastqc_files
     path spike_in_qc
+    path bedtools_genomic_origin_of_reads
 
     output:
     path "QC_table.tsv", emit: flomics_report
@@ -129,6 +130,16 @@ process FLOMICS_QC_AGGREGATOR{
     echo -e "Sample\tExonic\tIntronic\tIntergenic\tExonic_percentage\tIntronic_percentage\tIntergenic_percentage" > qualimap_QC.tsv
     tail -n +2 multiqc_data/mqc_qualimap_genomic_origin_1.txt | awk '{print $0"\t"$2/($2+$3+$4)*100"\t"$3/($2+$3+$4)*100"\t"$4/($2+$3+$4)*100'} | sort -k1,1 >> qualimap_QC.tsv
 
+    echo -e "Sample\tExonic\tIntronic\tIntergenic\tExonic_percentage\tIntronic_percentage\tIntergenic_percentage" > bedtools_goor.tsv
+    while IFS= read -r sample; do
+        if test -f "${sample}_genomic_origin_of_reads.tsv"; then
+            tail -n +2 ${sample}_genomic_origin_of_reads.tsv | sed "s/^/$sample\t/" >> bedtools_goor.tsv
+        else
+            echo -e "$sample\tNA\tNA\tNA\tNA\tNA\tNA" >> bedtools_goor.tsv
+        fi
+    done < samples.tsv
+
+
     echo -e "Sample\ttotal_reads\tavg_input_read_length\tnumber_of_uniquely_mapped_reads\tpercentage_of_uniquely_mapped_reads\tavg_mapped_read_length\tnumber_of_multimapped_reads\tpercentage_of_unmapped_too_short_reads\tmapped_percentage\taverage_mapped_length_percentage" > STAR_QC.tsv
     tail -n +2  multiqc_data/multiqc_star.txt | cut -f1,2,3,4,5,6,18,23 | awk '{print $0"\t"($4+$7)/$2*100"\t"($6/$3)*100}' | sort -k1,1 >> STAR_QC.tsv
 
@@ -137,7 +148,7 @@ process FLOMICS_QC_AGGREGATOR{
 
     echo -e "Sample\tReads_mapping_sense_percentage\tReads_mapping_antisense_percentage\tReads_undetermined_strandedness_percentage" > strandedness_library_prep.tsv
     tail -n +2 multiqc_data/mqc_rseqc_infer_experiment_plot_1.txt | cut -f 1,2,3,4 | sort -k1,1 >> strandedness_library_prep.tsv
-    
+
     awk '{print $1"\t"$2"\t"$3"\t"$4}' correlation_coefs.tsv | head -n 1 > new_corr.tsv
     awk '{print $1"\t"$2"\t"$3"\t"$4}' correlation_coefs.tsv | tail -n+2 | sort -k1,1 >> new_corr.tsv
 
@@ -147,6 +158,7 @@ process FLOMICS_QC_AGGREGATOR{
     join -t $'\t' -j 1 -  STAR_QC.tsv  | \\
     join -t $'\t' -j 1 -  UMI_dedup_grouped.tsv  | \\
     join -t $'\t' -j 1 -  qualimap_QC.tsv  | \\
+    join -t $'\t' -j 1 -  bedtools_goor.tsv  | \\
     join -t $'\t' -j 1 -  splicedReads_grouped.stats.tsv | \\
     join -t $'\t' -j 1 -  spliceJunctions_grouped.stats.tsv | \\
     join -t $'\t' -j 1 -  Junction_saturation.tsv | \\

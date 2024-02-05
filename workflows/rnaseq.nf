@@ -696,7 +696,7 @@ workflow RNASEQ {
             ch_genome_bam,
             PREPARE_GENOME.out.gtf
         )
-        ch_bedtools_origin_reads_multiqc = BEDTOOLS_GENOMIC_ORIGIN_OF_READS.out.results
+        ch_bedtools_origin_reads = BEDTOOLS_GENOMIC_ORIGIN_OF_READS.out.table
         ch_versions = ch_versions.mix(BEDTOOLS_GENOMIC_ORIGIN_OF_READS.out.versions.first())
 
         if (!params.skip_dupradar) {
@@ -863,7 +863,9 @@ workflow RNASEQ {
             ch_spike_in_concentration,
             QUANTIFY_STAR_SALMON.out.tpm_gene,
             ch_qc_dashboard,
-            QUANTIFY_STAR_SALMON.out.counts_gene
+            QUANTIFY_STAR_SALMON.out.counts_gene,
+            ch_bedtools_origin_reads.collect()
+
         )
     }
     else{
