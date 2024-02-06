@@ -56,7 +56,7 @@ process BEDTOOLS_GENOMIC_ORIGIN_OF_READS {
     intergenic_percentage=$(echo "scale=2; ($intergenic_count / $total) * 100" | bc)
 
     #populate csv
-    echo "$sample_name\t$exonic_count\t$intronic_count\$intergenic_count\t$exonic_percentage\t$intronic_percentage\t$intergenic_percentage" >> !{meta.id}_genomic_origin_of_reads.tsv
+    echo "$sample_name\t$exonic_count\t$intronic_count\t$intergenic_count\t$exonic_percentage\t$intronic_percentage\t$intergenic_percentage" >> !{meta.id}_genomic_origin_of_reads.tsv
 
     cat <<-END_VERSIONS > versions.yml
     !{task.process}:
