@@ -130,7 +130,7 @@ process FLOMICS_QC_AGGREGATOR{
     echo -e "Sample\tExonic\tIntronic\tIntergenic\tExonic_percentage\tIntronic_percentage\tIntergenic_percentage" > qualimap_QC.tsv
     tail -n +2 multiqc_data/mqc_qualimap_genomic_origin_1.txt | awk '{print $0"\t"$2/($2+$3+$4)*100"\t"$3/($2+$3+$4)*100"\t"$4/($2+$3+$4)*100'} | sort -k1,1 >> qualimap_QC.tsv
 
-    echo -e "Sample\tExonic\tIntronic\tIntergenic\tExonic_percentage\tIntronic_percentage\tIntergenic_percentage" > bedtools_goor.tsv
+    echo -e "Sample\tExonic\tIntronic\tIntergenic\tExonic_percentage\tIntronic_percentage\tIntergenic_percentage\tMapped_fragments" > bedtools_goor.tsv
     while IFS= read -r sample; do
         if test -f "${sample}_genomic_origin_of_reads.tsv"; then
             tail -n +2 ${sample}_genomic_origin_of_reads.tsv | sed "s/^/$sample\t/" >> bedtools_goor.tsv

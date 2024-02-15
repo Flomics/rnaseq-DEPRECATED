@@ -43,7 +43,7 @@ process BEDTOOLS_GENOMIC_ORIGIN_OF_READS {
     comm -3 !{meta.id}_genic_fragments.list.txt !{meta.id}_exonic_fragments.list.txt  > !{meta.id}_intronic_fragments.list.txt
 
     #create the header for the csv output file
-    echo "Exonic\tIntronic\tIntergenic\texonic_percentage\tintronic_percentage\tintergenic_percentage" > !{meta.id}_genomic_origin_of_reads.tsv
+    echo "Exonic\tIntronic\tIntergenic\texonic_percentage\tintronic_percentage\tintergenic_percentage\tmapped_fragments" > !{meta.id}_genomic_origin_of_reads.tsv
 
     #variables for each field
     sample_name=!{meta.id}
@@ -54,9 +54,10 @@ process BEDTOOLS_GENOMIC_ORIGIN_OF_READS {
     exonic_percentage=$(echo "scale=2; ($exonic_count / $total) * 100" | bc)
     intronic_percentage=$(echo "scale=2; ($intronic_count / $total) * 100" | bc)
     intergenic_percentage=$(echo "scale=2; ($intergenic_count / $total) * 100" | bc)
+    mapped_fragments=$(wc -l < !{meta.id}_mapped_fragments.list.txt)
 
     #populate csv
-    echo "$exonic_count\t$intronic_count\t$intergenic_count\t$exonic_percentage\t$intronic_percentage\t$intergenic_percentage" >> !{meta.id}_genomic_origin_of_reads.tsv
+    echo "$exonic_count\t$intronic_count\t$intergenic_count\t$exonic_percentage\t$intronic_percentage\t$intergenic_percentage\tmapped_fragments" >> !{meta.id}_genomic_origin_of_reads.tsv
 
     cat <<-END_VERSIONS > versions.yml
     !{task.process}:
