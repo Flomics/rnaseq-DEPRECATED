@@ -22,7 +22,7 @@ for mqc_file in *_mqc.yaml; do
 done
 
 # Append the closing part to the temporary file
-echo "}" >> "$temp_file"
+#echo "}" >> "$temp_file"
 
 # Save to the output file
 cp "$temp_file" "$output_file"

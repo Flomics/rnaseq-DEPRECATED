@@ -839,7 +839,8 @@ workflow RNASEQ {
             ch_readduplication_multiqc.collect{it[1]}.ifEmpty([]),
             ch_tin_multiqc.collect{it[1]}.ifEmpty([]),
             ch_kraken2_multiqc.ifEmpty([]),
-            ch_bedtools_goor_tsv_mqc.collect{it[1]}.ifEmpty([])
+            GENOMIC_ORIGIN_OF_READS_YAML.out.mqc_genomic_origin_of_reads
+            //ch_bedtools_goor_tsv_mqc.collect{it[1]}.ifEmpty([])
         )
 
     }
