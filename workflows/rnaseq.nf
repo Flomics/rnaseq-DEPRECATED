@@ -703,7 +703,7 @@ workflow RNASEQ {
         ch_versions = ch_versions.mix(BEDTOOLS_GENOMIC_ORIGIN_OF_READS.out.versions.first())
 
         GENOMIC_ORIGIN_OF_READS_YAML (
-            BEDTOOLS_GENOMIC_ORIGIN_OF_READS.out.mqc_bedtools_goor.collect(),
+            BEDTOOLS_GENOMIC_ORIGIN_OF_READS.out.mqc_bedtools_goor_yaml.collect(),
             ch_genomic_origin_of_reads_yaml_header
         )
 
