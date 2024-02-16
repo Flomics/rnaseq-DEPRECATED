@@ -18,5 +18,6 @@ process GENOMIC_ORIGIN_OF_READS_YAML {
     cp $header tmp/
     cd tmp/
     bash make_yaml.sh
+    cp tmp/genomic_origin_of_reads_mqc.yaml .
     """
 }
