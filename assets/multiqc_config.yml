@@ -27,6 +27,14 @@ run_modules:
   - qualimap
   - kraken
 
+#skip_generalstats: true
+
+section_comments:
+  samtools: "WARNING! Those stats are calculated on the TRANSCRIPTOME BAM file, thus the inconsistency with STAR reported stats."
+  general_stats_table: "WARNING! Some of those stats are calculated on the TRANSCRIPTOME BAM file, thus the inconsistency with STAR reported stats."
+  generalstats: "WARNING! Some of those stats are calculated on the TRANSCRIPTOME BAM file, thus the inconsistency with STAR reported stats."
+
+
 # Order of modules
 top_modules:
   - "fail_trimmed_samples"
