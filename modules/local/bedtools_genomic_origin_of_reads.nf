@@ -63,7 +63,7 @@ process BEDTOOLS_GENOMIC_ORIGIN_OF_READS {
 
 
     #create yaml for MultiQC
-    echo "$sample_name: {Exonic: $exonic_count, Intronic: $intronic_count, Intergenic: $intergenic_count}" > !{meta.id}_genomic_origin_of_reads_mqc.yaml
+    #echo -e "$sample_name: {Exonic: $exonic_count, Intronic: $intronic_count, Intergenic: $intergenic_count}" > !{meta.id}_genomic_origin_of_reads_mqc.yaml
 
     #create another tsv for MultiQC
     echo -e "Exonic\t$exonic_count" > !{meta.id}_bedtools_mqc.tsv
