@@ -699,7 +699,6 @@ workflow RNASEQ {
             PREPARE_GENOME.out.gtf
         )
         ch_bedtools_origin_reads = BEDTOOLS_GENOMIC_ORIGIN_OF_READS.out.table
-        ch_bedtools_goor_tsv_mqc = BEDTOOLS_GENOMIC_ORIGIN_OF_READS.out.mqc_bedtools_goor
         ch_versions = ch_versions.mix(BEDTOOLS_GENOMIC_ORIGIN_OF_READS.out.versions.first())
 
         GENOMIC_ORIGIN_OF_READS_YAML (
@@ -840,7 +839,6 @@ workflow RNASEQ {
             ch_tin_multiqc.collect{it[1]}.ifEmpty([]),
             ch_kraken2_multiqc.ifEmpty([]),
             GENOMIC_ORIGIN_OF_READS_YAML.out.mqc_genomic_origin_of_reads
-            //ch_bedtools_goor_tsv_mqc.collect{it[1]}.ifEmpty([])
         )
 
     }

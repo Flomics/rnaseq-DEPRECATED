@@ -11,7 +11,6 @@ process BEDTOOLS_GENOMIC_ORIGIN_OF_READS {
     output:
     tuple val(meta), path("*.txt"), emit: results
     tuple val(meta), path("*_genomic_origin_of_reads.tsv"), emit: table
-    tuple val(meta), path("*bedtools_mqc.tsv"), emit: mqc_bedtools_goor
     tuple val(meta), path("*_mqc.yaml"), emit: mqc_bedtools_goor_yaml
     path  "versions.yml"          , emit: versions
 
@@ -61,14 +60,8 @@ process BEDTOOLS_GENOMIC_ORIGIN_OF_READS {
     #populate csv
     echo "$exonic_count\t$intronic_count\t$intergenic_count\t$exonic_percentage\t$intronic_percentage\t$intergenic_percentage\tmapped_fragments" >> !{meta.id}_genomic_origin_of_reads.tsv
 
-
     #create yaml for MultiQC
     echo -e "$sample_name: {Exonic: $exonic_count, Intronic: $intronic_count, Intergenic: $intergenic_count}" > !{meta.id}_genomic_origin_of_reads_mqc.yaml
-
-    #create another tsv for MultiQC
-    echo -e "Exonic\t$exonic_count" > !{meta.id}_bedtools_mqc.tsv
-    echo -e "Intronic\t$intronic_count" >> !{meta.id}_bedtools_mqc.tsv
-    echo -e "Intergenic\t$intergenic_count" >> !{meta.id}_bedtools_mqc.tsv
 
     cat <<-END_VERSIONS > versions.yml
     !{task.process}:
