@@ -26,16 +26,16 @@ process BEDTOOLS_GENOMIC_ORIGIN_OF_READS {
     cat !{gtf} | extract_locus_coords.pl - > gencode.genes.bed
 
     #mapped fragments
-    samtools view -F4 !{bam} | cut -f1 | sort | uniq > !{meta.id}_mapped_fragments.list.txt
+    samtools view -F2304 !{bam} | cut -f1 | sort | uniq > !{meta.id}_mapped_fragments.list.txt
 
     #exonic fragments.
     #Do not take strandedness into account for simplicity. If we did, we would need to take the library type into account (e.g. only read#2 should match the strand in SMARTEr libraries)
     #Use -split to avoid taking into account gaps in spliced alignments
     # takes about 1.3Gb of mem without the -sorted option
-    bedtools intersect -split -abam !{bam} -b filtered_annotation_exon.gtf -wa -u  | samtools view -F4 - | cut -f1 | sort | uniq > !{meta.id}_exonic_fragments.list.txt
+    bedtools intersect -split -abam !{bam} -b filtered_annotation_exon.gtf -wa -u  | samtools view -F2304 - | cut -f1 | sort | uniq > !{meta.id}_exonic_fragments.list.txt
 
     #genic fragments
-    bedtools intersect -split -abam !{bam} -b gencode.genes.bed -wa -u  | samtools view -F4 - | cut -f1 | sort | uniq > !{meta.id}_genic_fragments.list.txt
+    bedtools intersect -split -abam !{bam} -b gencode.genes.bed -wa -u  | samtools view -F2304 - | cut -f1 | sort | uniq > !{meta.id}_genic_fragments.list.txt
 
     #intergenic fragments (mapped reads that do not overlap genic regions)
     comm -3 !{meta.id}_mapped_fragments.list.txt !{meta.id}_genic_fragments.list.txt > !{meta.id}_intergenic_fragments.list.txt
