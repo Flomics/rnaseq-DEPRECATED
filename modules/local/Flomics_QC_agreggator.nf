@@ -60,6 +60,9 @@ process FLOMICS_QC_AGGREGATOR{
     cat tmp.biotype_table.tsv | head -n 1 > biotype_table.tsv
     cat tmp.biotype_table.tsv | tail -n+2 | sort -k1,1 >> biotype_table.tsv
 
+    #Normalize the qualimap provided coverage
+    normalize_qualimap_coverage.sh multiqc_data/qualimap_rnaseq_cov_hist.txt multiqc_data/mqc_qualimap_gene_coverage_profile_Normalised.txt
+
     rm -f tmp.read_coverage_uniformity_score.tsv
     gene_coverage_profile_calculation.r #Calculates the gene coverage profile
     cat tmp.read_coverage_uniformity_score.tsv | head -n 1 > read_coverage_uniformity_score.tsv
