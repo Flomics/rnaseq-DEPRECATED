@@ -124,7 +124,7 @@ process FLOMICS_QC_AGGREGATOR{
     cat tmp.cutadapt_QC.tsv | sort -k1,1 >> cutadapt_QC.tsv
 
     echo -e "Sample\tExonic\tIntronic\tIntergenic\tExonic_percentage\tIntronic_percentage\tIntergenic_percentage" > qualimap_QC.tsv
-    tail -n +2 multiqc_data/mqc_qualimap_genomic_origin_1.txt | awk '{print $0"\t"$2/($2+$3+$4)*100"\t"$3/($2+$3+$4)*100"\t"$4/($2+$3+$4)*100'} | sort -k1,1 >> qualimap_QC.tsv
+    tail -n +2 multiqc_data/qualimap_rnaseq_genome_results.txt | awk '{print $0"\t"$2/($2+$3+$4)*100"\t"$3/($2+$3+$4)*100"\t"$4/($2+$3+$4)*100'} | sort -k1,1 >> qualimap_QC.tsv
 
     echo -e "Sample\ttotal_reads\tavg_input_read_length\tnumber_of_uniquely_mapped_reads\tpercentage_of_uniquely_mapped_reads\tavg_mapped_read_length\tnumber_of_multimapped_reads\tpercentage_of_unmapped_too_short_reads\tmapped_percentage\taverage_mapped_length_percentage" > STAR_QC.tsv
     tail -n +2  multiqc_data/multiqc_star.txt | cut -f1,2,3,4,5,6,18,23 | awk '{print $0"\t"($4+$7)/$2*100"\t"($6/$3)*100}' | sort -k1,1 >> STAR_QC.tsv
