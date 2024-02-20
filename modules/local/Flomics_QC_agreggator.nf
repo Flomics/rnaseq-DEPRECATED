@@ -130,10 +130,10 @@ process FLOMICS_QC_AGGREGATOR{
     tail -n +2  multiqc_data/multiqc_star.txt | cut -f1,2,3,4,5,6,18,23 | awk '{print $0"\t"($4+$7)/$2*100"\t"($6/$3)*100}' | sort -k1,1 >> STAR_QC.tsv
 
     echo -e "Sample\tJunction_saturation_slope" > Junction_saturation.tsv
-    tail -n +2 multiqc_data/mqc_rseqc_junction_saturation_plot_All_Junctions.txt | cut -f1,21,20  | awk '{print $1"\t"($3-$2)/$3*100}' | sort -k1,1 >> Junction_saturation.tsv
+    tail -n +2 multiqc_data/multiqc_rseqc_junction_annotation.txt | cut -f1,21,20  | awk '{print $1"\t"($3-$2)/$3*100}' | sort -k1,1 >> Junction_saturation.tsv
 
     echo -e "Sample\tReads_mapping_sense_percentage\tReads_mapping_antisense_percentage\tReads_undetermined_strandedness_percentage" > strandedness_library_prep.tsv
-    tail -n +2 multiqc_data/mqc_rseqc_infer_experiment_plot_1.txt | cut -f 1,2,3,4 | sort -k1,1 >> strandedness_library_prep.tsv
+    tail -n +2 multiqc_data/multiqc_rseqc_infer_experiment.txt | cut -f 1,2,3,4 | sort -k1,1 >> strandedness_library_prep.tsv
 
     awk '{print $1"\t"$2"\t"$3"\t"$4}' correlation_coefs.tsv | head -n 1 > new_corr.tsv
     awk '{print $1"\t"$2"\t"$3"\t"$4}' correlation_coefs.tsv | tail -n+2 | sort -k1,1 >> new_corr.tsv
