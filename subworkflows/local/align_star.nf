@@ -2,7 +2,7 @@
 // Alignment with STAR
 //
 
-include { STAR_ALIGN          } from '../../modules/nf-core/modules/star/align/main'
+include { STAR_ALIGN          } from '../../modules/nf-core/star/align/main'
 include { STAR_ALIGN_IGENOMES } from '../../modules/local/star_align_igenomes'
 include { BAM_SORT_SAMTOOLS   } from '../nf-core/bam_sort_samtools'
 
@@ -11,7 +11,7 @@ workflow ALIGN_STAR {
     reads               // channel: [ val(meta), [ reads ] ]
     index               // channel: /path/to/star/index/
     gtf                 // channel: /path/to/genome.gtf
-    star_ignore_sjdbgtf // boolean: when using pre-built STAR indices do not re-extract and use splice junctions from the GTF file 
+    star_ignore_sjdbgtf // boolean: when using pre-built STAR indices do not re-extract and use splice junctions from the GTF file
     seq_platform        // string : sequencing platform
     seq_center          // string : sequencing center
     is_aws_igenome      // boolean: whether the genome files are from AWS iGenomes
