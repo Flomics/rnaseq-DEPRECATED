@@ -104,6 +104,7 @@ ch_qc_dashboard = file ("$projectDir/bin/qc_dashboard.Rmd", checkIfExists: true)
 //
 // MODULE: Loaded from modules/local/
 //
+include { BIOTYPE_DISTRIBUTION               } from '../modules/local/biotype_distribution.nf'
 include { UMITOOLS_PREPAREFORRSEM            } from '../modules/local/umitools_prepareforrsem.nf'
 include { BEDTOOLS_GENOMECOV                 } from '../modules/local/bedtools_genomecov'
 include { DESEQ2_QC as DESEQ2_QC_STAR_SALMON } from '../modules/local/deseq2_qc'
@@ -690,6 +691,12 @@ workflow RNASEQ {
             ch_qualimap_multiqc = QUALIMAP_RNASEQ.out.results
             ch_versions = ch_versions.mix(QUALIMAP_RNASEQ.out.versions.first())
         }
+
+        BIOTYPE_DISTRIBUTION (
+            ch_genome_bam,
+            PREPARE_GENOME.out.gtf
+        )
+        ch_biotype_distribution = BIOTYPE_DISTRIBUTION.out.results
 
         if (!params.skip_dupradar) {
             DUPRADAR (
