@@ -135,8 +135,7 @@ process FLOMICS_QC_AGGREGATOR{
     awk '{print $1"\t"$2"\t"$3"\t"$4}' correlation_coefs.tsv | head -n 1 > new_corr.tsv
     awk '{print $1"\t"$2"\t"$3"\t"$4}' correlation_coefs.tsv | tail -n+2 | sort -k1,1 >> new_corr.tsv
 
-    join -t $'\t' -j 1  samplenames.tsv  trackhub/trackhub_links.tsv | \\
-    join -t $'\t' -j 1 -  fastqc_QC.tsv | \\
+    join -t $'\t' -j 1  samplenames.tsv  fastqc_QC.tsv | \\
     join -t $'\t' -j 1 -  cutadapt_QC.tsv  | \\
     join -t $'\t' -j 1 -  STAR_QC.tsv  | \\
     join -t $'\t' -j 1 -  UMI_dedup_grouped.tsv  | \\
