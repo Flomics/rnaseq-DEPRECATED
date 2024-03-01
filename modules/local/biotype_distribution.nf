@@ -16,7 +16,7 @@ process BIOTYPE_DISTRIBUTION {
 
     shell:
     '''
-    ### read distribution by biotype
+    # read distribution by biotype
 
     # get exon records from gencode gtf
     awk '$3 == "exon"' !{gtf} > filtered_annotation_exon.gtf
