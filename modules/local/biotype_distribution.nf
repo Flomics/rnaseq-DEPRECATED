@@ -38,7 +38,7 @@ process BIOTYPE_DISTRIBUTION {
     exit 1
     fi
 
-    bedtools intersect -split -abam !{meta.id}/!{meta.id}.umi_dedup.sorted.-F2304.bam -b filtered_annotation_exon.gtf -wo -bed | perl -F'\\t' -slane 'chomp; $F[3]=~s/\/(?:1|2)$//; if($_=~/gene_type "(\S+)";/) {print "$F[3]\t$1"} else{die "No gene_type attribute found, cannot continue."}' | sort|uniq > tmp
+    bedtools intersect -split -abam !{meta.id}/!{meta.id}.umi_dedup.sorted.-F2304.bam -b filtered_annotation_exon.gtf -wo -bed | perl -F'\\t' -slane 'chomp; $F[3]=~s/\\/(?:1|2)$//; if($_=~/gene_type "(\\S+)";/) {print "$F[3]\\t$1"} else{die "No gene_type attribute found, cannot continue."}' | sort|uniq > tmp
 
     biotype_distribution.pl biotypes_list.txt tmp > biotypes_distribution.tsv
     '''
