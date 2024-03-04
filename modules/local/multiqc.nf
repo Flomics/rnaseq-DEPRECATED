@@ -43,6 +43,7 @@ process MULTIQC {
     path ('rseqc/read_duplication/*')
     path ('rseqc/tin/*')
     path kraken2_reports
+    path bedtools_biotype_distribution
 
     output:
     path "*multiqc_report.html", emit: report
