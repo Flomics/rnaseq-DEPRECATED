@@ -701,7 +701,7 @@ workflow RNASEQ {
         ch_biotype_distribution = BIOTYPE_DISTRIBUTION.out.results
 
         BIOTYPE_DISTRIBUTION_YAML (
-            BIOTYPE_DISTRIBUTION.out.biotypes_distribution_mqc,
+            BIOTYPE_DISTRIBUTION.out.biotypes_distribution_mqc.collect{it[1]},
             ch_biotypes_distribution_yaml_header
         )
 
@@ -836,7 +836,8 @@ workflow RNASEQ {
             ch_readdistribution_multiqc.collect{it[1]}.ifEmpty([]),
             ch_readduplication_multiqc.collect{it[1]}.ifEmpty([]),
             ch_tin_multiqc.collect{it[1]}.ifEmpty([]),
-            ch_kraken2_multiqc.ifEmpty([])
+            ch_kraken2_multiqc.ifEmpty([]),
+            BIOTYPE_DISTRIBUTION_YAML.out.mqc_biotype_distribution
         )
 
     }
