@@ -9,7 +9,8 @@ process BIOTYPE_DISTRIBUTION {
     path  gtf
 
     output:
-    tuple val(meta), path("*.tsv"), emit: results
+    tuple val(meta), path("*ordered.tsv"), emit: results
+    tuple val(meta), path("*_mqc.tsv"),    emit: biotypes_distribution_mqc
 
     when:
     task.ext.when == null || task.ext.when
@@ -41,5 +42,11 @@ process BIOTYPE_DISTRIBUTION {
     bedtools intersect -split -abam !{meta.id}/!{meta.id}.umi_dedup.sorted.-F2304.bam -b filtered_annotation_exon.gtf -wo -bed | perl -F'\\t' -slane 'chomp; $F[3]=~s/\\/(?:1|2)$//; if($_=~/gene_type "(\\S+)";/) {print "$F[3]\\t$1"} else{die "No gene_type attribute found, cannot continue."}' | sort|uniq > tmp
 
     biotype_distribution.pl biotypes_list.txt tmp > biotypes_distribution.tsv
+
+    #order alphabetically by biotype
+    sort -k1,1 biotypes_distribution.tsv > biotypes_distribution_ordered.tsv
+
+    #transpose for MultiQC
+    awk -f transpose.awk biotypes_distribution_ordered.tsv > biotypes_distribution_mqc.tsv
     '''
 }
