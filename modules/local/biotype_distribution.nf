@@ -24,7 +24,7 @@ process BIOTYPE_DISTRIBUTION {
     #get list of biotypes present in annotation
     cat filtered_annotation_exon.gtf | extractGffAttributeValue.pl gene_type|sort|uniq > biotypes_list.txt
 
-    uuid=$(uuidgen)
+    uuid=$(cat /proc/sys/kernel/random/uuid)
     #make filtered BAM
     mkdir !{meta.id}
     cp !{bam} !{meta.id}
