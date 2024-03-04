@@ -29,7 +29,7 @@ process BIOTYPE_DISTRIBUTION {
     mkdir !{meta.id}
     cp !{bam} !{meta.id}
     samtools view -H !{meta.id}/!{bam} > /tmp/$uuid.sam
-    samtools view -F2304 S!{meta.id}/!{bam} >> /tmp/$uuid.sam
+    samtools view -F2304 !{meta.id}/!{bam} >> /tmp/$uuid.sam
     samtools view -b /tmp/$uuid.sam > !{meta.id}/!{meta.id}.umi_dedup.sorted.-F2304.bam
 
     #verify that we can select one and only one primary alignment per fragment
