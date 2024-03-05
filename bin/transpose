@@ -1,0 +1,19 @@
+#!/usr/bin/awk -f
+
+#transposes a file with two rows (one for column names and one for data) to a two column file (one for row names and one for data)
+
+BEGIN { FS=OFS="\t" }
+{
+    for (rowNr=1;rowNr<=NF;rowNr++) {
+        cell[rowNr,NR] = $rowNr
+    }
+    maxRows = (NF > maxRows ? NF : maxRows)
+    maxCols = NR
+}
+END {
+    for (rowNr=1;rowNr<=maxRows;rowNr++) {
+        for (colNr=1;colNr<=maxCols;colNr++) {
+            printf "%s%s", cell[rowNr,colNr], (colNr < maxCols ? OFS : ORS)
+        }
+    }
+}

@@ -47,6 +47,6 @@ process BIOTYPE_DISTRIBUTION {
     sort -k1,1 biotypes_distribution.tsv > biotypes_distribution_ordered.tsv
 
     #transpose for MultiQC
-    awk -f transpose.awk biotypes_distribution_ordered.tsv > biotypes_distribution_mqc.tsv
+    cat biotypes_distribution_ordered.tsv | transpose -  > biotypes_distribution_mqc.tsv
     '''
 }
