@@ -13,8 +13,8 @@ process BIOTYPE_DISTRIBUTION_YAML {
 
     script:
     """
+    tsv_to_yaml.py $tsv tmp.yaml
     mkdir tmp/
-    python tsv_to_yaml.py $tsv tmp.yaml
     cp tmp.yaml tmp/
     cp $header tmp/
     cd tmp/
