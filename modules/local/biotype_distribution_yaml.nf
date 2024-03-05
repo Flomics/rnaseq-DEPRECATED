@@ -4,7 +4,7 @@ process BIOTYPE_DISTRIBUTION_YAML {
     container "flomicsbiotech/flomics_qc_rnaseq:dev"
 
     input:
-    path(tsv)
+    path(yaml)
     path(header)
 
     output:
@@ -13,12 +13,11 @@ process BIOTYPE_DISTRIBUTION_YAML {
 
     script:
     """
-    tsv_to_yaml.py $tsv tmp.yaml
     mkdir tmp/
-    cp tmp.yaml tmp/
+    cp $yaml tmp/
     cp $header tmp/
     cd tmp/
-    bash make_yaml.sh $header biotype_distribution_mqc.yaml
+    bash make_yaml.sh $header $yaml
     cd ../
     cp tmp/biotype_distribution_mqc.yaml .
     """

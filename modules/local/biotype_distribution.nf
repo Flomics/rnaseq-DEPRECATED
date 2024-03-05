@@ -10,7 +10,7 @@ process BIOTYPE_DISTRIBUTION {
 
     output:
     tuple val(meta), path("*ordered.tsv"), emit: results
-    tuple val(meta), path("*_mqc.tsv"),    emit: biotypes_distribution_mqc
+    tuple val(meta), path("*_mqc.yaml"),    emit: biotypes_distribution_mqc
 
     when:
     task.ext.when == null || task.ext.when
@@ -48,5 +48,8 @@ process BIOTYPE_DISTRIBUTION {
 
     #transpose for MultiQC
     cat !{meta.id}_biotypes_distribution_ordered.tsv | transpose -  > !{meta.id}_biotypes_distribution_mqc.tsv
+
+    #make yaml line for MultiQC
+    tsv_to_yaml.py !{meta.id}_biotypes_distribution_mqc.tsv  !{meta.id}_biotypes_distribution_mqc.yaml
     '''
 }
