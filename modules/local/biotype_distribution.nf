@@ -39,14 +39,14 @@ process BIOTYPE_DISTRIBUTION {
     exit 1
     fi
 
-    bedtools intersect -split -abam !{meta.id}/!{meta.id}.umi_dedup.sorted.-F2304.bam -b filtered_annotation_exon.gtf -wo -bed | perl -F'\\t' -slane 'chomp; $F[3]=~s/\\/(?:1|2)$//; if($_=~/gene_type "(\\S+)";/) {print "$F[3]\\t$1"} else{die "No gene_type attribute found, cannot continue."}' | sort|uniq > tmp
+    bedtools intersect -split -abam !{meta.id}/!{meta.id}.umi_dedup.sorted.-F2304.bam -b filtered_annotation_exon.gtf -wo -bed | perl -F'\\t' -slane 'chomp; $F[3]=~s/\\/(?:1|2)$//; if($_=~/gene_type "(\\S+)";/) {print "$F[3]\\t$1"} else{die "No gene_type attribute found, cannot continue."}' | sort|uniq > !{meta.id}_tmp
 
-    biotype_distribution.pl biotypes_list.txt tmp > biotypes_distribution.tsv
+    biotype_distribution.pl biotypes_list.txt !{meta.id}_tmp > !{meta.id}_biotypes_distribution.tsv
 
     #order alphabetically by biotype
-    sort -k1,1 biotypes_distribution.tsv > biotypes_distribution_ordered.tsv
+    sort -k1,1 !{meta.id}_biotypes_distribution.tsv > !{meta.id}_biotypes_distribution_ordered.tsv
 
     #transpose for MultiQC
-    cat biotypes_distribution_ordered.tsv | transpose -  > biotypes_distribution_mqc.tsv
+    cat !{meta.id}_biotypes_distribution_ordered.tsv | transpose -  > !{meta.id}_biotypes_distribution_mqc.tsv
     '''
 }
