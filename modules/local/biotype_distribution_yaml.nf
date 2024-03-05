@@ -17,7 +17,7 @@ process BIOTYPE_DISTRIBUTION_YAML {
     cp $yaml tmp/
     cp $header tmp/
     cd tmp/
-    bash make_yaml.sh $header $yaml
+    bash make_yaml.sh $header biotype_distribution_mqc.yaml
     cd ../
     cp tmp/biotype_distribution_mqc.yaml .
     """
