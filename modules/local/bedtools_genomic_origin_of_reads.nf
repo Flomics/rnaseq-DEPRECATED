@@ -58,7 +58,7 @@ process BEDTOOLS_GENOMIC_ORIGIN_OF_READS {
     mapped_fragments=$(wc -l < !{meta.id}_mapped_fragments.list.txt)
 
     #populate csv
-    echo "$exonic_count\t$intronic_count\t$intergenic_count\t$exonic_percentage\t$intronic_percentage\t$intergenic_percentage\tmapped_fragments" >> !{meta.id}_genomic_origin_of_reads.tsv
+    echo "$exonic_count\t$intronic_count\t$intergenic_count\t$exonic_percentage\t$intronic_percentage\t$intergenic_percentage\t$mapped_fragments" >> !{meta.id}_genomic_origin_of_reads.tsv
 
     #create yaml for MultiQC
     echo -e "$sample_name: {Exonic: $exonic_count, Intronic: $intronic_count, Intergenic: $intergenic_count}" > !{meta.id}_genomic_origin_of_reads_mqc.yaml
