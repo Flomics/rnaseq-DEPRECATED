@@ -52,7 +52,7 @@ process BIOTYPE_DISTRIBUTION {
     #make yaml line for MultiQC
     tsv_to_yaml.py !{meta.id}_biotypes_distribution_mqc.tsv  !{meta.id}_biotypes_distribution_mqc.yaml.tmp
     sample_name=!{meta.id}
-    { printf "%s" "$sample_name"; !{meta.id}_biotypes_distribution_mqc.yaml.tmp; } > !{meta.id}_biotypes_distribution_mqc.yaml
+    { printf "%s" "$sample_name"; cat !{meta.id}_biotypes_distribution_mqc.yaml.tmp; } > !{meta.id}_biotypes_distribution_mqc.yaml
 
     '''
 }
