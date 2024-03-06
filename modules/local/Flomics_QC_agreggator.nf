@@ -60,9 +60,6 @@ process FLOMICS_QC_AGGREGATOR{
     cat tmp.biotype_table.tsv | head -n 1 > biotype_table.tsv
     cat tmp.biotype_table.tsv | tail -n+2 | sort -k1,1 >> biotype_table.tsv
 
-    #Normalize the qualimap provided coverage
-    normalize_qualimap_coverage.sh multiqc_data/qualimap_rnaseq_cov_hist.txt multiqc_data/mqc_qualimap_gene_coverage_profile_Normalised.txt
-
     rm -f tmp.read_coverage_uniformity_score.tsv
     gene_coverage_profile_calculation.r #Calculates the gene coverage profile
     cat tmp.read_coverage_uniformity_score.tsv | head -n 1 > read_coverage_uniformity_score.tsv
@@ -124,16 +121,16 @@ process FLOMICS_QC_AGGREGATOR{
     cat tmp.cutadapt_QC.tsv | sort -k1,1 >> cutadapt_QC.tsv
 
     echo -e "Sample\tExonic\tIntronic\tIntergenic\tExonic_percentage\tIntronic_percentage\tIntergenic_percentage" > qualimap_QC.tsv
-    tail -n +2 multiqc_data/qualimap_rnaseq_genome_results.txt | awk '{print $0"\t"$2/($2+$3+$4)*100"\t"$3/($2+$3+$4)*100"\t"$4/($2+$3+$4)*100'} | sort -k1,1 >> qualimap_QC.tsv
+    tail -n +2 multiqc_data/mqc_qualimap_genomic_origin_1.txt | awk '{print $0"\t"$2/($2+$3+$4)*100"\t"$3/($2+$3+$4)*100"\t"$4/($2+$3+$4)*100'} | sort -k1,1 >> qualimap_QC.tsv
 
     echo -e "Sample\ttotal_reads\tavg_input_read_length\tnumber_of_uniquely_mapped_reads\tpercentage_of_uniquely_mapped_reads\tavg_mapped_read_length\tnumber_of_multimapped_reads\tpercentage_of_unmapped_too_short_reads\tmapped_percentage\taverage_mapped_length_percentage" > STAR_QC.tsv
     tail -n +2  multiqc_data/multiqc_star.txt | cut -f1,2,3,4,5,6,18,23 | awk '{print $0"\t"($4+$7)/$2*100"\t"($6/$3)*100}' | sort -k1,1 >> STAR_QC.tsv
 
     echo -e "Sample\tJunction_saturation_slope" > Junction_saturation.tsv
-    tail -n +2 multiqc_data/multiqc_rseqc_junction_annotation.txt | cut -f1,21,20  | awk '{print $1"\t"($3-$2)/$3*100}' | sort -k1,1 >> Junction_saturation.tsv
+    tail -n +2 multiqc_data/mqc_rseqc_junction_saturation_plot_All_Junctions.txt | cut -f1,21,20  | awk '{print $1"\t"($3-$2)/$3*100}' | sort -k1,1 >> Junction_saturation.tsv
 
     echo -e "Sample\tReads_mapping_sense_percentage\tReads_mapping_antisense_percentage\tReads_undetermined_strandedness_percentage" > strandedness_library_prep.tsv
-    tail -n +2 multiqc_data/multiqc_rseqc_infer_experiment.txt | cut -f 1,2,3,4 | sort -k1,1 >> strandedness_library_prep.tsv
+    tail -n +2 multiqc_data/mqc_rseqc_infer_experiment_plot_1.txt | cut -f 1,2,3,4 | sort -k1,1 >> strandedness_library_prep.tsv
 
     awk '{print $1"\t"$2"\t"$3"\t"$4}' correlation_coefs.tsv | head -n 1 > new_corr.tsv
     awk '{print $1"\t"$2"\t"$3"\t"$4}' correlation_coefs.tsv | tail -n+2 | sort -k1,1 >> new_corr.tsv
