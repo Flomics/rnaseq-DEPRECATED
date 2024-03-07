@@ -1,5 +1,5 @@
 process BIOTYPE_DISTRIBUTION_YAML {
-    label 'process_medium'
+    label 'process_low'
 
     container "flomicsbiotech/flomics_qc_rnaseq:dev"
 
