@@ -25,17 +25,25 @@ process BEDTOOLS_GENOMIC_ORIGIN_OF_READS {
     #extract gene locus coordinates
     cat !{gtf} | extract_locus_coords.pl - > gencode.genes.bed
 
+    uuid=$(cat /proc/sys/kernel/random/uuid)
+    #make filtered BAM
+    mkdir !{meta.id}
+    cp !{bam} !{meta.id}
+    samtools view -H !{meta.id}/!{bam} > /tmp/$uuid.sam
+    samtools view -F3332 !{meta.id}/!{bam} >> /tmp/$uuid.sam
+    samtools view -b /tmp/$uuid.sam > !{meta.id}/!{meta.id}.umi_dedup.sorted.-F3332.bam
+
     #mapped fragments
-    samtools view -F3332 !{bam} | cut -f1 | sort | uniq > !{meta.id}_mapped_fragments.list.txt
+    samtools view !{meta.id}/!{meta.id}.umi_dedup.sorted.-F3332.bam | cut -f1 | sort | uniq > !{meta.id}_mapped_fragments.list.txt
 
     #exonic fragments.
     #Do not take strandedness into account for simplicity. If we did, we would need to take the library type into account (e.g. only read#2 should match the strand in SMARTEr libraries)
     #Use -split to avoid taking into account gaps in spliced alignments
     # takes about 1.3Gb of mem without the -sorted option
-    bedtools intersect -split -abam !{bam} -b filtered_annotation_exon.gtf -wa -u  | samtools view -F3332 - | cut -f1 | sort | uniq > !{meta.id}_exonic_fragments.list.txt
+    bedtools intersect -split -abam !{meta.id}/!{meta.id}.umi_dedup.sorted.-F3332.bam -b filtered_annotation_exon.gtf -wa -u  | samtools view - | cut -f1 | sort | uniq > !{meta.id}_exonic_fragments.list.txt
 
     #genic fragments
-    bedtools intersect -split -abam !{bam} -b gencode.genes.bed -wa -u  | samtools view -F3332 - | cut -f1 | sort | uniq > !{meta.id}_genic_fragments.list.txt
+    bedtools intersect -split -abam !{meta.id}/!{meta.id}.umi_dedup.sorted.-F3332.bam -b gencode.genes.bed -wa -u  | samtools view - | cut -f1 | sort | uniq > !{meta.id}_genic_fragments.list.txt
 
     #intergenic fragments (mapped reads that do not overlap genic regions)
     comm -3 !{meta.id}_mapped_fragments.list.txt !{meta.id}_genic_fragments.list.txt > !{meta.id}_intergenic_fragments.list.txt
