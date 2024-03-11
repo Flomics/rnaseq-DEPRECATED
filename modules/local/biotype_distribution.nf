@@ -10,6 +10,7 @@ process BIOTYPE_DISTRIBUTION {
 
     output:
     tuple val(meta), path("*ordered.tsv"), emit: results
+    tuple val(meta), path ("*mqc.tsv"), emit: aggregator_results
     tuple val(meta), path("*_mqc.yaml"),    emit: biotypes_distribution_mqc
 
     when:
