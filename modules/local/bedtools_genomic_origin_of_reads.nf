@@ -19,6 +19,8 @@ process BEDTOOLS_GENOMIC_ORIGIN_OF_READS {
 
     shell:
     '''
+    set -e
+
     #take only exon records
     awk '$3 == "exon"' !{gtf} > filtered_annotation_exon.gtf
 
@@ -70,6 +72,14 @@ process BEDTOOLS_GENOMIC_ORIGIN_OF_READS {
 
     #create yaml for MultiQC
     echo -e "$sample_name: {Exonic: $exonic_count, Intronic: $intronic_count, Intergenic: $intergenic_count}" > !{meta.id}_genomic_origin_of_reads_mqc.yaml
+
+    if [ $total == $mapped_fragments ]
+    then
+        echo "The sum of exonic, intronic, and intergenic fragments is equal to the number of mapped fragments."
+    else
+        echo "The sum of exonic, intronic, and intergenic fragments is NOT equal to the number of mapped fragments. Exiting."
+        exit 1
+    fi
 
     cat <<-END_VERSIONS > versions.yml
     !{task.process}:
