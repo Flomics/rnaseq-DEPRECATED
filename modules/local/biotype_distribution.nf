@@ -46,8 +46,8 @@ process BIOTYPE_DISTRIBUTION {
     #order alphabetically by biotype
     sort -k1,1 !{meta.id}_biotypes_distribution.tsv > !{meta.id}_biotypes_distribution_ordered.tsv
 
-    #transpose for MultiQC
-    cat !{meta.id}_biotypes_distribution_ordered.tsv | transpose -  > !{meta.id}_biotypes_distribution_mqc.tsv
+    #transpose for MultiQC and aggregator
+    transpose.py !{meta.id}_biotypes_distribution_ordered.tsv !{meta.id}_biotypes_distribution_mqc.tsv
 
     #make yaml line for MultiQC
     tsv_to_yaml.py !{meta.id}_biotypes_distribution_mqc.tsv  !{meta.id}_biotypes_distribution_mqc.yaml.tmp
