@@ -132,6 +132,13 @@ jobs:
           echo $repo_path
           echo $pipeline_name
 
+          cp -r ${GITHUB_WORKSPACE} ~/actions_workspace/src/rnaseq/
+          repo_path=~/actions_workspace/src/rnaseq/
+          pipeline_name=$(git -C $repo_path config --get remote.origin.url | sed -n 's/\(.*github\.com\/\|git@github\.com:\)\(.*\)\.git/\2/p')
+
+          echo $repo_path
+          echo $pipeline_name
+
           aws s3 cp s3://flomics-data/test_data_RNAseq_pipeline/Flomics_rnaseq_test_SE_SMARTER_samplesheet.csv .
           cp -r ${GITHUB_WORKSPACE} ~/actions_workspace/src/rnaseq/
           ~/actions_workspace/src/turret/turret/turret.sh \
