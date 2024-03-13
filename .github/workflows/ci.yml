@@ -124,14 +124,11 @@ jobs:
         run: |
           cd ~/actions_workspace/src
           ssh-agent sh -c 'echo "${{ secrets.PRIVATE_DEPENDENCY_TURRET }}" | ssh-add - && git clone git@github.com:Flomics/turret.git'
-          turret_path="~/actions_workspace/src/turret/turret"
       - name: Run pipeline with test data
         run: |
-          mkdir test
-          cp -r ${GITHUB_WORKSPACE} test/rnaseq/
-          cd test/
+          turret_path="~/actions_workspace/src/turret/turret"
           $turret_path/turret.sh \
-          --repo_path rnaseq \
+          --repo_path ${GITHUB_WORKSPACE} \
           --samplesheet s3://flomics-data/test_data_RNAseq_pipeline/Flomics_rnaseq_test_SE_SMARTER_samplesheet.csv \
           --outdir s3://flomics-scratch/nextflow-workdir/test/test_smarter_SE/ \
           --config ~/actions_workspace/src/nextflow-configs/rnaseq/Flomics_master.config \
