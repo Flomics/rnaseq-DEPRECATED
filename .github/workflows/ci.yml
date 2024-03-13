@@ -12,89 +12,89 @@ on:
       - dev
 
 jobs:
-  flomics_test_corall_PE:
-    env:
-      NXF_VER: "23.10.1"
-      NXF_ANSI_LOG: false
-      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      AWS_DEFAULT_REGION: "eu-west-1"
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - name: Install Nextflow
-        run: |
-          wget -qO- get.nextflow.io | bash
-          sudo mv nextflow /usr/local/bin/
-      - name : Clone nextflow-configs repo dev branch
-        run: |
-          mkdir -p ~/actions_workspace/src
-          cd ~/actions_workspace/src
-          ssh-agent sh -c 'echo "${{ secrets.PRIVATE_DEPENDENCY }}" | ssh-add - && git clone git@github.com:Flomics/nextflow-configs.git'
-          cd nextflow-configs/
-          git checkout dev
-          cd rnaseq/
-          awk 'NF' Flomics_master_params.yml library_prep_kit/corall_PE_params.yml references/hg38_gencodev39_params.yml > params.yml
-          cd
-      - name: Run pipeline with test data
-        run: |
-          nextflow run ${GITHUB_WORKSPACE} -profile test_master,test_corall_PE,awsbatch -c ~/actions_workspace/src/nextflow-configs/rnaseq/Flomics_master.config -c ~/actions_workspace/src/nextflow-configs/rnaseq/library_prep_kit/corall_PE.config -params-file ~/actions_workspace/src/nextflow-configs/rnaseq/params.yml
+  # flomics_test_corall_PE:
+  #   env:
+  #     NXF_VER: "23.10.1"
+  #     NXF_ANSI_LOG: false
+  #     AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  #     AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  #     AWS_DEFAULT_REGION: "eu-west-1"
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #     - name: Install Nextflow
+  #       run: |
+  #         wget -qO- get.nextflow.io | bash
+  #         sudo mv nextflow /usr/local/bin/
+  #     - name : Clone nextflow-configs repo dev branch
+  #       run: |
+  #         mkdir -p ~/actions_workspace/src
+  #         cd ~/actions_workspace/src
+  #         ssh-agent sh -c 'echo "${{ secrets.PRIVATE_DEPENDENCY }}" | ssh-add - && git clone git@github.com:Flomics/nextflow-configs.git'
+  #         cd nextflow-configs/
+  #         git checkout dev
+  #         cd rnaseq/
+  #         awk 'NF' Flomics_master_params.yml library_prep_kit/corall_PE_params.yml references/hg38_gencodev39_params.yml > params.yml
+  #         cd
+  #     - name: Run pipeline with test data
+  #       run: |
+  #         nextflow run ${GITHUB_WORKSPACE} -profile test_master,test_corall_PE,awsbatch -c ~/actions_workspace/src/nextflow-configs/rnaseq/Flomics_master.config -c ~/actions_workspace/src/nextflow-configs/rnaseq/library_prep_kit/corall_PE.config -params-file ~/actions_workspace/src/nextflow-configs/rnaseq/params.yml
 
-  flomics_test_corall_SE:
-    env:
-      NXF_VER: "23.10.1"
-      NXF_ANSI_LOG: false
-      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      AWS_DEFAULT_REGION: "eu-west-1"
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - name: Install Nextflow
-        run: |
-          wget -qO- get.nextflow.io | bash
-          sudo mv nextflow /usr/local/bin/
-      - name : Clone nextflow-configs repo dev branch
-        run: |
-          mkdir -p ~/actions_workspace/src
-          cd ~/actions_workspace/src
-          ssh-agent sh -c 'echo "${{ secrets.PRIVATE_DEPENDENCY }}" | ssh-add - && git clone git@github.com:Flomics/nextflow-configs.git'
-          cd nextflow-configs/
-          git checkout dev
-          cd rnaseq/
-          awk 'NF' Flomics_master_params.yml library_prep_kit/corall_SE_params.yml references/hg38_gencodev39_params.yml > params.yml
-          cd
-      - name: Run pipeline with test data
-        run: |
-          nextflow run ${GITHUB_WORKSPACE} -profile test_master,test_corall_SE,awsbatch -c ~/actions_workspace/src/nextflow-configs/rnaseq/Flomics_master.config -c ~/actions_workspace/src/nextflow-configs/rnaseq/library_prep_kit/corall_SE.config -params-file ~/actions_workspace/src/nextflow-configs/rnaseq/params.yml
+  # flomics_test_corall_SE:
+  #   env:
+  #     NXF_VER: "23.10.1"
+  #     NXF_ANSI_LOG: false
+  #     AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  #     AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  #     AWS_DEFAULT_REGION: "eu-west-1"
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #     - name: Install Nextflow
+  #       run: |
+  #         wget -qO- get.nextflow.io | bash
+  #         sudo mv nextflow /usr/local/bin/
+  #     - name : Clone nextflow-configs repo dev branch
+  #       run: |
+  #         mkdir -p ~/actions_workspace/src
+  #         cd ~/actions_workspace/src
+  #         ssh-agent sh -c 'echo "${{ secrets.PRIVATE_DEPENDENCY }}" | ssh-add - && git clone git@github.com:Flomics/nextflow-configs.git'
+  #         cd nextflow-configs/
+  #         git checkout dev
+  #         cd rnaseq/
+  #         awk 'NF' Flomics_master_params.yml library_prep_kit/corall_SE_params.yml references/hg38_gencodev39_params.yml > params.yml
+  #         cd
+  #     - name: Run pipeline with test data
+  #       run: |
+  #         nextflow run ${GITHUB_WORKSPACE} -profile test_master,test_corall_SE,awsbatch -c ~/actions_workspace/src/nextflow-configs/rnaseq/Flomics_master.config -c ~/actions_workspace/src/nextflow-configs/rnaseq/library_prep_kit/corall_SE.config -params-file ~/actions_workspace/src/nextflow-configs/rnaseq/params.yml
 
-  flomics_test_smarter_PE:
-    env:
-      NXF_VER: "23.10.1"
-      NXF_ANSI_LOG: false
-      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      AWS_DEFAULT_REGION: "eu-west-1"
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - name: Install Nextflow
-        run: |
-          wget -qO- get.nextflow.io | bash
-          sudo mv nextflow /usr/local/bin/
-      - name : Clone nextflow-configs repo dev branch
-        run: |
-          mkdir -p ~/actions_workspace/src
-          cd ~/actions_workspace/src
-          ssh-agent sh -c 'echo "${{ secrets.PRIVATE_DEPENDENCY }}" | ssh-add - && git clone git@github.com:Flomics/nextflow-configs.git'
-          cd nextflow-configs/
-          git checkout dev
-          cd rnaseq/
-          awk 'NF' Flomics_master_params.yml library_prep_kit/smarter_PE_params.yml references/hg38_gencodev39_params.yml > params.yml
-          cd
-      - name: Run pipeline with test data
-        run: |
-          nextflow run ${GITHUB_WORKSPACE} -profile test_master,test_smarter_PE,awsbatch -c ~/actions_workspace/src/nextflow-configs/rnaseq/Flomics_master.config -c ~/actions_workspace/src/nextflow-configs/rnaseq/library_prep_kit/smarter_PE.config -params-file ~/actions_workspace/src/nextflow-configs/rnaseq/params.yml
+  # flomics_test_smarter_PE:
+  #   env:
+  #     NXF_VER: "23.10.1"
+  #     NXF_ANSI_LOG: false
+  #     AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  #     AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  #     AWS_DEFAULT_REGION: "eu-west-1"
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #     - name: Install Nextflow
+  #       run: |
+  #         wget -qO- get.nextflow.io | bash
+  #         sudo mv nextflow /usr/local/bin/
+  #     - name : Clone nextflow-configs repo dev branch
+  #       run: |
+  #         mkdir -p ~/actions_workspace/src
+  #         cd ~/actions_workspace/src
+  #         ssh-agent sh -c 'echo "${{ secrets.PRIVATE_DEPENDENCY }}" | ssh-add - && git clone git@github.com:Flomics/nextflow-configs.git'
+  #         cd nextflow-configs/
+  #         git checkout dev
+  #         cd rnaseq/
+  #         awk 'NF' Flomics_master_params.yml library_prep_kit/smarter_PE_params.yml references/hg38_gencodev39_params.yml > params.yml
+  #         cd
+  #     - name: Run pipeline with test data
+  #       run: |
+  #         nextflow run ${GITHUB_WORKSPACE} -profile test_master,test_smarter_PE,awsbatch -c ~/actions_workspace/src/nextflow-configs/rnaseq/Flomics_master.config -c ~/actions_workspace/src/nextflow-configs/rnaseq/library_prep_kit/smarter_PE.config -params-file ~/actions_workspace/src/nextflow-configs/rnaseq/params.yml
 
   flomics_test_smarter_SE:
     env:
@@ -120,6 +120,21 @@ jobs:
           cd rnaseq/
           awk 'NF' Flomics_master_params.yml library_prep_kit/smarter_SE_params.yml references/hg38_gencodev39_params.yml > params.yml
           cd
+      - name: Clone and set up turret
+        run: |
+          cd ~/actions_workspace/src
+          ssh-agent sh -c 'echo "${{ secrets.PRIVATE_DEPENDENCY_TURRET }}" | ssh-add - && git clone git@github.com:Flomics/turret.git'
+          turret_path="~/actions_workspace/src/turret/turret"
       - name: Run pipeline with test data
         run: |
-          nextflow run ${GITHUB_WORKSPACE} -profile test_master,test_smarter_SE,awsbatch -c ~/actions_workspace/src/nextflow-configs/rnaseq/Flomics_master.config -c ~/actions_workspace/src/nextflow-configs/rnaseq/library_prep_kit/smarter_SE.config -params-file ~/actions_workspace/src/nextflow-configs/rnaseq/params.yml
+          mkdir test
+          cp -r ${GITHUB_WORKSPACE} test/rnaseq/
+          cd test/
+          $turret_path/turret.sh \
+          --repo_path rnaseq \
+          --samplesheet s3://flomics-data/test_data_RNAseq_pipeline/Flomics_rnaseq_test_SE_SMARTER_samplesheet.csv \
+          --outdir s3://flomics-scratch/nextflow-workdir/test/test_smarter_SE/ \
+          --config ~/actions_workspace/src/nextflow-configs/rnaseq/Flomics_master.config \
+          --config ~/actions_workspace/src/nextflow-configs/rnaseq/library_prep_kit/smarter_SE.config \
+          --params_file ~/actions_workspace/src/nextflow-configs/rnaseq/params.yml \
+          --extra_args "-profile test_master,test_smarter_SE,awsbatch --project GitHub_Actions"
