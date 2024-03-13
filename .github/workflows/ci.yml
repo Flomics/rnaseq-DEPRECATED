@@ -126,23 +126,11 @@ jobs:
           ssh-agent sh -c 'echo "${{ secrets.PRIVATE_DEPENDENCY_TURRET }}" | ssh-add - && git clone git@github.com:Flomics/turret.git'
       - name: Run pipeline with test data
         run: |
-          repo_path=${GITHUB_WORKSPACE}
-          pipeline_name=$(git -C $repo_path config --get remote.origin.url | sed -n 's/\(.*github\.com\/\|git@github\.com:\)\(.*\)\.git/\2/p')
-
-          echo $repo_path
-          echo $pipeline_name
-
-          cp -r ${GITHUB_WORKSPACE} ~/actions_workspace/src/rnaseq/
-          repo_path=~/actions_workspace/src/rnaseq/
-          pipeline_name=$(git -C $repo_path config --get remote.origin.url | sed -n 's/\(.*github\.com\/\|git@github\.com:\)\(.*\)\.git/\2/p')
-
-          echo $repo_path
-          echo $pipeline_name
-
           aws s3 cp s3://flomics-data/test_data_RNAseq_pipeline/Flomics_rnaseq_test_SE_SMARTER_samplesheet.csv .
           cp -r ${GITHUB_WORKSPACE} ~/actions_workspace/src/rnaseq/
+          cd ~/actions_workspace/src/
           ~/actions_workspace/src/turret/turret/turret.sh \
-          --repo_path ~/actions_workspace/src/rnaseq/ \
+          --repo_path rnaseq \
           --samplesheet Flomics_rnaseq_test_SE_SMARTER_samplesheet.csv \
           --outdir s3://flomics-scratch/nextflow-workdir/test/test_smarter_SE/ \
           --config ~/actions_workspace/src/nextflow-configs/rnaseq/Flomics_master.config \
