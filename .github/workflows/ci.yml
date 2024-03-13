@@ -100,8 +100,8 @@ jobs:
     env:
       NXF_VER: "23.10.1"
       NXF_ANSI_LOG: false
-      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID_TEC }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY_TEC }}
       AWS_DEFAULT_REGION: "eu-west-1"
     runs-on: ubuntu-latest
     steps:
@@ -128,13 +128,8 @@ jobs:
         run: |
           cp -r ${GITHUB_WORKSPACE} ~/actions_workspace/src/rnaseq/
           cd ~/actions_workspace/src/
+
           aws s3 cp s3://flomics-data/test_data_RNAseq_pipeline/Flomics_rnaseq_test_SE_SMARTER_samplesheet.csv .
-          repo_path=rnaseq
-          git -C $repo_path config --get remote.origin.url
-          pipeline_name=$(git -C $repo_path config --get remote.origin.url | sed -n 's/\(.*github\.com\/\|git@github\.com:\)\(.*\)\.git/\2/p')
-
-          echo $pipeline_name
-
 
           ~/actions_workspace/src/turret/turret/turret.sh \
           --repo_path rnaseq \
