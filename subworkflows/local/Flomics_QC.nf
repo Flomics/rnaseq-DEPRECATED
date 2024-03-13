@@ -89,8 +89,8 @@ workflow FLOMICS_QC{
     /// Calculate the library balance (number of genes contributing to a percentage of the library)
     ///
     ch_Flomics_library_balance       = Channel.empty()
-    FLOMICS_QC_CALCULATE_LIBRARY_BALANCE(bam_transcriptome, salmon_results)
-    ch_Flomics_library_balance       = FLOMICS_QC_CALCULATE_LIBRARY_BALANCE.out.library_balance_table.collect()
+    FLOMICS_QC_CALCULATE_LIBRARY_BALANCE(salmon_gene_counts)
+    ch_Flomics_library_balance       = FLOMICS_QC_CALCULATE_LIBRARY_BALANCE.out.library_balance_table
 
     ///
     /// Calculate gini index for the gene counts table

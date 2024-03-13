@@ -24,6 +24,7 @@ process TRIMGALORE {
 
     script:
     def args = task.ext.args ?: ''
+    def args2 = task.ext.args2 ?: ''
     // Calculate number of --cores for TrimGalore based on value of task.cpus
     // See: https://github.com/FelixKrueger/TrimGalore/blob/master/Changelog.md#version-060-release-on-1-mar-2019
     // See: https://github.com/nf-core/atacseq/pull/65
@@ -48,6 +49,7 @@ process TRIMGALORE {
         [ ! -f  ${prefix}.fastq.gz ] && ln -s $reads ${prefix}.fastq.gz
         trim_galore \\
             $args \\
+            $args2 \\
             --cores $cores \\
             --gzip \\
             $c_r1 \\
@@ -66,6 +68,7 @@ process TRIMGALORE {
         [ ! -f  ${prefix}_2.fastq.gz ] && ln -s ${reads[1]} ${prefix}_2.fastq.gz
         trim_galore \\
             $args \\
+            $args2 \\
             --cores $cores \\
             --paired \\
             --gzip \\
