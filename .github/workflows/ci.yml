@@ -6,11 +6,6 @@ on:
     types: [submitted]
 
 jobs:
-  approved:
-    if: github.event.review.state == 'APPROVED'
-    runs-on: ubuntu-latest
-    steps:
-      - run: echo "This PR was approved"
   # flomics_test_corall_PE:
   #   env:
   #     NXF_VER: "23.10.1"
