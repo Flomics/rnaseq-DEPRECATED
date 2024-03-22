@@ -1,10 +1,19 @@
 name: Flomics CI
 # This workflow is triggered on pushes and PRs to the repository.
 # It runs the pipeline with the minimal test dataset to check that it completes without any syntax errors
-on:
-  pull_request_review:
-    types: [submitted]
+# on:
+#   pull_request_review:
+#     types: [submitted]
 
+on:
+  pull_request:
+    branches:
+      - master
+      - dev
+  push:
+    branches:
+      - master
+      - dev
 jobs:
   # flomics_test_corall_PE:
   #   env:
