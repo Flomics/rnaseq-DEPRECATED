@@ -129,7 +129,6 @@ jobs:
           ssh-agent sh -c 'echo "${{ secrets.PRIVATE_DEPENDENCY_TURRET }}" | ssh-add - && git clone git@github.com:Flomics/turret.git'
           cd turret/
           git checkout fix/spot_iam_fleet_role
-          git pull
           cd
       - name: Run pipeline with test data
         run: |
