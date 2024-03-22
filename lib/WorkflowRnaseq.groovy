@@ -36,6 +36,13 @@ class WorkflowRnaseq {
             transcriptsFastaWarn(log)
         }
 
+        if (!params.skip_pseudo_alignment && params.pseudo_aligner) {
+            if (!(params.salmon_index || params.transcript_fasta || (params.fasta && (params.gtf || params.gff)))) {
+                log.error "To use `--pseudo_aligner 'salmon'`, you must provide either --salmon_index or --transcript_fasta or both --fasta and --gtf / --gff."
+                System.exit(1)
+            }
+        }
+
         if (!params.skip_bbsplit && !params.bbsplit_index && !params.bbsplit_fasta_list) {
             log.error "Please provide either --bbsplit_fasta_list / --bbsplit_index to run BBSplit."
             System.exit(1)
@@ -46,16 +53,7 @@ class WorkflowRnaseq {
             System.exit(1)
         }
 
-        if (!params.skip_alignment) {
-            if (!valid_params['aligners'].contains(params.aligner)) {
-                log.error "Invalid option: '${params.aligner}'. Valid options for '--aligner': ${valid_params['aligners'].join(', ')}."
-                System.exit(1)
-            }
-        } else {
-            if (!params.pseudo_aligner) {
-                log.error "--skip_alignment specified without --pseudo_aligner...please specify e.g. --pseudo_aligner ${valid_params['pseudoaligners'][0]}."
-                System.exit(1)
-            }
+        if (params.skip_alignment) {
             skipAlignmentWarn(log)
         }
 
