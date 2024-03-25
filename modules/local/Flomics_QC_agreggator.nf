@@ -18,6 +18,7 @@ process FLOMICS_QC_AGGREGATOR{
     path library_balance_data
     path fastqc_files
     path spike_in_qc
+    path biotype_distribution
 
     output:
     path "QC_table.tsv", emit: flomics_report
@@ -59,6 +60,20 @@ process FLOMICS_QC_AGGREGATOR{
     biotype_table_parser.r  #Sorts the columns of the biotypes according to last table
     cat tmp.biotype_table.tsv | head -n 1 > biotype_table.tsv
     cat tmp.biotype_table.tsv | tail -n+2 | sort -k1,1 >> biotype_table.tsv
+
+    paste biotype_table.tsv <(cut -f2- !{biotype_distribution}) > joined_biotype_table.tsv
+
+    {
+        IFS=$'\t' read -r -a headers <<< "$(head -n 1 joined_biotype_table.tsv)"
+        sorted_headers=($(
+            for col in "${headers[@]:1}"; do
+            echo "$col"
+            done | sort
+        ))
+        echo -e "${headers[0]}\t${sorted_headers[*]}"
+        tail -n +2 joined_biotype_table.tsv
+    } > sorted_joined_biotype_table.tsv
+
 
     rm -f tmp.read_coverage_uniformity_score.tsv
     gene_coverage_profile_calculation.r #Calculates the gene coverage profile
@@ -148,7 +163,7 @@ process FLOMICS_QC_AGGREGATOR{
     join -t $'\t' -j 1 -  insert_size.tsv | \\
     join -t $'\t' -j 1 -  library_balance.tsv | \\
     join -t $'\t' -j 1 -  strandedness_library_prep.tsv  | \\
-    join -t $'\t' -j 1 -  biotype_table.tsv  | \\
+    join -t $'\t' -j 1 -  sorted_joined_biotype_table.tsv  | \\
     join -t $'\t' -j 1 -  new_corr.tsv > QC_table.tsv
 
     '''
