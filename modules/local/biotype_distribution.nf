@@ -47,6 +47,21 @@ process BIOTYPE_DISTRIBUTION {
     #order alphabetically by biotype
     sort -k1,1 !{meta.id}_biotypes_distribution.tsv > !{meta.id}_biotypes_distribution_ordered.tsv
 
+    #calculate the sum of all biotypes
+    sum=$(awk '{sum += $2} END {print sum}' !{meta.id}_biotypes_distribution_ordered.tsv)
+
+    #calculate exonic reads for consistency check
+    bedtools intersect -split -abam !{meta.id}/!{meta.id}.umi_dedup.sorted.-F3332.bam -b filtered_annotation_exon.gtf -wa -u  | samtools view - | cut -f1 | sort | uniq > !{meta.id}_exonic_fragments.list.txt
+    exonic_count=$(wc -l < !{meta.id}_exonic_fragments.list.txt)
+
+    if [ $sum == $exonic_count ]
+    then
+        echo "The sum of biotypes is equal to the number of exonic counts."
+    else
+        echo "The sum of biotypesi s NOT equal to the number of exonic counts. Exiting."
+        exit 1
+    fi
+
     #transpose for MultiQC and aggregator
     transpose.py !{meta.id}_biotypes_distribution_ordered.tsv !{meta.id}_biotypes_distribution_mqc.tsv
 
