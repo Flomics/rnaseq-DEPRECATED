@@ -127,7 +127,7 @@ process FLOMICS_QC_AGGREGATOR{
     cut -f 1,4,6 tmp2.cutadapt.txt | tail -n +2 | awk '{print $1"\t"$2"\t"$3"\t"($3/$2*100)}' >> tmp.cutadapt_QC.tsv
     cat tmp.cutadapt_QC.tsv | sort -k1,1 >> cutadapt_QC.tsv
 
-    echo -e "Sample\tExonic\tIntronic\tIntergenic\tExonic_percentage\tIntronic_percentage\tIntergenic_percentage" > qualimap_QC.tsv
+    echo -e "Sample\tQualimap_Exonic\tQualimap_Intronic\tQualimap_Intergenic\tQualimap_Exonic_percentage\tQualimap_Intronic_percentage\tQualimap_Intergenic_percentage" > qualimap_QC.tsv
     tail -n +2 multiqc_data/mqc_qualimap_genomic_origin_1.txt | awk '{print $0"\t"$2/($2+$3+$4)*100"\t"$3/($2+$3+$4)*100"\t"$4/($2+$3+$4)*100'} | sort -k1,1 >> qualimap_QC.tsv
 
     echo -e "Sample\tExonic\tIntronic\tIntergenic\tExonic_percentage\tIntronic_percentage\tIntergenic_percentage\tMapped_fragments" > bedtools_goor.tsv
