@@ -871,7 +871,7 @@ workflow RNASEQ {
             QUANTIFY_STAR_SALMON.out.tpm_gene,
             ch_qc_dashboard,
             QUANTIFY_STAR_SALMON.out.counts_gene,
-            BIOTYPE_DISTRIBUTION.out.aggregator_results
+            BIOTYPE_DISTRIBUTION.out.aggregator_results.collect{it[1]}
         )
     }
     else{
@@ -889,7 +889,7 @@ workflow RNASEQ {
             QUANTIFY_STAR_SALMON.out.tpm_gene,
             ch_qc_dashboard,
             QUANTIFY_STAR_SALMON.out.counts_gene,
-            BIOTYPE_DISTRIBUTION.out.aggregator_results
+            BIOTYPE_DISTRIBUTION.out.aggregator_results.collect{it[1]}
 
         )
     }
