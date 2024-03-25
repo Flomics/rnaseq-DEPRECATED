@@ -43,6 +43,9 @@ top_modules:
 
 module_order:
   - star
+  - qualimap/rnaseq/rnaseq_results:
+      name: "Genomic Origin of Reads (Qualimap)"
+      info: "This section of the report shows the breakdown of reads by genomic origin as computed by Qualimap. This is a legacy plot that will be removed in the future."
   - kraken:
       top_n: 10
   - fastqc:
@@ -174,12 +177,3 @@ custom_data:
       table_title: "Samples failed strandedness check"
       namespace: "Samples failed strandedness check"
       format: "{:.2f}"
-  bedtools_genomic_origin_of_reads:
-    file_format: "tsv"
-    section_name: "Bedtools Genomic Origin of Reads"
-    description: "This plot shows the genomic origin of reads as calculated by bedtools and samtools (Flomics)"
-    plot_type: "bargraph"
-    pconfig:
-      id: "bedtools_goor"
-      title: "Genomic Origin of Reads"
-      ylab: "Sample"
