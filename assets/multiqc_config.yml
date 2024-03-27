@@ -30,9 +30,9 @@ run_modules:
 #skip_generalstats: true
 
 section_comments:
-  samtools: "WARNING! Those stats are calculated on the TRANSCRIPTOME BAM file, thus the inconsistency with STAR reported stats."
-  general_stats_table: "WARNING! Some of those stats are calculated on the TRANSCRIPTOME BAM file, thus the inconsistency with STAR reported stats."
-  generalstats: "WARNING! Some of those stats are calculated on the TRANSCRIPTOME BAM file, thus the inconsistency with STAR reported stats."
+  Samtools: "WARNING! Those stats are calculated on the TRANSCRIPTOME BAM file, leading to possible inconsistencies STAR reported stats, which are calculated on the GENOME BAM file."
+  general_stats_table: "WARNING! Some of those stats are calculated on the TRANSCRIPTOME BAM file, leading to possible inconsistencies STAR reported stats, which are calculated on the GENOME BAM file."
+  general_stats: "WARNING! Some of those stats are calculated on the TRANSCRIPTOME BAM file, leading to possible inconsistencies STAR reported stats, which are calculated on the GENOME BAM file."
 
 
 # Order of modules
