@@ -860,7 +860,7 @@ workflow RNASEQ {
             ch_readduplication_multiqc.collect{it[1]}.ifEmpty([]),
             ch_tin_multiqc.collect{it[1]}.ifEmpty([]),
             ch_kraken2_multiqc.ifEmpty([]),
-            BIOTYPE_DISTRIBUTION_YAML.out.mqc_biotype_distribution
+            BIOTYPE_DISTRIBUTION_YAML.out.mqc_biotype_distribution,
             GENOMIC_ORIGIN_OF_READS_YAML.out.mqc_genomic_origin_of_reads
         )
 
@@ -895,7 +895,7 @@ workflow RNASEQ {
             QUANTIFY_STAR_SALMON.out.tpm_gene,
             ch_qc_dashboard,
             QUANTIFY_STAR_SALMON.out.counts_gene,
-            BIOTYPE_DISTRIBUTION.out.aggregator_results.collect{it[1]}
+            BIOTYPE_DISTRIBUTION.out.aggregator_results.collect{it[1]},
             BEDTOOLS_GENOMIC_ORIGIN_OF_READS.out.table.collect{it[1]}
         )
     }
@@ -914,7 +914,7 @@ workflow RNASEQ {
             QUANTIFY_STAR_SALMON.out.tpm_gene,
             ch_qc_dashboard,
             QUANTIFY_STAR_SALMON.out.counts_gene,
-            BIOTYPE_DISTRIBUTION.out.aggregator_results.collect{it[1]}
+            BIOTYPE_DISTRIBUTION.out.aggregator_results.collect{it[1]},
             BEDTOOLS_GENOMIC_ORIGIN_OF_READS.out.table.collect{it[1]}
 
         )
