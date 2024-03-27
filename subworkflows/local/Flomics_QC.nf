@@ -32,6 +32,7 @@ workflow FLOMICS_QC{
     salmon_gene_tpm
     qc_dashboard
     salmon_gene_counts
+    bedtools_genomic_origin_of_reads
 
     main:
 
@@ -111,7 +112,7 @@ workflow FLOMICS_QC{
     ///
     ch_Flomics_QC_report            = Channel.empty()
     FLOMICS_QC_AGGREGATOR ( samplesheet, multiqc_data, ch_Flomics_trackhub_links, ch_Flomics_trackhub_trackDb_files, ch_Flomics_assembly_hub_links, ch_Flomics_assembly_hub_trackDbs, ch_Flomics_splicedReads_QC, ch_Flomics_spliceJunctions_QC,
-    ch_Flomics_insert_size_QC, umi_dedup_rate_data, ch_Flomics_library_balance, ch_Flomics_FastQC, ch_Flomics_correlation_coefficients)
+    ch_Flomics_insert_size_QC, umi_dedup_rate_data, ch_Flomics_library_balance, ch_Flomics_FastQC, ch_Flomics_correlation_coefficients, bedtools_genomic_origin_of_reads)
     ch_Flomics_QC_report            = FLOMICS_QC_AGGREGATOR.out.flomics_report
 
     ///

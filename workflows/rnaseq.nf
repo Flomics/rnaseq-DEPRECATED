@@ -83,6 +83,7 @@ if (params.fasta && params.gtf) {
 
 ch_multiqc_config        = file("$projectDir/assets/multiqc_config.yml", checkIfExists: true)
 ch_multiqc_custom_config = params.multiqc_config ? Channel.fromPath(params.multiqc_config) : Channel.empty()
+ch_genomic_origin_of_reads_yaml_header = file("$projectDir/assets/genomic_origin_of_reads_header.yaml", checkIfExists: true)
 
 // Header files for MultiQC
 ch_pca_header_multiqc        = file("$projectDir/assets/multiqc/deseq2_pca_header.txt", checkIfExists: true)
@@ -110,6 +111,8 @@ include { DESEQ2_QC as DESEQ2_QC_STAR_SALMON } from '../modules/local/deseq2_qc'
 include { DESEQ2_QC as DESEQ2_QC_RSEM        } from '../modules/local/deseq2_qc'
 include { DESEQ2_QC as DESEQ2_QC_SALMON      } from '../modules/local/deseq2_qc'
 include { DUPRADAR                           } from '../modules/local/dupradar'
+include { BEDTOOLS_GENOMIC_ORIGIN_OF_READS   } from '../modules/local/bedtools_genomic_origin_of_reads'
+include { GENOMIC_ORIGIN_OF_READS_YAML       } from '../modules/local/genomic_origin_of_reads_yaml'
 include { MULTIQC                            } from '../modules/local/multiqc'
 include { MULTIQC_CUSTOM_BIOTYPE             } from '../modules/local/multiqc_custom_biotype'
 include { MULTIQC_TSV_FROM_LIST as MULTIQC_TSV_FAIL_MAPPED  } from '../modules/local/multiqc_tsv_from_list'
@@ -691,6 +694,18 @@ workflow RNASEQ {
             ch_versions = ch_versions.mix(QUALIMAP_RNASEQ.out.versions.first())
         }
 
+        BEDTOOLS_GENOMIC_ORIGIN_OF_READS (
+            ch_genome_bam,
+            PREPARE_GENOME.out.gtf
+        )
+        ch_bedtools_origin_reads = BEDTOOLS_GENOMIC_ORIGIN_OF_READS.out.table
+        ch_versions = ch_versions.mix(BEDTOOLS_GENOMIC_ORIGIN_OF_READS.out.versions.first())
+
+        GENOMIC_ORIGIN_OF_READS_YAML (
+            BEDTOOLS_GENOMIC_ORIGIN_OF_READS.out.mqc_bedtools_goor_yaml.collect{it[1]},
+            ch_genomic_origin_of_reads_yaml_header
+        )
+
         if (!params.skip_dupradar) {
             DUPRADAR (
                 ch_genome_bam,
@@ -831,7 +846,8 @@ workflow RNASEQ {
             ch_readdistribution_multiqc.collect{it[1]}.ifEmpty([]),
             ch_readduplication_multiqc.collect{it[1]}.ifEmpty([]),
             ch_tin_multiqc.collect{it[1]}.ifEmpty([]),
-            ch_kraken2_multiqc.ifEmpty([])
+            ch_kraken2_multiqc.ifEmpty([]),
+            GENOMIC_ORIGIN_OF_READS_YAML.out.mqc_genomic_origin_of_reads
         )
 
     }
@@ -864,7 +880,9 @@ workflow RNASEQ {
             ch_spike_in_concentration,
             QUANTIFY_STAR_SALMON.out.tpm_gene,
             ch_qc_dashboard,
-            QUANTIFY_STAR_SALMON.out.counts_gene
+            QUANTIFY_STAR_SALMON.out.counts_gene,
+            BEDTOOLS_GENOMIC_ORIGIN_OF_READS.out.table.collect{it[1]}
+
         )
     }
     if (!params.skip_alignment && !params.with_umi) {
@@ -881,7 +899,8 @@ workflow RNASEQ {
             ch_spike_in_concentration,
             QUANTIFY_STAR_SALMON.out.tpm_gene,
             ch_qc_dashboard,
-            QUANTIFY_STAR_SALMON.out.counts_gene
+            QUANTIFY_STAR_SALMON.out.counts_gene,
+            BEDTOOLS_GENOMIC_ORIGIN_OF_READS.out.table.collect{it[1]}
 
         )
     }
