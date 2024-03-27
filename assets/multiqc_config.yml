@@ -43,6 +43,9 @@ top_modules:
 
 module_order:
   - star
+  - qualimap/rnaseq/rnaseq_results:
+      name: "Genomic Origin of Reads (Qualimap)"
+      info: "This section of the report shows the breakdown of reads by genomic origin as computed by Qualimap. This is a legacy plot that will be removed in the future."
   - kraken:
       top_n: 10
   - fastqc:
@@ -144,6 +147,9 @@ sp:
     skip: true
   bedtools_biotype_distribution:
     fn: "*biotypes_distribution_mqc.tsv"
+  bedtools_genomic_origin_of_reads:
+    fn: "*bedtools_mqc.tsv"
+
 
 # See https://github.com/ewels/MultiQC_TestData/blob/master/data/custom_content/with_config/table_headerconfig/multiqc_config.yaml
 custom_data:

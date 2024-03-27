@@ -1,0 +1,9 @@
+id: "bedtools_genomic_origin_of_reads"
+section_name: "Genomic Origin of Reads (Bedtools)"
+description: "This plot shows the genomic origin of reads as calculated by bedtools and samtools (Flomics)"
+plot_type: "bargraph"
+pconfig:
+  id: "bedtools_goor"
+  title: "Genomic Origin of Reads"
+  ylab: "Sample"
+data:

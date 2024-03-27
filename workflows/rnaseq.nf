@@ -45,7 +45,7 @@ if (!params.skip_bbsplit && !params.bbsplit_index && params.bbsplit_fasta_list) 
 def prepareToolIndices  = []
 if (!params.skip_bbsplit)   { prepareToolIndices << 'bbsplit'             }
 if (!params.skip_alignment) { prepareToolIndices << params.aligner        }
-if (params.pseudo_aligner)  { prepareToolIndices << params.pseudo_aligner }
+if (!params.skip_pseudo_alignment && params.pseudo_aligner) { prepareToolIndices << params.pseudo_aligner }
 
 // Get RSeqC modules to run
 def rseqc_modules = params.rseqc_modules ? params.rseqc_modules.split(',').collect{ it.trim().toLowerCase() } : []
@@ -84,6 +84,7 @@ if (params.fasta && params.gtf) {
 ch_multiqc_config        = file("$projectDir/assets/multiqc_config.yml", checkIfExists: true)
 ch_multiqc_custom_config = params.multiqc_config ? Channel.fromPath(params.multiqc_config) : Channel.empty()
 ch_biotypes_distribution_yaml_header = file("$projectDir/assets/biotypes_distribution_header.yaml", checkIfExists: true)
+ch_genomic_origin_of_reads_yaml_header = file("$projectDir/assets/genomic_origin_of_reads_header.yaml", checkIfExists: true)
 
 // Header files for MultiQC
 ch_pca_header_multiqc        = file("$projectDir/assets/multiqc/deseq2_pca_header.txt", checkIfExists: true)
@@ -113,6 +114,8 @@ include { DESEQ2_QC as DESEQ2_QC_RSEM        } from '../modules/local/deseq2_qc'
 include { DESEQ2_QC as DESEQ2_QC_SALMON      } from '../modules/local/deseq2_qc'
 include { DUPRADAR                           } from '../modules/local/dupradar'
 include { BIOTYPE_DISTRIBUTION_YAML          } from '../modules/local/biotype_distribution_yaml'
+include { BEDTOOLS_GENOMIC_ORIGIN_OF_READS   } from '../modules/local/bedtools_genomic_origin_of_reads'
+include { GENOMIC_ORIGIN_OF_READS_YAML       } from '../modules/local/genomic_origin_of_reads_yaml'
 include { MULTIQC                            } from '../modules/local/multiqc'
 include { MULTIQC_CUSTOM_BIOTYPE             } from '../modules/local/multiqc_custom_biotype'
 include { MULTIQC_TSV_FROM_LIST as MULTIQC_TSV_FAIL_MAPPED  } from '../modules/local/multiqc_tsv_from_list'
@@ -703,6 +706,17 @@ workflow RNASEQ {
         BIOTYPE_DISTRIBUTION_YAML (
             BIOTYPE_DISTRIBUTION.out.biotypes_distribution_mqc.collect{it[1]},
             ch_biotypes_distribution_yaml_header
+
+        BEDTOOLS_GENOMIC_ORIGIN_OF_READS (
+            ch_genome_bam,
+            PREPARE_GENOME.out.gtf
+        )
+        ch_bedtools_origin_reads = BEDTOOLS_GENOMIC_ORIGIN_OF_READS.out.table
+        ch_versions = ch_versions.mix(BEDTOOLS_GENOMIC_ORIGIN_OF_READS.out.versions.first())
+
+        GENOMIC_ORIGIN_OF_READS_YAML (
+            BEDTOOLS_GENOMIC_ORIGIN_OF_READS.out.mqc_bedtools_goor_yaml.collect{it[1]},
+            ch_genomic_origin_of_reads_yaml_header
         )
 
         if (!params.skip_dupradar) {
@@ -762,27 +776,36 @@ workflow RNASEQ {
     ch_salmon_multiqc                   = Channel.empty()
     ch_pseudoaligner_pca_multiqc        = Channel.empty()
     ch_pseudoaligner_clustering_multiqc = Channel.empty()
-    if (params.pseudo_aligner == 'salmon') {
-        QUANTIFY_SALMON (
-            ch_filtered_reads,
-            PREPARE_GENOME.out.salmon_index,
-            ch_dummy_file,
-            PREPARE_GENOME.out.gtf,
-            false,
-            params.salmon_quant_libtype ?: ''
-        )
-        ch_salmon_multiqc = QUANTIFY_SALMON.out.results
-        ch_versions = ch_versions.mix(QUANTIFY_SALMON.out.versions)
+    if (!params.skip_pseudo_alignment && params.pseudo_aligner) {
 
-        if (!params.skip_qc & !params.skip_deseq2_qc) {
-            DESEQ2_QC_SALMON (
-                QUANTIFY_SALMON.out.counts_gene_length_scaled,
-                ch_pca_header_multiqc,
-                ch_clustering_header_multiqc
+        if (params.pseudo_aligner == 'salmon') {
+            ch_pseudo_index = PREPARE_GENOME.out.salmon_index
+        } else {
+            ch_pseudo_index = PREPARE_GENOME.out.kallisto_index
+        }
+
+        if (params.pseudo_aligner == 'salmon') {
+            QUANTIFY_SALMON (
+                ch_filtered_reads,
+                PREPARE_GENOME.out.salmon_index,
+                ch_dummy_file,
+                PREPARE_GENOME.out.gtf,
+                false,
+                params.salmon_quant_libtype ?: ''
             )
-            ch_pseudoaligner_pca_multiqc        = DESEQ2_QC_SALMON.out.pca_multiqc
-            ch_pseudoaligner_clustering_multiqc = DESEQ2_QC_SALMON.out.dists_multiqc
-            ch_versions = ch_versions.mix(DESEQ2_QC_SALMON.out.versions)
+            ch_salmon_multiqc = QUANTIFY_SALMON.out.results
+            ch_versions = ch_versions.mix(QUANTIFY_SALMON.out.versions)
+
+            if (!params.skip_qc & !params.skip_deseq2_qc) {
+                DESEQ2_QC_SALMON (
+                    QUANTIFY_SALMON.out.counts_gene_length_scaled,
+                    ch_pca_header_multiqc,
+                    ch_clustering_header_multiqc
+                )
+                ch_pseudoaligner_pca_multiqc        = DESEQ2_QC_SALMON.out.pca_multiqc
+                ch_pseudoaligner_clustering_multiqc = DESEQ2_QC_SALMON.out.dists_multiqc
+                ch_versions = ch_versions.mix(DESEQ2_QC_SALMON.out.versions)
+            }
         }
     }
 
@@ -838,6 +861,7 @@ workflow RNASEQ {
             ch_tin_multiqc.collect{it[1]}.ifEmpty([]),
             ch_kraken2_multiqc.ifEmpty([]),
             BIOTYPE_DISTRIBUTION_YAML.out.mqc_biotype_distribution
+            GENOMIC_ORIGIN_OF_READS_YAML.out.mqc_genomic_origin_of_reads
         )
 
     }
@@ -848,7 +872,7 @@ workflow RNASEQ {
 
     ch_Flomics_UMI_dedup_rate_QC = Channel.empty()
 
-    if (params.with_umi) {
+    if (!params.skip_alignment && params.with_umi) {
         ch_bams_umi_dedup= DEDUP_UMI_UMITOOLS_TRANSCRIPTOME.out.bam.join(ALIGN_STAR.out.bam_transcript)
 
         FLOMICS_UMI_DEDUP_QC (
@@ -856,7 +880,7 @@ workflow RNASEQ {
         )
         ch_Flomics_UMI_dedup_rate_QC = FLOMICS_UMI_DEDUP_QC.out.umi_dedup_rate.collect()
     }
-    if (params.with_umi) {
+    if (!params.skip_alignment && params.with_umi) {
         FLOMICS_QC (
             ch_input,
             MULTIQC.out.data.collect(),
@@ -872,9 +896,10 @@ workflow RNASEQ {
             ch_qc_dashboard,
             QUANTIFY_STAR_SALMON.out.counts_gene,
             BIOTYPE_DISTRIBUTION.out.aggregator_results.collect{it[1]}
+            BEDTOOLS_GENOMIC_ORIGIN_OF_READS.out.table.collect{it[1]}
         )
     }
-    else{
+    if (!params.skip_alignment && !params.with_umi) {
         FLOMICS_QC (
             ch_input,
             MULTIQC.out.data.collect(),
@@ -890,6 +915,7 @@ workflow RNASEQ {
             ch_qc_dashboard,
             QUANTIFY_STAR_SALMON.out.counts_gene,
             BIOTYPE_DISTRIBUTION.out.aggregator_results.collect{it[1]}
+            BEDTOOLS_GENOMIC_ORIGIN_OF_READS.out.table.collect{it[1]}
 
         )
     }
