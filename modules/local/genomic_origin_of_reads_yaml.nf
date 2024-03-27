@@ -17,7 +17,7 @@ process GENOMIC_ORIGIN_OF_READS_YAML {
     cp $yaml tmp/
     cp $header tmp/
     cd tmp/
-    bash make_yaml.sh
+    bash make_yaml.sh $header genomic_origin_of_reads_mqc.yaml
     cd ../
     cp tmp/genomic_origin_of_reads_mqc.yaml .
     """
