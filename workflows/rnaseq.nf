@@ -706,6 +706,7 @@ workflow RNASEQ {
         BIOTYPE_DISTRIBUTION_YAML (
             BIOTYPE_DISTRIBUTION.out.biotypes_distribution_mqc.collect{it[1]},
             ch_biotypes_distribution_yaml_header
+        )
 
         BEDTOOLS_GENOMIC_ORIGIN_OF_READS (
             ch_genome_bam,
@@ -916,7 +917,6 @@ workflow RNASEQ {
             QUANTIFY_STAR_SALMON.out.counts_gene,
             BIOTYPE_DISTRIBUTION.out.aggregator_results.collect{it[1]},
             BEDTOOLS_GENOMIC_ORIGIN_OF_READS.out.table.collect{it[1]}
-
         )
     }
 
