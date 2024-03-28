@@ -76,14 +76,13 @@ process FLOMICS_QC_AGGREGATOR{
 
     {
         IFS=$'\t' read -r -a headers <<< "$(head -n 1 joined_biotype_table.tsv)"
-        sorted_headers=($(
-            for col in "${headers[@]:1}"; do
-                echo "$col"
-            done | sort
-        ))
+        sorted_headers=($(for col in "${headers[@]:1}"; do echo "$col"; done | sort))
         printf '%s\t' "${headers[0]}"
-        printf '%s\t' "${sorted_headers[@]}"
-        printf '\n'
+        for ((i=0; i<${#sorted_headers[@]}-1; i++)); do
+            printf '%s\t' "${sorted_headers[i]}"
+        done
+        # Print the last header without adding an extra tab, then a newline
+        printf '%s\n' "${sorted_headers[-1]}"
         tail -n +2 joined_biotype_table.tsv
     } > sorted_joined_biotype_table.tsv
 
