@@ -58,7 +58,7 @@ process BIOTYPE_DISTRIBUTION {
     then
         echo "The sum of biotypes is equal to the number of exonic counts."
     else
-        echo "The sum of biotypesi s NOT equal to the number of exonic counts. Exiting."
+        echo "The sum of biotypes is NOT equal to the number of exonic counts. Exiting."
         exit 1
     fi
 

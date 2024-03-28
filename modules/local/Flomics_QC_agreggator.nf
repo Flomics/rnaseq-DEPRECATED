@@ -62,16 +62,28 @@ process FLOMICS_QC_AGGREGATOR{
     cat tmp.biotype_table.tsv | head -n 1 > biotype_table.tsv
     cat tmp.biotype_table.tsv | tail -n+2 | sort -k1,1 >> biotype_table.tsv
 
-    paste biotype_table.tsv <(cut -f2- !{biotype_distribution}) > joined_biotype_table.tsv
+    echo -e "Sample\tIG_C_gene\tIG_C_pseudogene\tIG_D_gene\tIG_J_gene\tIG_J_pseudogene\tIG_V_gene\tIG_V_pseudogene\tIG_pseudogene\tMt_rRNA\tMt_tRNA\tTEC\tTR_C_gene\tTR_D_gene\tTR_J_gene\tTR_J_pseudogene\tTR_V_gene\tTR_V_pseudogene\tlncRNA\tmiRNA\tmisc_RNA\tpolymorphic_pseudogene\tprocessed_pseudogene\tprotein_coding\tpseudogene\trRNA\trRNA_pseudogene\tribozyme\tsRNA\tscRNA\tscaRNA\tsnRNA\tsnoRNA\tspike_in\ttranscribed_processed_pseudogene\ttranscribed_unitary_pseudogene\ttranscribed_unprocessed_pseudogene\ttranslated_processed_pseudogene\ttranslated_unprocessed_pseudogene\tunitary_pseudogene\tunprocessed_pseudogene\tvault_RNA" > bedtools_biotypes.tsv
+    while IFS= read -r sample; do
+        if test -f "${sample}_biotypes_distribution_mqc.tsv"; then
+            sed '1d' ${sample}_biotypes_distribution_mqc.tsv > ${sample}_tmp_biotypes_distribution_mqc.tsv
+            cat "${sample}_tmp_biotypes_distribution_mqc.tsv" | sed "s/^/$sample\t/" >> bedtools_biotypes.tsv
+        else
+            echo -e "$sample\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA" >> bedtools_biotypes.tsv
+        fi
+    done < samples.tsv
+
+    paste biotype_table.tsv <(cut -f2- bedtools_biotypes.tsv) > joined_biotype_table.tsv
 
     {
         IFS=$'\t' read -r -a headers <<< "$(head -n 1 joined_biotype_table.tsv)"
         sorted_headers=($(
             for col in "${headers[@]:1}"; do
-            echo "$col"
+                echo "$col"
             done | sort
         ))
-        echo -e "${headers[0]}\t${sorted_headers[*]}"
+        printf '%s\t' "${headers[0]}"
+        printf '%s\t' "${sorted_headers[@]}"
+        printf '\n'
         tail -n +2 joined_biotype_table.tsv
     } > sorted_joined_biotype_table.tsv
 
