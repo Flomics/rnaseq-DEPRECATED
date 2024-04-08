@@ -1,5 +1,5 @@
 id: "bedtools_biotype_distribution"
-section_name: "Bedtools Biotype Distribution"
+section_name: "Biotype Counts (Bedtools)"
 description: "This plot shows the biotype distribution as calculated by bedtools and samtools (Flomics)"
 plot_type: "bargraph"
 pconfig:
